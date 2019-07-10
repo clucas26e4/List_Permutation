@@ -5,102 +5,7 @@ Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_more.
-Require Import List_manip.
-Require Import Permutation_more.
-
-Ltac splitb := apply andb_true_intro; split.
-
-(* fold_left max *)
-Lemma fold_left_max_r : forall f a, a <= fold_left max f a.
-Proof with try reflexivity.
-  induction f; intros k...
-  simpl.
-  transitivity (max k a).
-  - apply Nat.le_max_l.
-  - apply IHf.
-Qed.
-
-Lemma fold_left_max_le_r : forall l i j, i <= j -> fold_left max l i <= fold_left max l j.
-Proof with try reflexivity; try assumption.
-  clear; induction l; intros i j Hle...
-  simpl.
-  apply IHl.
-  lia.
-Qed.
-
-Lemma fold_left_max_indep : forall i l, i < fold_left max l i -> forall j, fold_left max l i <= fold_left max l j.
-Proof with try assumption; try reflexivity.
-  intros i l; revert i; induction l; intros i Hlt j.
-  - simpl in Hlt.
-    exfalso; lia.
-  - simpl in *.
-    case_eq (max i a <? fold_left max l (max i a)); intros Hcase.
-    + apply Nat.ltb_lt in Hcase.
-      apply IHl...
-    + apply Nat.ltb_nlt in Hcase.
-      assert (i < a) by lia.
-      replace (max i a) with a in * by lia.
-      apply fold_left_max_le_r.
-      lia.
-Qed.
-
-Lemma fold_left_max_le : forall l i j, fold_left max l i <= j -> fold_left max l j <= j.
-Proof with try assumption;try reflexivity.
-  induction l; intros i j Hle...
-  simpl.
-  simpl in Hle.
-  replace j with (max j a) at 2.
-  2:{ apply Nat.max_l.
-      transitivity (max i a) ; [lia | ].
-      transitivity (fold_left max l (max i a)).
-      - apply fold_left_max_r.
-      - apply Hle. }
-  apply IHl with (max i a).
-  transitivity j; lia.
-Qed.
-  
-Lemma fold_left_max_app : forall k l1 l2, fold_left max (l1 ++ l2) k = max (fold_left max l1 k) (fold_left max l2 k).
-Proof with try assumption; try reflexivity.
-  intros k l1; revert k; induction l1; intros k l2.
-  - simpl.
-    symmetry.
-    apply Nat.max_r.
-    apply fold_left_max_r.
-  - simpl.
-    rewrite IHl1.
-    case_eq (fold_left max l2 k <=? max k a); intros Hcase.
-    + transitivity (fold_left max l1 (max k a)).
-      * apply Nat.max_l.
-        apply Nat.leb_le in Hcase.
-        transitivity (max k a).
-        -- apply fold_left_max_le with k...
-        -- apply fold_left_max_r.
-      * symmetry.
-        apply Nat.max_l.
-        apply Nat.leb_le in Hcase.
-        transitivity (max k a)...
-        apply fold_left_max_r.
-    + replace (fold_left max l2 k) with (fold_left max l2 (max k a))...
-      apply Nat.le_antisymm.
-      * apply fold_left_max_indep.
-        apply Nat.leb_nle in Hcase.
-        apply Nat.lt_le_trans with (fold_left max l2 k).
-        -- lia.
-        -- apply fold_left_max_le_r.
-           lia.
-      * apply fold_left_max_le_r.
-        lia.
-Qed.
-
-(* Properties on list nat *)
-Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2),
-    p1 = p2.
-Proof with try reflexivity; try assumption.
-  intros l1 l2 p1 p2.
-  apply Eqdep_dec.UIP_dec.
-  apply list_eq_dec.
-  apply Nat.eq_dec.
-Qed.    
+Require Import List_more2.
       
 (* APP_NAT_FUN *)
 
@@ -520,18 +425,6 @@ Proof with try reflexivity; try assumption.
       rewrite nHin...
 Qed.
 
-Lemma In_nat_bool_Perm: forall l1 l2 a,
-    Permutation l1 l2 ->
-    In_nat_bool a l1 = In_nat_bool a l2.
-Proof with try reflexivity; try assumption.
-  intros l1 l2 a Hp.
-  induction Hp...
-  - simpl; rewrite IHHp...
-  - simpl.
-    case (a =? y) ; case (a =? x)...
-  - transitivity (In_nat_bool a l')...
-Qed.
-                                
 (** ** all_lt *)
 
 Fixpoint all_lt (l : list nat) (n : nat) :=
@@ -547,7 +440,7 @@ Lemma all_lt_leq : forall l k n,
 Proof with try reflexivity; try assumption.
   induction l; intros k n Hal Hleq...
   destruct (andb_prop _ _ Hal).
-  splitb.
+  apply andb_true_intro; split.
   - apply Nat.ltb_lt.
     unfold lt.
     transitivity k...
@@ -621,7 +514,7 @@ Lemma cond_all_lt : forall l n,
 Proof with try reflexivity; try assumption.
   intros l n.
   induction l; intros H...
-  splitb.
+  apply andb_true_intro; split.
   - apply Nat.ltb_lt.
     change a with (nth 0 (a :: l) 0).
     apply H.
@@ -717,7 +610,7 @@ Lemma all_distinct_Id : forall n,
     all_distinct (Id n) = true.
 Proof with try reflexivity; try assumption.
   induction n...
-  splitb.
+  apply andb_true_intro; split.
   + apply negb_true_iff.
     apply negb_In_incr_all.
     apply Nat.lt_0_1.
@@ -733,7 +626,7 @@ Lemma cond_all_distinct : forall l,
     all_distinct l = true.
 Proof with try assumption; try reflexivity.
   induction l; intros H...
-  splitb.
+  apply andb_true_intro; split.
   + apply negb_true_iff.
     apply cond_negb_In_nat_bool.
     intros k k0 Hlt Heq.
@@ -939,28 +832,6 @@ Proof with try reflexivity; try assumption.
       * apply negb_In_incr_all.
         apply Nat.ltb_lt...
     + apply IHla...
-Qed.
-
-Lemma all_distinct_Perm : forall l l',
-    Permutation l l' ->
-    all_distinct l = all_distinct l'.
-Proof with try assumption; try reflexivity.
-  intros l l' Hp.
-  induction Hp...
-  - unfold all_distinct; fold all_distinct.
-    rewrite IHHp.
-    rewrite In_nat_bool_Perm with _ l' _...
-  - simpl.
-    rewrite 2 negb_orb.
-    case_eq (y =? x); intro H.
-    + replace (x =? y) with true...
-      rewrite Nat.eqb_sym.
-      rewrite H...
-    + replace (x =? y) with false.
-      2:{ rewrite Nat.eqb_sym.
-          rewrite H... }
-      case (In_nat_bool y l); case (In_nat_bool x l)...
-  - transitivity (all_distinct l')...
 Qed.
 
 (** ** shift *)
@@ -1180,7 +1051,7 @@ Lemma shift_keep_all_distinct : forall l k,
 Proof with try reflexivity; try assumption.
   induction l; intros k Hal...
   simpl in Hal |- *.
-  case_eq (a <? k); intros Hlt; simpl; splitb.
+  case_eq (a <? k); intros Hlt; simpl; apply andb_true_intro; split.
   - apply andb_prop in Hal as (nHin & _).
     rewrite shift_In_nat_bool_lt...
   - apply andb_prop in Hal as (_ & Hal).
@@ -1749,7 +1620,7 @@ Proof with try reflexivity; try assumption.
   - apply Nat.ltb_lt in H1.
     simpl; rewrite H1.
     apply andb_prop in Hal as (nHin & Hal).
-    splitb.
+    apply andb_true_intro; split.
     + rewrite downshift_In_nat_bool_lt...
     + refine (IHl k Hal).
   - subst.
@@ -1761,7 +1632,7 @@ Proof with try reflexivity; try assumption.
     clear Hal.
     rewrite downshift_gt.
     2:{ apply Nat.ltb_lt... }
-    splitb...
+    apply andb_true_intro; split...
     rewrite downshift_In_nat_bool_gt by (apply Nat.ltb_lt; apply H3)...
 Qed.
 
@@ -2236,7 +2107,7 @@ Proof with try assumption; try reflexivity.
   intros n m.
   unfold cfun.
   rewrite all_lt_app.
-  splitb.
+  apply andb_true_intro; split.
   - rewrite <- all_lt_incr_all.
     apply all_lt_Id.
   - apply all_lt_leq with n; [apply all_lt_Id | lia].
@@ -2515,7 +2386,7 @@ Proof with try assumption; try reflexivity.
   revert Had; induction p; intros Had...
   apply andb_prop in Had as (nHin & Had).
   simpl.
-  splitb; [ | apply IHp]...
+  apply andb_true_intro; split; [ | apply IHp]...
   apply negb_true_iff.
   apply cond_negb_In_nat_bool.
   intros k k0 Hlen.
@@ -2533,7 +2404,7 @@ Proof with try assumption; try reflexivity.
   intro f.
   induction f; intros k b Hlt...
   simpl.
-  splitb.
+  apply andb_true_intro; split.
   - apply Nat.ltb_lt.
     apply Nat.le_lt_trans with (fold_left max (a :: f) b)...
     simpl.
@@ -2629,11 +2500,11 @@ Proof with try reflexivity; try assumption.
   case_eq (n <? m); intros Hcase.
   - apply Nat.ltb_lt in Hcase.
     rewrite all_lt_app.
-    splitb.
+    apply andb_true_intro; split.
     + apply all_lt_leq with n; [ | lia].
       apply all_lt_Id.
     + simpl.
-      splitb; [ | splitb].
+      apply andb_true_intro; split; [ | apply andb_true_intro; split].
       * apply Nat.ltb_lt; lia.
       * apply Nat.ltb_lt; lia.
       * rewrite (Minus.le_plus_minus (S (S n)) (S m)) ; [ | lia].
@@ -2657,7 +2528,7 @@ Proof with try reflexivity; try assumption.
     rewrite all_distinct_app...
     + apply all_lt_Id.
     + apply all_distinct_Id.
-    + simpl; splitb; [ | splitb].
+    + simpl; apply andb_true_intro; split; [ | apply andb_true_intro; split].
       * apply negb_true_iff.
         apply negb_In_incr_all...
         lia.
@@ -2741,17 +2612,17 @@ Proof with try reflexivity; try assumption.
   case_eq (i <? j); intros Hcase1; [case_eq (j <=? m); intros Hcase2 | ]; unfold "&&".
   - apply Nat.ltb_lt in Hcase1; apply Nat.leb_le in Hcase2.
     rewrite all_lt_app.
-    splitb.
+    apply andb_true_intro; split.
     + apply all_lt_leq with i; [apply all_lt_Id | lia].
     + simpl.
-      splitb; [apply Nat.ltb_lt; lia | ].
+      apply andb_true_intro; split; [apply Nat.ltb_lt; lia | ].
       rewrite all_lt_app.
-      splitb.
+      apply andb_true_intro; split.
       * rewrite (Minus.le_plus_minus (S i) (S m)); [ | lia].
         rewrite<- all_lt_incr_all.
         apply all_lt_leq with (j - S i); [apply all_lt_Id | lia].
       * simpl.
-        splitb; [ apply Nat.ltb_lt; lia | ].
+        apply andb_true_intro; split; [ apply Nat.ltb_lt; lia | ].
         rewrite (Minus.le_plus_minus (S j) (S m)); [ | lia].
         rewrite<- all_lt_incr_all.
         simpl.
