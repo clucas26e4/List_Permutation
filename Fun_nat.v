@@ -576,6 +576,22 @@ Proof with try reflexivity; try assumption.
     apply cond_all_distinct_inv with (n1 :: l) n0...
     simpl; apply Nat.ltb_lt...
 Qed.
+
+Lemma app_nat_fun_map {A B} : forall (f : A -> B) l p,
+    app_nat_fun p (map f l) = map f (app_nat_fun p l).
+Proof with try reflexivity.
+  intros f l p.
+  destruct l...
+  induction p...
+  rewrite map_cons.
+  app_nat_fun_unfold p (map f l) a0 (f a).
+  rewrite<- ? map_cons.
+  rewrite IHp.
+  app_nat_fun_unfold p l a0 a.
+  change ( map f (nth a0 (a :: l) a :: app_nat_fun p (a :: l))) with (f (nth a0 (a :: l) a) :: map f (app_nat_fun p (a :: l))).
+  rewrite map_nth...
+Qed.
+
 (* ID *)
 Fixpoint Id n :=
   match n with

@@ -10,6 +10,8 @@ Require Import List.
 Require Import Injective.
 Require Import List_Type.
 Require Import List_nat.
+Require Import List_more2.
+Require Import Fun_nat.
 Require Import Perm.
 Require Import Perm_R_more.
 Require Import Perm_R_solve.
@@ -20,14 +22,15 @@ Require Import CyclicPerm_R_solve.
 
 (** ** Definitions
  parametrized by a boolean. *)
-
 Definition cond_PCperm (b : bool) l : Type :=
   if b then is_perm l = true else cond_cyclicPerm l.
 
 Lemma PCperm_Perm : forall b l, cond_PCperm b l -> is_perm l = true.
 Proof with try reflexivity; try assumption.
   intros b; case b; simpl; intros l Hperm...
-  apply CyclicPerm_Perm...
+  destruct Hperm as [((n , m) & Heq) | Heq].
+  - rewrite Heq; apply cfun_is_perm.
+  - rewrite Heq; apply Id_is_perm.
 Qed.
 
 Definition cond_PEperm (b : bool) l : Type :=
@@ -70,7 +73,7 @@ Ltac PCperm_R_solve :=
   end.
 
 (** *** Properties *)
-
+(*
 Lemma properties_PCperm_R_PCperm {A} b :
   forall (P : list A -> list A ->  Type),
     (forall l1 l2, PCperm_R b l1 l2 -> P l1 l2) ->
@@ -108,7 +111,7 @@ Proof with try reflexivity; try assumption.
   - rewrite Hperm.
     rewrite Hlen.
     symmetry;apply app_Id.
-Qed.  
+Qed.*)
 
 Instance PCperm_Perm_R {A} b : Proper (PCperm_R b ==> (@Perm_R A)) (fun a => a).
 Proof with try assumption.

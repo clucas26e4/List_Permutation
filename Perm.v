@@ -8,19 +8,16 @@ Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_Type_more.
-Require Import List_manip.
+Require Import List_more2.
 Require Import List_nat.
+Require Import Fun_nat.
+Require Import Transposition.
 Require Import misc.
 
 (* PERMUTATION DEFINITION *)
 
 Definition is_perm (l : list nat) :=
   (all_lt l (length l)) && (all_distinct l).
-
-Definition Perm := {l & is_perm l = true}.
-
-Definition app_perm {A} (p : Perm) (l : list A) :=
-  app_nat_fun (projT1 p) l.
 
 (* Some facts about is_perm *)
 
@@ -235,15 +232,14 @@ Proof with try reflexivity; try assumption.
     lia.
 Qed.
                                
-Lemma app_perm_keep_all_distinct : forall (l : list nat) (p : Perm),
-    length (projT1 p) = length l ->
-    all_distinct l = all_distinct (app_perm p l).
+Lemma app_perm_keep_all_distinct : forall (l : list nat) p,
+    length p = length l ->
+    is_perm p = true ->
+    all_distinct l = all_distinct (app_nat_fun p l).
 Proof with try reflexivity; try assumption.
   destruct l...
-  unfold app_perm.
   unfold app_nat_fun.
-  intros p Hlen.
-  destruct p as (p & H1).
+  intros p Hlen H1.
   assert (Hperm := H1).
   unfold is_perm in H1.
   simpl.
@@ -301,18 +297,17 @@ Proof with try reflexivity; try assumption.
       rewrite Heqk2...
 Qed.  
                                
-Lemma app_perm_keep_all_lt : forall (l : list nat) n (p : Perm),
-    length (projT1 p) = length l ->
-    all_lt l n = all_lt (app_perm p l) n.
+Lemma app_perm_keep_all_lt : forall (l : list nat) n p,
+    length p = length l ->
+    is_perm p = true ->
+    all_lt l n = all_lt (app_nat_fun p l) n.
 Proof with try reflexivity; try assumption.
-  intros l n p Hlen.
-  destruct p as (p & Hperm).
+  intros l n p Hlen Hperm.
   simpl in Hlen.
   case_eq (all_lt l n); intros Heq; symmetry.
   - destruct l...
     apply cond_all_lt.
     intros k0 k Hlt.
-    unfold app_perm.
     unfold app_nat_fun.
     simpl.
     simpl in Hlt.
@@ -351,10 +346,8 @@ Lemma compo_perm_is_perm : forall l1 l2,
     is_perm (app_nat_fun l1 l2) = true.
 Proof with try reflexivity; try assumption.
   intros l1 l2 Hp1 Hp2 Hlen.
-  change (app_nat_fun l1 l2) with (app_perm (existT _ l1 Hp1) l2).
   splitb.
   - rewrite<- app_perm_keep_all_lt...
-    unfold app_perm.
     simpl.
     apply andb_prop in Hp2 as (Hp2 & _).
     destruct l2...
@@ -362,11 +355,8 @@ Proof with try reflexivity; try assumption.
     rewrite map_length.
     rewrite Hlen...
   - apply andb_prop in Hp2 as (Halt2 & Had2).
-    rewrite<- app_perm_keep_all_distinct with _ (existT (fun l : list nat => is_perm l = true) l1 Hp1)...
+    rewrite<- app_perm_keep_all_distinct...
 Qed.
-
-Definition compo_perm (l1 : Perm) (l2 : Perm) (Hlen : length (projT1 l1) = length (projT1 l2)):=
-  existT (fun l => is_perm l = true) (app_nat_fun (projT1 l1) (projT1 l2)) (compo_perm_is_perm _ _ (projT2 l1) (projT2 l2) Hlen).
 
 Lemma Id_is_perm : forall n, is_perm (Id n) = true.
 Proof with try reflexivity; try assumption.
@@ -378,110 +368,6 @@ Proof with try reflexivity; try assumption.
     rewrite incr_all_length...
   - apply all_distinct_Id.
 Qed.    
-    
-Lemma switch_is_perm : forall n, is_perm (1 :: 0 :: (incr_all (Id n) 2)) = true.
-Proof with try reflexivity; try assumption.
-  intros n; induction n...
-  unfold is_perm.
-  destruct (andb_prop _ _ IHn) as (H1 & H2).
-  splitb.
-  - simpl.
-    rewrite 2 incr_all_length.
-    change (S (S (S (length (Id n))))) with (2 + (S (length (Id n)))).
-    rewrite<- all_lt_incr_all.
-    rewrite<- all_lt_incr_all.
-    simpl in H1.
-    rewrite incr_all_length in H1.
-    change (S (S (length (Id n)))) with (2 + (length (Id n))) in H1.
-    rewrite<- all_lt_incr_all in H1...
-  - splitb; [ | splitb].
-    + apply negb_true_iff.
-      apply negb_In_incr_all.
-      lia.
-    + apply negb_true_iff.
-      apply negb_In_incr_all.
-      lia.
-    + change ((fix all_distinct (l : list nat) : bool :=
-     match l with
-     | nil => true
-     | n0 :: l0 => negb (In_nat_bool n0 l0) && all_distinct l0
-     end) (incr_all (Id (S n)) 2)) with (all_distinct (incr_all (Id (S n)) 2)).
-      rewrite<- all_distinct_incr_all.
-      apply all_distinct_Id.
-Qed.
-
-Lemma next_perm_is_perm : forall l,
-    is_perm l = true ->
-    is_perm (0 :: (incr_all l 1)) = true.
-Proof with try reflexivity; try assumption.
-  intros l Hperm.
-  apply andb_prop in Hperm as (H1 & H2).
-  splitb.
-  - splitb.
-    + apply Nat.ltb_lt.
-      simpl; lia.
-    + change ((fix all_lt (l0 : list nat) (n : nat) {struct l0} : bool :=
-     match l0 with
-     | nil => true
-     | k :: l1 => (k <? n) && all_lt l1 n
-     end) (incr_all l 1) (length (0 :: incr_all l 1))) with (all_lt (incr_all l 1) (length (0 :: incr_all l 1))).
-      simpl; rewrite<- all_lt_incr_all; rewrite incr_all_length...
-  - splitb.
-    + apply negb_true_iff.
-      apply negb_In_incr_all.
-      lia.
-    + change ((fix all_distinct (l0 : list nat) : bool :=
-     match l0 with
-     | nil => true
-     | n :: l1 => negb (In_nat_bool n l1) && all_distinct l1
-     end) (incr_all l 1)) with (all_distinct (incr_all l 1)).
-      rewrite<- all_distinct_incr_all...
-Qed.
-
-Definition Id_perm n :=
-  existT (fun l => is_perm l = true) (Id n) (Id_is_perm n).
-
-Definition switch_perm n :=
-  existT (fun l => is_perm l = true) (1 :: 0 :: (incr_all (Id n) 2)) (switch_is_perm n).
-
-Definition next_perm (p : Perm) :=
-  existT (fun l => is_perm l = true) (0 :: (incr_all (projT1 p) 1)) (next_perm_is_perm (projT1 p) (projT2 p)).
-
-Lemma distri_perm {A} : forall (l :list A) (p1 p2 : Perm)
-                               (Hlen : length (projT1 p1) = length (projT1 p2)),
-    app_perm (compo_perm p1 p2 Hlen) l = app_perm p1 (app_perm p2 l).
-Proof with try reflexivity; try assumption.
-  intros l p1 p2 Hlen.
-  destruct p1 as (p1 & Hp1).
-  destruct p2 as (p2 & Hp2).
-  unfold app_perm.
-  simpl.
-  unfold app_nat_fun.
-  apply asso_app_nat_fun.
-Qed.
-
-Lemma length_app_perm {A} : forall l (a : A) (p : Perm),
-    length (app_perm p (a :: l)) = length (projT1 p).
-Proof with try reflexivity; try assumption.
-  intros l a p.
-  destruct p as (p & Hperm).
-  unfold app_perm.
-  unfold app_nat_fun.
-  rewrite map_length...
-Qed.
-
-Lemma perm_ext : forall (p1 : Perm) p2,
-    projT1 p1 = projT1 p2 ->
-    p1 = p2.
-Proof with try reflexivity.
-  intros p1 p2 Heq.
-  destruct p1 as (p1 & Hperm1).
-  destruct p2 as (p2 & Hperm2).
-  simpl in Heq.
-  subst.
-  replace Hperm1 with Hperm2...
-  apply UIP_bool.
-Qed.
 
 Lemma cfun_is_perm : forall n m,
     is_perm (cfun n m) = true.
@@ -504,9 +390,6 @@ Proof with try reflexivity; try assumption.
     rewrite Id_incr_all_Id.
     apply all_distinct_Id.
 Qed.
-
-Definition cperm n m :=
-  existT (fun l => is_perm l = true) (cfun n m) (cfun_is_perm n m).
 
 Lemma append_perm_is_perm : forall f1 f2,
     is_perm f1 = true ->
@@ -541,9 +424,6 @@ Proof with try reflexivity; try assumption.
         apply IHf1...
 Qed.
 
-Definition append_perm (f1 f2 : Perm) :=
-  existT (fun l => is_perm l = true) (projT1 f1 ++ (incr_all (projT1 f2) (length (projT1 f1)))) (append_perm_is_perm (projT1 f1) (projT1 f2) (projT2 f1) (projT2 f2)).
-
 Lemma app_nat_fun_vs_cons {A} : forall l1 l2 (a : A) n p
                                        (Hlen : length (n :: p) = length l2)
                                        (Hperm : is_perm (n :: p) = true)
@@ -567,18 +447,6 @@ Proof with try reflexivity; try assumption.
   apply andb_prop in Hperm as (Halt & _).
   apply andb_prop in Halt as (Hlt & _).
   apply Nat.ltb_lt in Hlt...
-Qed.
-
-Lemma app_perm_length {A} : forall (l : list A) p,
-    length (projT1 p) = length l ->
-    length (app_perm p l) = length l.
-Proof with try reflexivity.
-  destruct l...
-  destruct p as (f & Hp).
-  simpl.
-  intros Hlen.
-  rewrite map_length.
-  apply Hlen.
 Qed.
 
 Lemma perm_has_inv : forall p,
@@ -667,43 +535,7 @@ Proof with try reflexivity; try assumption.
     rewrite Heq_len...
 Qed.
 
-Lemma app_cperm_eq {A} : forall (l l' : list A),
-    app_perm (cperm (length l) (length l')) (l ++ l') = l' ++ l.
-Proof with try reflexivity.
-  intros l l'.
-  unfold cperm, app_perm , cfun; simpl.
-  rewrite app_nat_fun_app.
-  rewrite app_nat_fun_right.
-  2:{ apply all_lt_Id. }
-  rewrite app_Id.
-  rewrite app_nat_fun_left.
-  2:{ apply all_lt_Id. }
-  rewrite app_Id...
-Qed.
-
-Lemma app_nat_fun_map {A B} : forall (f : A -> B) l p,
-    app_nat_fun p (map f l) = map f (app_nat_fun p l).
-Proof with try reflexivity.
-  intros f l p.
-  destruct l...
-  induction p...
-  rewrite map_cons.
-  app_nat_fun_unfold p (map f l) a0 (f a).
-  rewrite<- ? map_cons.
-  rewrite IHp.
-  app_nat_fun_unfold p l a0 a.
-  change ( map f (nth a0 (a :: l) a :: app_nat_fun p (a :: l))) with (f (nth a0 (a :: l) a) :: map f (app_nat_fun p (a :: l))).
-  rewrite map_nth...
-Qed.
-
-Lemma app_perm_map {A B} : forall (f : A -> B) l p,
-    app_perm p (map f l) = map f (app_perm p l).
-Proof with try reflexivity.
-  intros f l (p & Hperm).
-  unfold app_perm; simpl.
-  apply app_nat_fun_map...
-Qed.
-
+(* PERMUTATION BY BLOCK *)
 Lemma concat_perm {A} : forall (p1 : list nat) (L1 L2 : list (list A)) lp,
     length p1 = length L1 ->
     length p1 = length lp ->
@@ -978,6 +810,8 @@ Proof with try reflexivity; try assumption.
       * length_lia.
 Qed.
 
+
+(* TRANSPOSITION DECOMPOSITION *)
 Lemma nc_transpo_S : forall i j k, nc_transpo (S i) (S j) (S k) = 0 :: incr_all (nc_transpo i j k) 1.
 Proof with try assumption; try reflexivity.
   intros i j k.

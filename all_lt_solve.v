@@ -4,8 +4,9 @@ Require Import List_more.
 Require Import Lia.
 Require Import Nat.
 Require Import PeanoNat.
+Require Import List_more2.
 Require Import List_nat.
-Require Import List_manip.
+Require Import Fun_nat.
 Require Import Perm.
 Require Import misc.
 

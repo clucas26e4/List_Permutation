@@ -12,86 +12,28 @@ Require Import PeanoNat.
 Require Import EqNat.
 
 Require Import List_Type_more.
+Require Import List_more2.
 Require Import List_nat.
+Require Import Fun_nat.
 Require Import Perm.
 Require Import Perm_R_more.
+Require Import misc.
 
 (** Definition *)
 
 Definition cond_cyclicPerm l := {' (n , m) : _ & l = cfun (S n) (S m)} + {l = Id (length l)}.
 
-Definition CyclicPerm : Type := {l & cond_cyclicPerm l}.
-
-Definition def_cperm (n m : nat) : CyclicPerm.
-Proof.
-  destruct n; [ | destruct m].
-  - split with (Id m).
-    right.
-    rewrite Id_length.
-    reflexivity.
-  - split with (Id (S n)).
-    right.
-    rewrite Id_length.
-    reflexivity.
-  - split with (cfun (S n) (S m)).
-    left.
-    split with (n, m).
-    reflexivity.
-Defined.
-
-Definition Id_cperm (n : nat) : CyclicPerm.
-Proof.
-  split with (Id n).
-  right.
-  rewrite Id_length.
-  reflexivity.
-Defined.
-     
-Lemma CyclicPerm_ext : forall (cp1 cp2 : CyclicPerm),
-    projT1 cp1 = projT1 cp2 ->
-    cp1 = cp2.
-Proof with try assumption; try reflexivity.
-  intros (l1 & H1) (l2 & H2); simpl; intros Heq.
-  destruct H1; destruct H2.
-  - destruct s as [[n1 m1] Heq1].
-    destruct s0 as [[n2 m2] Heq2].
-    subst.
-    destruct (cfun_arg_inj _ _ _ _ Heq); subst.
-    apply eq_existT_uncurried.
-    split with eq_refl...
-  - destruct s as [[n1 m1] Heq1].
-    subst.
-    inversion e.
-  - destruct s as [[n2 m2] Heq2].
-    subst.
-    inversion e.
-  - subst.
-    assert (e = e0).
-    { apply UIP_list_nat. }
-    subst.
-    apply eq_existT_uncurried.
-    split with eq_refl...  
-Qed.    
-
-Definition app_CyclicPerm {A} (l : list A) (cp : CyclicPerm) :=
-  app_nat_fun (projT1 cp) l.
-
 Definition CyclicPerm_R {A} (l1 l2 : list A) :=
-  { cp : CyclicPerm & prod (length (projT1 cp) = length l1) (l2 = app_CyclicPerm l1 cp) }.
+  { f & prod (cond_cyclicPerm f) ((length f = length l1) * (l2 = app_nat_fun f l1)) }.
 
 Lemma decomp_CyclicPerm_R {A} : forall (l1 l2 : list A),
     CyclicPerm_R l1 l2 ->
     {' (la , lb) : _ & prod (la ++ lb = l1) (lb ++ la = l2) }.
 Proof with try reflexivity.
-  intros l1 l2 ((f & cp) & (Hlen & Heq)).
-  unfold app_CyclicPerm in Heq; simpl in *.
+  intros l1 l2 (f & (cp & Hlen & Heq)).
   destruct cp.
   - destruct s as [[n m] Heqf].
     symmetry in Heqf; destruct Heqf.
-    unfold app_CyclicPerm in Heq.
-    unfold app_perm in Heq.
-    unfold cperm in Heq.
-    simpl in Heq.
     split with (app_nat_fun (Id (S n)) l1, app_nat_fun (incr_all (Id (S m)) (S n)) l1).
     split.
     + rewrite<- app_nat_fun_app.
@@ -120,65 +62,40 @@ Lemma CyclicPerm_R_commu {A} : forall (l1 l2 : list A),
     CyclicPerm_R (l1 ++ l2) (l2 ++ l1).
 Proof with try reflexivity.
   intros l1 l2.
-  split with (def_cperm (length l1) (length l2)).
-  destruct l1 ; [ | destruct l2]; simpl; unfold def_cperm; unfold app_CyclicPerm; simpl.
-  - rewrite app_Id.
-    rewrite Id_length.
-    split...
-    rewrite app_nil_r...
-  - change (a
-              :: map
-              (fun x : nat =>
-                 match x with
-                 | 0 => a
-                 | S n => nth n (l1 ++ nil) a
-                 end) (incr_all (Id (length l1)) 1)) with (app_nat_fun (Id (length (a :: l1))) (a :: l1 ++ nil)).
-    rewrite app_nil_r.
-    rewrite app_Id.
-    rewrite incr_all_length.
-    rewrite Id_length.
-    split...
-  - split.
-    + rewrite ? app_length.
-      simpl.
-      rewrite ? incr_all_length.
-      rewrite ? Id_length.
-      lia.
-    + change (nth (length l1 + 0) (l1 ++ a0 :: l2) a
-                             :: map
-                             (fun x : nat =>
-                                match x with
-                                | 0 => a
-                                | S n => nth n (l1 ++ a0 :: l2) a
-                                end)
-                             (incr_all (incr_all (Id (length l2)) 1) (S (length l1)) ++
-                                       0 :: incr_all (Id (length l1)) 1))
-             with (app_nat_fun (cfun (length (a :: l1)) (length (a0 :: l2))) ((a :: l1) ++ (a0 :: l2))).
-      rewrite app_cfun_eq...
-Defined.
-
-Lemma CyclicPerm_Perm : forall l, cond_cyclicPerm l -> is_perm l = true.
-Proof with try assumption; try reflexivity.
-  intros l [((n & m) & Heq) | Heq].
-  - rewrite Heq.
-    apply cfun_is_perm.
-  - rewrite Heq.
-    apply Id_is_perm.
+  destruct l1 ; [ | destruct l2].
+  - split with (Id (length l2)).
+    repeat split.
+    + right.
+      rewrite Id_length...
+    + rewrite Id_length...
+    + rewrite app_Id.
+      rewrite app_nil_r...
+  - split with (Id (length (a :: l1))).
+    repeat split.
+    + right.
+      rewrite Id_length...
+    + rewrite Id_length.
+      rewrite app_nil_r...
+    + rewrite app_nil_r.
+      rewrite app_Id...
+  - split with (cfun (length (a :: l1)) (length (a0 :: l2))).
+    repeat split.
+    + left.
+      split with (length l1, length l2)...
+    + length_lia.
+    + rewrite app_cfun_eq...
 Qed.
 
 Instance CyclicPerm_Perm_R {A} : Proper (CyclicPerm_R ==> (@Perm_R A)) (fun a => a).
 Proof.
 intros l1 l2 HC.
-destruct HC as ((cp & H) & (Hlen & Heq)).
+destruct HC as (cp & (H & Hlen & Heq)).
 destruct H as [[[n m] Heqcp] | Heqcp].
-- simpl in *.
-  unfold app_CyclicPerm in Heq.
-  simpl in Heq.
-  symmetry in Heqcp; destruct Heqcp.
-  split with (cperm (S n) (S m)).
-  split.
-  + unfold cperm; unfold cfun.
-    simpl.
+- symmetry in Heqcp; destruct Heqcp.
+  split with (cfun (S n) (S m)).
+  repeat split.
+  + apply cfun_is_perm.
+  + unfold cfun.
     rewrite app_length; simpl; rewrite ? incr_all_length; rewrite 2 Id_length.
     replace (S (m + S n)) with (S n + S m) by lia.
     rewrite<- Hlen.
@@ -187,8 +104,6 @@ destruct H as [[[n m] Heqcp] | Heqcp].
     apply Nat.add_comm.
   + apply Heq.
 - simpl in *.
-  unfold app_CyclicPerm in Heq.
-  simpl in Heq.
   rewrite Heqcp in Heq.
   rewrite Hlen in Heq.
   rewrite app_Id in Heq.
@@ -197,34 +112,27 @@ destruct H as [[[n m] Heqcp] | Heqcp].
 Qed.
 
 Instance CyclicPerm_R_refl {A} : Reflexive (@CyclicPerm_R A).
-Proof.
+Proof with try reflexivity.
   intros l.
-  split with (Id_cperm (length l)).
-  unfold app_CyclicPerm; unfold Id_cperm.
-  simpl.
-  rewrite Id_length; rewrite app_Id.
-  split; reflexivity.
+  split with (Id (length l)).
+  repeat split.
+  - right.
+    rewrite Id_length...
+  - length_lia.
+  - rewrite app_Id...
 Defined.
 
 Instance CyclicPerm_R_sym {A} : Symmetric (@CyclicPerm_R A).
 Proof with try reflexivity.
-  intros l1 l2 ((f, H) & (Hlen & Heqf)).
-  unfold app_CyclicPerm in Hlen, Heqf.
+  intros l1 l2 (f & (H & Hlen & Heqf)).
   destruct H as [((n & m) & Heq) | Heq]; simpl in *; subst.
-  - split with (def_cperm (S m) (S n)) .
-    unfold app_CyclicPerm; simpl.
-    split.
+  - split with (cfun (S m) (S n)).
+    repeat split.
+    + left.
+      split with (m, n)...
     + destruct l1.
       * destruct n; destruct m; try now inversion Hlen...
-      * unfold app_nat_fun.
-        rewrite map_length.
-        unfold cfun.
-        rewrite ? app_length; rewrite ? incr_all_length; rewrite ? Id_length.
-        simpl.
-        rewrite incr_all_length.
-        rewrite Id_length.
-        rewrite Nat.add_comm.
-        rewrite Nat.add_succ_r...
+      * length_lia.
     + rewrite<- asso_app_nat_fun.
       rewrite cfun_inv.
       replace (S n + S m) with (length l1).
@@ -238,14 +146,12 @@ Proof with try reflexivity.
   - rewrite Hlen in Heq.
     rewrite Heq.
     rewrite app_Id.
-    split with (Id_cperm (length l1)).
-    split.
-    + unfold Id_cperm; simpl.
+    split with (Id (length l1)).
+    repeat split.
+    + right.
       rewrite Id_length...
-    + unfold app_CyclicPerm.
-      unfold Id_cperm.
-      simpl.
-      rewrite app_Id...
+    + rewrite Id_length...
+    + rewrite app_Id...
 Defined.
 
 Instance CyclicPerm_R_trans {A} : Transitive (@CyclicPerm_R A).

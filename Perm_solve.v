@@ -1,12 +1,10 @@
-
-
 Require Export all_lt_solve.
-Require Export all_distinct_solve.
 Require Export misc.
 Require Import List_more.
 Require Import Perm.
 Require Import List_nat.
-Require Import List_manip.
+Require Import List_more2.
+Require Import Fun_nat.
 
 Ltac replace_perm perm L1 L2 :=
   let p := fresh "p" in

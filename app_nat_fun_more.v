@@ -8,8 +8,9 @@ Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_Type_more.
-Require Import List_manip.
+Require Import List_more2.
 Require Import List_nat.
+Require Import Fun_nat.
 Require Import misc.
 
 Lemma app_nat_fun_vs_elt_inv {A} :
