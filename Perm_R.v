@@ -17,11 +17,11 @@ Require Import Fun_nat.
 Set Implicit Arguments.
 
 Section Perm_R.
-  
+
   Variable A : Type.
-  
+
   Definition Perm_R (l1 : list A) l2 : Type := {p  & prod (is_perm p = true) ((length p = length l1) * (l2 = app_nat_fun p l1))}.
-  
+
 End Perm_R.
 (* Some facts about Perm_R *)
 
@@ -354,7 +354,7 @@ Proof with auto.
   intros (p & (Hperm & Hlen & Heq)).
   destruct p; try now inversion Heq.
   app_nat_fun_unfold p l n a.
-  destruct (nth_decomp (a :: l) a n) as ((la & lb) & (Hlenla & Heq')).
+  destruct (nth_split_Type n (a :: l) a) as [(la,lb) Heq' Hlenla].
   { apply andb_prop in Hperm as (Hal & _).
     apply andb_prop in Hal as (Hlt & _).
     apply Nat.ltb_lt in Hlt.
@@ -386,7 +386,7 @@ Proof with auto.
           change 1 with (length (a :: nil)).
           rewrite app_nat_fun_right...
           rewrite<- downshift_all_lt...
-          rewrite<- H0.
+          inversion Hlenla; rewrite <- H0.
           simpl in Hlen.
           rewrite<- Hlen... }
       rewrite incr_all_downshift_0.
@@ -536,25 +536,18 @@ Theorem Perm_R_in : forall (l l' : list A) (x : A),
     Perm_R l l' -> In x l -> In x l'.
 Proof with try reflexivity; try assumption.
   intros l l' x (p & (Hperm & Hlen & Heq)) Hin.
-  apply cond_In.
-  apply cond_In_inv in Hin as [(k , a0) (Hlen' & Heq')].
+  apply In_nth with _ _ _ x in Hin as [n (Hlen' & Heq')].
+  rewrite <- Heq', Heq; clear Heq'.
   destruct l; try now inversion Hlen'.
-  rewrite Heq.
-  change (app_nat_fun p (a :: l)) with (map (fun x => nth x (a :: l) a) p).
-  destruct (perm_surj _ 0 k Hperm) as (i & (Hlen'' & Heq'')).
-  { rewrite Hlen.
-    simpl in Hlen'.
-    simpl; lia. }
-  exists (i , a).
-  split.
-  - rewrite map_length...
-  - rewrite<- nth_nth with _ _ _ i _...
-    replace (nth (fst (i , a)) p i) with k.
-    2:{ rewrite <- Heq''; simpl.
-        apply nth_indep... }
-    transitivity (nth k (a :: l) a0)...
-    apply nth_indep...  
-Qed.   
+  replace (nth n (a::l) x) with (nth n (a::l) a) by (apply nth_indep; assumption).
+  destruct (perm_surj _ 0 n Hperm) as (i & (Hlen'' & Heq'')).
+  { rewrite Hlen; simpl in Hlen'; simpl; lia. }
+  rewrite <- Heq''.
+  rewrite nth_nth...
+  apply nth_In.
+  rewrite app_nat_fun_length...
+  intros H; inversion H.
+Qed.
 
 Global Instance Perm_R_in' :
   Proper (Logic.eq ==> @Perm_R A ==> iff) (@In A) | 10.
@@ -566,25 +559,18 @@ Theorem Perm_R_in_Type : forall (l l' : list A) (x : A),
     Perm_R l l' -> In_Type x l -> In_Type x l'.
 Proof with try reflexivity; try assumption.
   intros l l' x (p & (Hperm & Hlen & Heq)) Hin.
-  apply cond_In_Type.
-  apply cond_In_Type_inv in Hin as [(k , a0) (Hlen' & Heq')].
+  apply In_nth_Type with _ _ x in Hin as [n Hlen' Heq'].
+  rewrite <- Heq', Heq; clear Heq'.
   destruct l; try now (exfalso; inversion Hlen').
-  rewrite Heq.
-  change (app_nat_fun p (a :: l)) with (map (fun x => nth x (a :: l) a) p).
-  destruct (perm_surj _ 0 k Hperm) as (i & (Hlen'' & Heq'')).
-  { rewrite Hlen.
-    simpl in Hlen'.
-    simpl; lia. }
-  exists (i , a).
-  split.
-  - rewrite map_length...
-  - rewrite<- nth_nth with _ _ _ i _...
-    replace (nth i p i) with k.
-    2:{ rewrite <- Heq''; simpl.
-        apply nth_indep... }
-    transitivity (nth k (a :: l) a0)...
-    apply nth_indep...  
-Qed.   
+  replace (nth n (a::l) x) with (nth n (a::l) a) by (apply nth_indep; assumption).
+  destruct (perm_surj _ 0 n Hperm) as (i & (Hlen'' & Heq'')).
+  { rewrite Hlen; simpl in Hlen'; simpl; lia. }
+  rewrite <- Heq''.
+  rewrite nth_nth...
+  apply nth_In_Type.
+  rewrite app_nat_fun_length...
+  intros H; inversion H.
+Qed.
 
 Global Instance Perm_R_in_Type' :
  Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_Type A) | 10.

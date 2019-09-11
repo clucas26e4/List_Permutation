@@ -1568,7 +1568,7 @@ Proof with try reflexivity; try assumption.
         apply Nat.eqb_neq in nHeq.
         lia. }
       rewrite downshift_gt...
-Qed.        
+Qed.
 
 (** ** Basic manipulation *)
 
@@ -1580,3 +1580,4 @@ Proof with try reflexivity; try assumption.
   simpl.
   rewrite IHl...
 Qed.
+

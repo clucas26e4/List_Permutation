@@ -172,7 +172,7 @@ Lemma decomp_perm : forall l k,
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
   destruct (perm_surj l 0 k Hperm Hlen) as (i & (Hleni & Heq)).
-  destruct (nth_decomp l 0 i Hleni) as ((la & lb) & (Heq_len & Heql)).
+  destruct (nth_split_Type i l 0 Hleni) as [(la,lb) Heql Heq_len].
   split with (la , lb).
   split; [ | split].
   - rewrite<- Heq...
@@ -184,7 +184,7 @@ Proof with try reflexivity; try assumption.
     rewrite Heql in Had.
     rewrite Heq in Had.
     apply all_distinct_right with la...
-Qed.      
+Qed.
 
 Lemma downshift_perm_length : forall l k,
     k < length l -> 
@@ -428,7 +428,7 @@ Lemma app_nat_fun_vs_cons {A} : forall l1 l2 (a : A) n p
                                        (Hlen : length (n :: p) = length l2)
                                        (Hperm : is_perm (n :: p) = true)
                                        (Heq : a :: l1 = app_nat_fun (n :: p) l2),
-    {' (la , lb) : _ & prod (length la = n) (l2 = la ++ a :: lb)}.
+    {' (la , lb) : _ & l2 = la ++ a :: lb & length la = n }.
 Proof with try reflexivity; try assumption.
   intros l1 l2 a n p Hlen Hperm Heq.
   destruct l2; try now inversion Heq.
@@ -442,7 +442,7 @@ Proof with try reflexivity; try assumption.
            | 0 => a0
            | S n => nth n l2 a0
           end) with (nth n (a0 :: l2) a0).
-  apply nth_decomp.
+  apply nth_split_Type.
   rewrite<- Hlen.
   apply andb_prop in Hperm as (Halt & _).
   apply andb_prop in Halt as (Hlt & _).
@@ -557,8 +557,8 @@ Proof with try reflexivity; try assumption.
     destruct (andb_prop _ _ Hperm) as (Hal & Had).
     simpl in Hal, Had.
     apply andb_prop in Hal as (Hlt & Hal); apply Nat.ltb_lt in Hlt.
-    destruct (nth_decomp lp nil i) as ((lpa & lpb) & (Hlenlpa & Heqlp)); [length_lia | ]...
-    destruct (nth_decomp L1 nil i) as ((L1a & L1b) & (HlenL1a & HeqL1)); [length_lia | ]...
+    destruct (nth_split_Type i lp nil) as [(lpa,lpb) Heqlp Hlenlpa]; [length_lia | ]...
+    destruct (nth_split_Type i L1 nil) as [(L1a,L1b) HeqL1 HlenL1a]; [length_lia | ]...
     specialize (IHL2 (downshift p1 i) (L1a ++ L1b) (lpa ++ lpb)).
     apply andb_prop in Had as (nHin & Had); apply negb_true_iff in nHin.
     destruct IHL2 as (p & (Hperm' & Hlen' & Heq')).
@@ -761,7 +761,7 @@ Proof with try reflexivity; try assumption.
                  rewrite app_nth2 by length_lia.
                  replace (a + length l1 - length (a0 :: l) - length l1) with (a - length (a0 :: l)) by length_lia...
               ** apply andb_prop in Hal' as (_ & Hal')...
-Qed.                            
+Qed.
 
 Lemma perm_block {A} : forall (p1 : list nat) (L1 L2 : list (list A)),
     length p1 = length L1 ->
@@ -912,7 +912,7 @@ Proof with try reflexivity; try assumption.
     simpl in Hal.
     inversion Hal.
   - destruct (perm_surj p 0 0 Hperm) as [i [Hlt Heqi]]; [lia | ].
-    destruct (nth_decomp p 0 i) as [[la lb] [Hlenp Heqp]]...
+    destruct (nth_split_Type i p 0) as [(la,lb) Heqp Hlenp]...
     destruct la.
     { simpl in Heqp.
       destruct (IHn (downshift lb 0)) as [l Heql].
