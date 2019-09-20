@@ -13,22 +13,6 @@ Notation beq_nat := Nat.eqb.
 
 Definition incr_all l k := map (fun x => k + x) l.
 
-Lemma incr_all_max : forall l k i,
-    l <> nil ->
-    fold_left max (incr_all l k) i = k + (fold_left max l (i - k)).
-Proof with try assumption; try reflexivity.
-  induction l; intros k i Hnnil.
-  - exfalso.
-    apply Hnnil...
-  - simpl.
-    destruct l.
-    + simpl.
-      lia.
-    + rewrite IHl.
-      2:{ intros H; inversion H. }
-      f_equal; f_equal; lia.
-Qed.
-
 Lemma incr_all_length : forall l n,
     length (incr_all l n) = length l.
 Proof.
@@ -526,21 +510,6 @@ Proof with try reflexivity; try assumption.
   - apply all_lt_leq with n1...
     lia...
   - rewrite<- all_lt_incr_all...
-Qed.
-
-Lemma all_lt_max : forall f k a, fold_left max f a < k -> all_lt f k = true.
-Proof with try assumption; try reflexivity.
-  intro f.
-  induction f; intros k b Hlt...
-  simpl.
-  apply andb_true_intro; split.
-  - apply Nat.ltb_lt.
-    apply Nat.le_lt_trans with (fold_left max (a :: f) b)...
-    simpl.
-    transitivity (max b a).
-    + apply Nat.le_max_r.
-    + apply fold_left_max_r.
-  - apply IHf with (max b a)...
 Qed.
 
 

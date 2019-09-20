@@ -508,8 +508,7 @@ Proof with try reflexivity; try assumption.
         unfold transpo.
         replace (i <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
         rewrite app_nat_fun_Id_r.
-        2:{ rewrite ? fold_left_max_app.
-            simpl.
+        2:{ simpl.
             rewrite all_lt_app; apply andb_true_iff; split.
             - apply all_lt_leq with i; [ apply all_lt_Id | lia ].
             - do 2 (try (apply andb_true_iff; split)).

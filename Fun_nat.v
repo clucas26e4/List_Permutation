@@ -467,13 +467,6 @@ Qed.
 Notation Id := (seq 0).
 
 (* TODO move to List_more ? *)
-Lemma seq_max : forall s l k, fold_left max (seq s (S l)) k = max (s + l) k.
-Proof.
-intros s l; revert s; induction l; intros s k.
-- simpl; lia.
-- simpl in IHl; simpl; rewrite IHl; lia.
-Qed.
-
 Lemma seq_plus : forall s l1 l2, seq s (l1 + l2) = seq s l1 ++ seq (s + l1) l2.
 Proof.
 intros s l1; revert s; induction l1; intros s l2.
@@ -505,9 +498,6 @@ intros s l k.
 revert s; induction l; intros s; simpl; [ reflexivity | ].
 f_equal; [ lia | apply IHl ].
 Qed.
-
-Lemma Id_max : forall n k, fold_left max (Id (S n)) k = max n k.
-Proof. apply seq_max. Qed.
 
 Lemma Id_length : forall n, length (Id n) = n.
 Proof. intros; apply seq_length. Qed.
