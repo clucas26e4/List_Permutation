@@ -1,5 +1,3 @@
-(* ll library for yalla *)
-
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
@@ -20,7 +18,8 @@ Section Perm_R.
 
   Variable A : Type.
 
-  Definition Perm_R (l1 : list A) l2 : Type := {p  & prod (is_perm p = true) ((length p = length l1) * (l2 = app_nat_fun p l1))}.
+  Definition Perm_R (l1 : list A) l2 : Type :=
+    {p  & prod (is_perm p = true) ((length p = length l1) * (l2 = app_nat_fun p l1))}.
 
 End Perm_R.
 (* Some facts about Perm_R *)
@@ -55,10 +54,8 @@ Proof with try reflexivity; try assumption.
     rewrite <- Hlen...
   - rewrite Heq.
     simpl.
-    change (map (fun x0 : nat => match x0 with
-                          | 0 => x
-                          | S n => nth n l x
-                                 end) (incr_all p 1)) with (app_nat_fun (incr_all p (length (x :: nil))) ((x :: nil) ++ l)).
+    change (app_nat_fun_dflt (incr_all p 1) (x :: l) x)
+      with (app_nat_fun (incr_all p (length (x :: nil))) ((x :: nil) ++ l)).
     rewrite app_nat_fun_right...
     simpl in Hlen.
     clear Heq.
@@ -72,20 +69,15 @@ Proof with try reflexivity; try assumption.
   intros l x y.
   split with (1 :: 0 :: (incr_all (Id (length l)) 2)).
   repeat split.
-  - change (1 :: 0 :: (incr_all (Id (length l)) 2)) with ((1 :: 0 :: nil) ++ (incr_all (Id (length l)) (length (1 :: 0 :: nil)))).
+  - change (1 :: 0 :: (incr_all (Id (length l)) 2))
+      with ((1 :: 0 :: nil) ++ (incr_all (Id (length l)) (length (1 :: 0 :: nil)))).
     apply append_perm_is_perm...
     apply Id_is_perm.
   - simpl.
     rewrite incr_all_length.
     rewrite Id_length...
   - simpl.
-    change (map
-              (fun x0 : nat =>
-                 match x0 with
-                 | 0 => x
-                 | 1 => y
-                 | S (S n0) => nth n0 l x
-                 end) (incr_all (Id (length l)) 2)) with
+    change (app_nat_fun_dflt (incr_all (Id (length l)) 2) (x :: y :: l) x) with
         (app_nat_fun (incr_all (Id (length l)) (length (x :: y :: nil))) ((x :: y :: nil) ++ l)).
     rewrite app_nat_fun_right.
     + rewrite app_Id...
@@ -117,14 +109,13 @@ Proof with try reflexivity; try assumption.
   { rewrite Hlen2.
     rewrite IHHp1.
     destruct l1; [destruct p1 ; [ | inversion Hlen1] | ]...
-    unfold app_nat_fun; rewrite map_length... }
+    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length... }
   split with (app_nat_fun p2 p1).
   repeat split.
   - apply compo_perm_is_perm...
   - destruct p1.
     + destruct l1...
-    + unfold app_nat_fun.
-      rewrite map_length.
+    + unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length.
       rewrite H...
   - rewrite asso_app_nat_fun.
     rewrite<- IHHp1...
@@ -141,7 +132,7 @@ Proof with try reflexivity; try assumption.
   - rewrite Heq.
     rewrite <- Hlen_eq.
     destruct l1; unfold app_nat_fun; try now rewrite Hlen.
-    rewrite map_length...
+    unfold app_nat_fun_dflt; rewrite map_length...
   - rewrite<- (app_Id l1).
     rewrite <- Hlen.
     rewrite<- Heq_inv.
@@ -191,7 +182,7 @@ Proof with try reflexivity.
   rewrite Heq.
   symmetry.
   destruct l1...
-  unfold app_nat_fun; rewrite map_length.
+  unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length.
   apply Hlen.
 Qed.
 
@@ -638,25 +629,11 @@ Proof with try assumption; try reflexivity.
         apply Hskip...
       * replace (0 <? (length (a :: a0 :: l0)) - 1) with true...
         simpl.
-        replace (map
-                   (fun x : nat =>
-                      match x with
-                      | 0 => a
-                      | 1 => a0
-                      | S (S m0) => nth m0 l0 a
-                      end) (incr_all (Id (length l0 - 0)) 2)) with l0; [apply Hswap | ].
-        change (fun x : nat =>
-                  match x with
-                  | 0 => a
-                  | 1 => a0
-                  | S (S m0) => nth m0 l0 a
-                  end) with (fun x => nth x (a :: a0 :: l0) a).
-        change (map (fun x : nat => nth x (a :: a0 :: l0) a)
-                    (incr_all (Id (length l0 - 0)) 2))
-          with (app_nat_fun (incr_all (Id (length l0 - 0)) 2) (a :: a0 :: l0)).
+        replace (app_nat_fun_dflt (incr_all (Id (length l0 - 0)) 2) (a :: a0 :: l0) a)
+           with l0; [apply Hswap | ].
         rewrite Nat.sub_0_r.
-        change 2 with (length (a :: a0 :: nil)).
-        change (a :: a0 :: l0) with ((a :: a0 :: nil) ++ l0).
+        change (app_nat_fun_dflt (incr_all (Id (length l0)) 2) (a :: a0 :: l0) a)
+          with (app_nat_fun (incr_all (Id (length l0)) (length (a :: a0 :: nil))) ((a :: a0 :: nil) ++ l0)).
         rewrite app_nat_fun_right; [rewrite app_Id | apply all_lt_Id]...
     + destruct l0; try now (exfalso; apply Hnnil).
       assert (forall n i, transpo (S n) (S i) = 0 :: incr_all (transpo n i) 1) as transpo_S.
@@ -715,8 +692,9 @@ Ltac rect_transpo P Hperm :=
   let IHHperm1 := fresh "IHHperm1" in
   let Hperm2 := fresh "Hperm2" in
   let IHHperm2 := fresh "IHHperm2" in
-  refine (Perm_R_rect_transpo P  _ _ _ _ Hperm); clear Hperm; [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
-  
+  refine (Perm_R_rect_transpo P  _ _ _ _ Hperm); clear Hperm;
+    [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
+
 
 Theorem Perm_R_ind_transpo {A} :
  forall P : list A -> list A -> Prop,
@@ -740,7 +718,8 @@ Ltac ind_transpo P Hperm :=
   let IHHperm1 := fresh "IHHperm1" in
   let Hperm2 := fresh "Hperm2" in
   let IHHperm2 := fresh "IHHperm2" in
-  refine (Perm_R_rect_transpo P  _ _ _ _ Hperm); clear Hperm; [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
+  refine (Perm_R_rect_transpo P  _ _ _ _ Hperm); clear Hperm;
+  [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
 
 Theorem Perm_R_ind_transpo_bis {A} :
  forall P : list A -> list A -> Prop,
@@ -771,7 +750,8 @@ Ltac ind_transpo_bis P Hperm :=
   let IHHperm1 := fresh "IHHperm1" in
   let Hperm2 := fresh "Hperm2" in
   let IHHperm2 := fresh "IHHperm2" in
-  refine (Perm_R_ind_transpo_bis P  _ _ _ _ Hperm); clear Hperm; [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
+  refine (Perm_R_ind_transpo_bis P  _ _ _ _ Hperm); clear Hperm;
+  [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
 
 Theorem Perm_R_rect_transpo_bis {A} :
  forall P : list A -> list A -> Type,
@@ -802,7 +782,10 @@ Ltac rect_transpo_bis P Hperm :=
   let IHHperm1 := fresh "IHHperm1" in
   let Hperm2 := fresh "Hperm2" in
   let IHHperm2 := fresh "IHHperm2" in
-  refine (Perm_R_rect_transpo_bis P _ _ _ _ Hperm); clear Hperm; [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
+  refine (Perm_R_rect_transpo_bis P _ _ _ _ Hperm); clear Hperm;
+  [ | intros x la lb Hperm1 IHHperm1
+    | intros x y la
+    | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
 
 
 (* PERMUTATION_TYPE = PERM_R *)
@@ -831,3 +814,4 @@ Proof with try reflexivity; try assumption.
   intros l l' l'' _ Hperm1 _ Hperm2.
   transitivity l'...
 Qed.
+

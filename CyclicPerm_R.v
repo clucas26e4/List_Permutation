@@ -1,11 +1,3 @@
-(* ll library for yalla *)
-
-(* CyclicPerm_Type library *)
-
-
-(** * Cyclic Permutations
-Definition and basic properties of cyclic permutations in Type. *)
-
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
@@ -132,7 +124,7 @@ Proof with try reflexivity.
       split with (m, n)...
     + destruct l1.
       * destruct n; destruct m; try now inversion Hlen...
-      * length_lia.
+      * unfold app_nat_fun; unfold app_nat_fun_dflt; length_lia.
     + rewrite<- asso_app_nat_fun.
       rewrite cfun_inv.
       replace (S n + S m) with (length l1).
@@ -501,3 +493,4 @@ intros f a l l' HP.
 eapply Perm_R_image.
 apply CyclicPerm_Perm_R ; eassumption.
 Qed.
+

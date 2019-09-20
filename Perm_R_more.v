@@ -1,8 +1,3 @@
-(* Permutation_Type_more Library *)
-
-(** * Add-ons for Permutation_Type library
-Usefull properties apparently missing in the Permutation_Type library. *)
-
 Require Import Plus.
 Require Import CMorphisms.
 Require Import PeanoNat.
@@ -346,7 +341,7 @@ Proof with try reflexivity; try assumption.
     rewrite Heq.
     rewrite Hlen.
     destruct l1...
-    unfold app_nat_fun; rewrite map_length; rewrite Hlen...
+    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length; rewrite Hlen...
 Defined.
 
 Lemma Perm_R_map_inv_inj {A B} : forall f : A -> B, injective f ->
@@ -433,3 +428,4 @@ intros l1 ; induction l1 ; intros l2 HP.
   rewrite 2 (plus_comm a).
   rewrite plus_assoc...
 Qed.
+

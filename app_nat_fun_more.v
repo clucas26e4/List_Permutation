@@ -1,5 +1,3 @@
-(* ll library for yalla *)
-
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
@@ -24,16 +22,17 @@ Proof with try reflexivity; try assumption.
     simpl in Heq.
     destruct l1; inversion Heq. }
   unfold app_nat_fun in Heq.
-  case_eq (nth (length l1) f 0 <? length (a0 :: l)); [intro Hlt; apply Nat.ltb_lt in Hlt | intro Hnlt; apply Nat.ltb_nlt in Hnlt].
+  case_eq (nth (length l1) f 0 <? length (a0 :: l));
+    [intro Hlt; apply Nat.ltb_lt in Hlt | intro Hnlt; apply Nat.ltb_nlt in Hnlt].
   - destruct (nth_split_Type (nth (length l1) f 0) (a0 :: l) a0) as [(la,lb) Heql Hlen]...
     split with (la , lb).
     rewrite Heql.
     replace a with (nth (nth (length l1) f 0) (a0 :: l) a0)...
     rewrite nth_nth.
-    + rewrite Heq.
+    + unfold app_nat_fun_dflt in Heq; rewrite Heq.
       apply nth_middle.
     + rewrite<- (map_length (fun x => nth x (a0 :: l) a0)).
-      rewrite Heq.
+      unfold app_nat_fun_dflt in Heq; rewrite Heq.
       length_lia.
   - split with (nil , l).
     simpl.
@@ -42,10 +41,10 @@ Proof with try reflexivity; try assumption.
     + rewrite nth_overflow...
       length_lia.
     + rewrite nth_nth.
-      * rewrite Heq.
+      * unfold app_nat_fun_dflt in Heq; rewrite Heq.
         apply nth_middle.
       * rewrite<- (map_length (fun x => nth x (a0 :: l) a0)).
-        rewrite Heq.
+        unfold app_nat_fun_dflt in Heq; rewrite Heq.
         length_lia.
 Qed.
 
@@ -73,7 +72,7 @@ Proof with try reflexivity; try assumption.
     destruct l...
     change (map f (a :: l)) with (f a :: map f l).
     unfold app_nat_fun.
-    rewrite map_map.
+    unfold app_nat_fun_dflt; rewrite map_map.
     change (f a :: map f l) with (map f (a :: l)).
     apply map_ext.
     intros x.
@@ -97,3 +96,4 @@ dichot_Type_elt_app_exec Heq.
   apply Hf in Heq1.
   inversion Heq1.
 Qed.
+
