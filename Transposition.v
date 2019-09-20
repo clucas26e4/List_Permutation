@@ -1,7 +1,5 @@
 Require Import Lia.
 Require Import PeanoNat.
-Require Import EqNat.
-Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_more.
@@ -27,28 +25,6 @@ Proof with try assumption; try reflexivity.
     apply Nat.ltb_lt in Hcase.
     lia.
   + apply Id_length.
-Qed.
-    
-Lemma transpo_max : forall m n k, fold_left max (transpo m n) k = max m k.
-Proof with try reflexivity; try assumption.
-  intros m n k.
-  unfold transpo.
-  case_eq (n <? m); intros Hcase.
-  - rewrite fold_left_max_app.
-    change (fold_left max (S n :: n :: incr_all (Id (S m - (2 + n))) (2 + n)) k) with (fold_left max (incr_all (Id (S m - (2 + n))) (2 + n)) (max (max k (S n)) n)).
-    apply Nat.ltb_lt in Hcase.
-    remember (S m - (2 + n)); destruct n; destruct n0.
-    + simpl; lia.
-    + rewrite incr_all_max ; [ | intros H; inversion H]; rewrite Id_max; simpl.
-      simpl in Heqn0.
-      rewrite Nat.max_comm.
-      lia.
-    + rewrite Id_max.
-      simpl.
-      lia.
-    + rewrite incr_all_max ; [ | intros H; inversion H]; rewrite 2 Id_max; simpl.
-      lia.
-  - apply Id_max.
 Qed.
 
 Lemma all_lt_transpo : forall m n, all_lt (transpo m n) (S m) = true.
@@ -129,13 +105,14 @@ Proof.
         intros Heq; inversion Heq.
 Qed.
 
-Lemma app_compo_transpo : forall m l1 l2, compo_transpo m (l1 ++ l2) = app_nat_fun (compo_transpo m l1) (compo_transpo m l2).
+Lemma app_compo_transpo : forall m l1 l2,
+  compo_transpo m (l1 ++ l2) = app_nat_fun (compo_transpo m l1) (compo_transpo m l2).
 Proof with try reflexivity.
   intros m; induction l1; intros l2.
   - simpl.
-    change (0 :: incr_all (Id m) 1) with (Id (S m)).
-    replace (S m) with (length (compo_transpo m l2)) by apply compo_transpo_length.
-    rewrite app_Id...
+    replace (0 :: seq 1 m) with (Id (length (compo_transpo m l2))).
+    + symmetry; apply app_Id.
+    + now rewrite compo_transpo_length.
   - simpl.
     rewrite asso_app_nat_fun.
     rewrite<- IHl1...
@@ -159,8 +136,8 @@ Proof with try reflexivity; try assumption.
     apply Nat.ltb_lt in Hcase1.
     apply Nat.leb_le in Hcase2.
     lia.
-  - rewrite incr_all_length; rewrite Id_length...
-  - rewrite incr_all_length; rewrite Id_length...
+  - rewrite seq_length...
+  - rewrite seq_length...
 Qed.
 
 Lemma all_lt_nc_transpo : forall m i j,
@@ -210,7 +187,8 @@ Proof with try reflexivity; try assumption.
     with (Id i ++
              j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j)).
   rewrite app_nat_fun_app.
-  change (j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j)) with ((j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (n - j)) (S j)).
+  change (j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j))
+    with ((j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (n - j)) (S j)).
   rewrite app_nat_fun_app.
   replace (app_nat_fun (Id i) (l0 ++ a :: l1 ++ b :: l2)) with l0.
   2:{ rewrite app_nat_fun_left.
@@ -226,11 +204,13 @@ Proof with try reflexivity; try assumption.
       replace (length (l0 ++ a :: l1) :: nil) with (incr_all (0 :: nil) (length (l0 ++ a :: l1))).
       2:{ simpl.
           rewrite Nat.add_0_r... }
-      replace (l0 ++ a :: l1 ++ b :: l2) with ((l0 ++ a :: l1) ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
+      replace (l0 ++ a :: l1 ++ b :: l2)
+         with ((l0 ++ a :: l1) ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
       rewrite app_nat_fun_right... }
   replace ( app_nat_fun (incr_all (Id (j - S i)) (S i)) (l0 ++ a :: l1 ++ b :: l2)) with l1.
   2:{ rewrite Hleni at 2.
-      replace (l0 ++ a :: l1 ++ b :: l2) with ((l0 ++ a :: nil) ++ l1 ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
+      replace (l0 ++ a :: l1 ++ b :: l2)
+         with ((l0 ++ a :: nil) ++ l1 ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
       replace (S (length l0)) with (length (l0 ++ a :: nil)) by (rewrite app_length; simpl; lia).
       replace (j - S i) with (length l1).
       2:{ rewrite app_length in Hlenj.
@@ -254,7 +234,8 @@ Proof with try reflexivity; try assumption.
   2:{ repeat (rewrite app_length; simpl).
       repeat (rewrite app_length in Hlenj; simpl in Hlenj).
       lia. }
-  replace (l0 ++ a :: l1 ++ b :: l2) with ((l0 ++ a :: l1 ++ b :: nil) ++ l2) by (repeat (rewrite<- app_assoc; simpl); reflexivity).
+  replace (l0 ++ a :: l1 ++ b :: l2)
+     with ((l0 ++ a :: l1 ++ b :: nil) ++ l2) by (repeat (rewrite<- app_assoc; simpl); reflexivity).
   replace (n - j) with (length l2).
   2:{ rewrite app_length in Hlenj.
       repeat (rewrite app_length in Hlenn; simpl in Hlenn).
@@ -277,15 +258,15 @@ Proof with try reflexivity; try assumption.
   intros m l.
   induction l.
   - simpl.
-    rewrite incr_all_length; rewrite Id_length...
+    rewrite seq_length...
   - destruct a; simpl.
     rewrite app_nat_fun_length.
     + apply nc_transpo_length.
     + intros H; rewrite H in IHl; inversion IHl.
 Qed.
 
-Lemma nc_transpo_decrease :
-  forall m i j, i <> j -> i < S j -> S j <= m -> nc_transpo m i (S j) = app_nat_fun (app_nat_fun (transpo m j) (nc_transpo m i j)) (transpo m j).
+Lemma nc_transpo_decrease : forall m i j, i <> j -> i < S j -> S j <= m ->
+  nc_transpo m i (S j) = app_nat_fun (app_nat_fun (transpo m j) (nc_transpo m i j)) (transpo m j).
 Proof with try reflexivity; try assumption.
   intros m i j nHij HiSj HSjm.
   assert (i < j) as Hij by lia.
@@ -312,8 +293,9 @@ Proof with try reflexivity; try assumption.
             rewrite? Id_length.
             lia. }
         apply app_Id.
-      - replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j)) with
-            ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j)) by (rewrite<- ? app_assoc; reflexivity).
+      - replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
+           with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
+          by (rewrite<- ? app_assoc; reflexivity).
         symmetry; rewrite app_nat_fun_left...
         rewrite app_length.
         simpl; rewrite incr_all_length.
@@ -328,11 +310,10 @@ Proof with try reflexivity; try assumption.
       2:{ rewrite Id_length.
           apply all_lt_leq with i; [apply all_lt_Id | lia]. }
       apply app_nat_fun_Id_r.
-      apply Nat.lt_le_trans with (S i)...
-      destruct i; [simpl; lia | ].
-      rewrite Id_max.
-      lia. }
-  change (S j :: j :: incr_all (Id (m - S j)) (S (S j))) with ((S j :: nil) ++ (j :: nil) ++ (incr_all (Id (m - S j)) (S (S j)))).
+      apply all_lt_leq with i; [ | lia ].
+      apply all_lt_Id. }
+  change (S j :: j :: incr_all (Id (m - S j)) (S (S j)))
+    with ((S j :: nil) ++ (j :: nil) ++ (incr_all (Id (m - S j)) (S (S j)))).
   rewrite ? app_nat_fun_app.
   replace (app_nat_fun (S j :: nil)
                        (Id i ++
@@ -348,12 +329,11 @@ Proof with try reflexivity; try assumption.
           lia. }
       change (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)) +
               (S j - length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) :: nil)
-        with
-          (incr_all ((S j - length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) :: nil) (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)))).
-      replace (Id i ++
-                  j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
-        with ((Id i ++
-                  j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j)) by (rewrite <- ? app_assoc; reflexivity).
+        with (incr_all ((S j - length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) :: nil)
+                       (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)))).
+      replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
+        with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
+        by (rewrite <- ? app_assoc; reflexivity).
       rewrite app_nat_fun_right.
       2:{ simpl.
           rewrite app_length.
@@ -390,7 +370,8 @@ Proof with try reflexivity; try assumption.
       rewrite map_nth.
       rewrite nth_Id; lia. }
   replace (app_nat_fun (S j :: nil)
-                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))) with (j :: nil).
+                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
+     with (j :: nil).
   2:{ replace (S j :: nil) with (incr_all (1 :: nil) (length (Id j))) at 1.
       2:{ simpl.
           rewrite Id_length.
@@ -407,14 +388,15 @@ Proof with try reflexivity; try assumption.
           rewrite incr_all_length.
           rewrite 2 Id_length.
           replace (i + S (j - S i) + 0) with j by lia... }
-      replace (Id i ++
-                  j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j)) with  ((Id i ++
-                                                                                                     j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j)) by (rewrite <- ? app_assoc; reflexivity).
+      replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
+        with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
+        by (rewrite <- ? app_assoc; reflexivity).
       rewrite app_nat_fun_right... }
-  replace (app_nat_fun (i :: nil)
-                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))) with (i :: nil).
+  replace (app_nat_fun (i :: nil) (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
+     with (i :: nil).
   2:{ rewrite app_nat_fun_left.
       - rewrite app_nat_fun_Id_r...
+        apply Nat.ltb_lt in Hij; apply andb_true_iff; split...
       - rewrite Id_length.
         simpl.
         replace (i <? j) with true...
@@ -437,8 +419,8 @@ Proof with try reflexivity; try assumption.
           destruct m ; [ exfalso; lia | ].
           replace (S m - j) with (S (m - j)) by lia.
           simpl.
-          rewrite Nat.add_0_r.
-          rewrite<- incr_all_plus... }
+          f_equal; [ lia | ].
+          rewrite 2 incr_all_seq; f_equal. }
       replace (S (S j)) with (length (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: S j :: nil)) at 2.
       2:{ rewrite app_length; simpl; rewrite app_length.
           rewrite incr_all_length; simpl.
@@ -451,10 +433,11 @@ Proof with try reflexivity; try assumption.
       - rewrite app_Id...
       - rewrite incr_all_length; rewrite Id_length... }
   replace (app_nat_fun (incr_all (Id (m - S j)) (S (S j)))
-                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))) with (incr_all (Id (m - S j)) (S (S j))).
+                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
+     with (incr_all (Id (m - S j)) (S (S j))).
   2:{ replace (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))
-        with
-          ((Id j ++ (S j :: j :: nil)) ++ incr_all (Id (m - S j)) (S (S j))) by (rewrite<- ? app_assoc; reflexivity).
+        with ((Id j ++ (S j :: j :: nil)) ++ incr_all (Id (m - S j)) (S (S j)))
+        by (rewrite<- ? app_assoc; reflexivity).
       replace (S (S j)) with (length (Id j ++ S j :: j :: nil)) at 2.
       2:{ rewrite app_length; rewrite Id_length; simpl; lia. }
       rewrite app_nat_fun_right.
@@ -463,7 +446,8 @@ Proof with try reflexivity; try assumption.
       replace (m - S j) with (length (incr_all (Id (m - S j)) (S (S j)))) at 2.
       - rewrite app_Id...
       - rewrite incr_all_length; rewrite Id_length... }
-  change (S j :: incr_all (Id (j - i)) (S i) ++ i :: incr_all (Id (m - S j)) (S (S j))) with ((S j :: incr_all (Id (j - i)) (S i)) ++ i :: incr_all (Id (m - S j)) (S (S j))).
+  change (S j :: incr_all (Id (j - i)) (S i) ++ i :: incr_all (Id (m - S j)) (S (S j)))
+   with ((S j :: incr_all (Id (j - i)) (S i)) ++ i :: incr_all (Id (m - S j)) (S (S j))).
   replace (S j :: incr_all (Id (j - i)) (S i)) with
       ((app_nat_fun (j :: incr_all (Id (j - S i)) (S i))
                     (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))) ++ (j :: nil)).
@@ -476,9 +460,9 @@ Proof with try reflexivity; try assumption.
       rewrite Nat.add_0_r... }
   rewrite app_nat_fun_right...
   simpl.
-  replace (incr_all (Id (j - i)) (S i)) with (app_nat_fun (incr_all (Id (j - S i)) (S i))
-                                                          (Id j ++ S j :: j :: incr_all (Id (m - S j)) (S (S j))) ++ 
-                                                          j :: nil)...
+  replace (incr_all (Id (j - i)) (S i))
+     with (app_nat_fun (incr_all (Id (j - S i)) (S i))
+                       (Id j ++ S j :: j :: incr_all (Id (m - S j)) (S (S j))) ++ j :: nil)...
   rewrite app_nat_fun_left.
   2:{ rewrite Id_length.
       rewrite (Minus.le_plus_minus (S i) j) at 2.
@@ -492,9 +476,10 @@ Proof with try reflexivity; try assumption.
     simpl.
     rewrite Nat.add_0_r...
   + rewrite app_nat_fun_Id_r.
-    2:{ rewrite incr_all_max; [ | intro H; inversion H].
-        rewrite Id_max.
-        simpl; lia. }
+    2:{ rewrite incr_all_seq; simpl.
+        apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | ].
+        apply all_lt_leq with (S (S i) + n); [ | lia ].
+        apply all_lt_seq. }
     replace (j - i) with (S (j - S i)) by lia.
     rewrite (Id_S (j - S i)).
     rewrite incr_all_app.
@@ -525,21 +510,14 @@ Proof with try reflexivity; try assumption.
         rewrite app_nat_fun_Id_r.
         2:{ rewrite ? fold_left_max_app.
             simpl.
-            replace (match i with | 0 => S i | S m' => S (max i m') end) with (S i).
-            2:{ change (match i with | 0 => S i | S m' => S (max i m') end) with (max (S i) i).
-                lia. }
-            remember (m - S i).
-            destruct n.
-            - simpl.
-              destruct i.
-              + simpl.
-                lia.
-              + rewrite Id_max.
-                lia.
-            - rewrite incr_all_max.
-              2:{ simpl.
-                  intros H; inversion H. }
-              destruct i; rewrite ? Id_max; simpl; lia. }
+            rewrite all_lt_app; apply andb_true_iff; split.
+            - apply all_lt_leq with i; [ apply all_lt_Id | lia ].
+            - do 2 (try (apply andb_true_iff; split)).
+              + apply Nat.ltb_lt; lia.
+              + apply Nat.ltb_lt; lia.
+              + rewrite incr_all_seq; simpl.
+                replace (S m) with (S (S i) + (m - S i)) by lia.
+                apply all_lt_seq. }
         apply Nat.eqb_eq in Hcase.
         rewrite Hcase.
         rewrite Nat.sub_diag.
@@ -563,8 +541,7 @@ Proof with try reflexivity; try assumption.
                - apply Id_length. }
            rewrite app_nat_fun_Id_r.
            2:{ rewrite transpo_length.
-               rewrite transpo_max.
-               lia. }
+               apply all_lt_transpo. }
            rewrite nc_transpo_decrease...
            ++ rewrite Heq...
            ++ apply Nat.eqb_neq...
@@ -575,3 +552,4 @@ Proof with try reflexivity; try assumption.
     unfold nc_transpo.
     rewrite Hij...
 Qed.
+

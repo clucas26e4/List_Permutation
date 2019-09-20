@@ -263,13 +263,15 @@ Proof with try reflexivity; try assumption.
     + apply cond_all_lt_inv...
     + replace (nth (nth n1 p n) (n :: l) n) with (nth n1 (map (fun x => (nth x (n :: l) n)) p) k).
       2:{ symmetry.
-          replace (nth n1 (map (fun x : nat => nth x (n :: l) n) p) k) with (nth n1 (map (fun x : nat => nth x (n :: l) n) p) n).
+          replace (nth n1 (map (fun x : nat => nth x (n :: l) n) p) k)
+             with (nth n1 (map (fun x : nat => nth x (n :: l) n) p) n).
           - apply nth_nth...
           - apply nth_indep.
             rewrite map_length... }
       replace (nth (nth n2 p n) (n :: l) n) with (nth n2 (map (fun x => (nth x (n :: l) n)) p) k).
       2:{ symmetry.
-          replace (nth n2 (map (fun x : nat => nth x (n :: l) n) p) k) with (nth n2 (map (fun x : nat => nth x (n :: l) n) p) n).
+          replace (nth n2 (map (fun x : nat => nth x (n :: l) n) p) k)
+             with (nth n2 (map (fun x : nat => nth x (n :: l) n) p) n).
           - apply nth_nth...
           - apply nth_indep.
             rewrite map_length... }
@@ -314,7 +316,8 @@ Proof with try reflexivity; try assumption.
                            | S n1 => nth n1 l n0
                            end) with (fun x => nth x (n0 :: l) n0) in *.
     unfold app_nat_fun_dflt in Hlt; rewrite map_length in Hlt.
-    replace (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) k0) with (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) n0).
+    replace (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) k0)
+       with (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) n0).
     2:{ apply nth_indep.
         rewrite map_length... }
     unfold app_nat_fun_dflt.
@@ -359,15 +362,13 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma Id_is_perm : forall n, is_perm (Id n) = true.
-Proof with try reflexivity; try assumption.
+Proof.
   intros n.
   splitb.
-  - induction n...
-    simpl.
-    rewrite<- all_lt_incr_all.
-    rewrite incr_all_length...
+  - rewrite seq_length.
+    apply all_lt_seq.
   - apply all_distinct_Id.
-Qed.    
+Qed.
 
 Lemma cfun_is_perm : forall n m,
     is_perm (cfun n m) = true.
@@ -378,17 +379,10 @@ Proof with try reflexivity; try assumption.
   apply andb_true_iff.
   split.
   - rewrite app_length.
-    rewrite incr_all_length.
-    rewrite 2 Id_length.
-    rewrite all_lt_app.
-    splitb.
-    * rewrite Nat.add_comm.
-      rewrite<- all_lt_incr_all.
-      apply all_lt_Id.
-    * apply all_lt_leq with n; [apply all_lt_Id | lia].
-  - rewrite all_distinct_app_commu.
-    rewrite Id_incr_all_Id.
-    apply all_distinct_Id.
+    rewrite 2 seq_length.
+    replace (m + n) with (n + m) by lia.
+    apply all_lt_cfun.
+  - apply all_distinct_cfun.
 Qed.
 
 Lemma append_perm_is_perm : forall f1 f2,
@@ -451,7 +445,8 @@ Qed.
 
 Lemma perm_has_inv : forall p,
     is_perm p = true ->
-    { p_inv & prod (app_nat_fun p_inv p = Id (length p)) (prod (is_perm p_inv = true) (length p = length p_inv)) }.
+    { p_inv & prod (app_nat_fun p_inv p = Id (length p))
+             (prod (is_perm p_inv = true) (length p = length p_inv)) }.
 Proof with try reflexivity; try assumption.
   intro p.
   remember (length p).
@@ -482,15 +477,18 @@ Proof with try reflexivity; try assumption.
       transitivity (nth n0 (n1 :: p) 0)...
       apply nth_indep... }
   split; [ | split].
-  - replace (incr_all (Id n) 1) with (app_nat_fun (shift p_inv n0) (n1 :: p)).
+  - replace (seq 1 n) with (app_nat_fun (shift p_inv n0) (n1 :: p)).
     { rewrite <- Heq.
       replace (nth n0 (n1 :: p) 0) with (nth n0 (n1 :: p) n1)...
       apply nth_indep... }
+    replace (seq 1 n) with (map S (Id n)) by (apply seq_shift).
     rewrite <- Heq'.
     pattern 0 at 1.
     rewrite <- Heq.
     rewrite app_nat_fun_downshift_shift...
     + rewrite Heq.
+      change (map S (downshift (app_nat_fun (shift p_inv n0) (n1 :: p)) 0))
+        with (incr_all (downshift (app_nat_fun (shift p_inv n0) (n1 :: p)) 0)1).
       rewrite incr_all_downshift_0...
       rewrite <- Heq.
       apply In_nat_bool_shift_false...
@@ -598,31 +596,38 @@ Proof with try reflexivity; try assumption.
         destruct (H (S j)) as ((Hpermj & Hlenj) & Heqj); [ length_lia | ].
         split; [ split |].
         -- rewrite app_nth2 by (rewrite Hlenlpa ; lia).
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
+           replace (nth (pred (nth j p1 0) - length lpa) lpb nil)
+              with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
            2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
            rewrite<- (app_nth2 lpa); [| rewrite Hlenlpa; length_lia].
            change (nth j p1 0) with (nth (S j) (i :: p1) 0).
            rewrite Heqlp in Hpermj...
         -- rewrite Heqlp in Hlenj; rewrite HeqL1 in Hlenj.
            rewrite app_nth2; [ | rewrite Hlenlpa; length_lia].
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
+           replace (nth (pred (nth j p1 0) - length lpa) lpb nil)
+              with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
            2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
            rewrite app_nth2; [ | rewrite HlenL1a; length_lia].
-           replace (nth (pred (nth j p1 0) - length L1a) L1b nil) with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
+           replace (nth (pred (nth j p1 0) - length L1a) L1b nil)
+              with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
            2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
            rewrite<- (app_nth2 lpa); [ | rewrite Hlenlpa; length_lia].
            rewrite<- (app_nth2 L1a); [ | rewrite HlenL1a; length_lia].
            change (nth j p1 0) with (nth (S j) (i :: p1) 0)...
         -- change (nth j L2 nil) with (nth (S j) (a :: L2) nil).
            rewrite 2 app_nth2 ; [ | lia | lia ].
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
+           replace (nth (pred (nth j p1 0) - length lpa) lpb nil)
+              with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
            2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
-           replace (nth (pred (nth j p1 0) - length L1a) L1b nil) with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
+           replace (nth (pred (nth j p1 0) - length L1a) L1b nil)
+              with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
            2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
            rewrite<- app_nth2 by lia.
            rewrite<- app_nth2 by lia.
            rewrite HeqL1 in Heqj; rewrite Heqlp in Heqj...           
-    + split with (incr_all (nth i lp nil) (length (concat L1a)) ++ map (fun k => if k <? length (concat L1a) then k else k + length (nth i lp nil)) p); split ; [splitb | split].
+    + split with (incr_all (nth i lp nil) (length (concat L1a))
+                     ++ map (fun k => if k <? length (concat L1a)
+                                      then k else k + length (nth i lp nil)) p); split ; [splitb | split].
       * rewrite all_lt_app.
         splitb.
         -- apply all_lt_leq with (length (incr_all (nth i lp nil) (length (concat L1a))) + length (concat L1a)).
@@ -683,7 +688,8 @@ Proof with try reflexivity; try assumption.
                  induction p...
                  simpl.
                  apply orb_false_intro...
-                 case_eq (a0 <? n); intro Hcase ; [ apply Nat.ltb_lt in Hcase | apply Nat.ltb_nlt in Hcase]; apply Nat.eqb_neq; lia.
+                 case_eq (a0 <? n); intro Hcase ; [ apply Nat.ltb_lt in Hcase | apply Nat.ltb_nlt in Hcase];
+                   apply Nat.eqb_neq; lia.
            ++ apply andb_prop in Hali as (_ & Hali); apply andb_prop in Hadi as (_ & Hadi).
               apply IHl...
               length_lia.
@@ -704,7 +710,8 @@ Proof with try reflexivity; try assumption.
         apply andb_prop in Hpermi as (Hali & Hadi).
         rewrite app_nat_fun_app.
         rewrite HeqL1.
-        replace (concat (L1a ++ nth i L1 nil :: L1b)) with (concat L1a ++ (nth i L1 nil) ++ concat L1b) by now rewrite concat_app.
+        replace (concat (L1a ++ nth i L1 nil :: L1b))
+           with (concat L1a ++ (nth i L1 nil) ++ concat L1b) by now rewrite concat_app.
         rewrite app_nat_fun_right.
         2:{ apply all_lt_leq with (length (nth i lp nil))...
             length_lia. }
@@ -737,7 +744,8 @@ Proof with try reflexivity; try assumption.
               induction l...
               simpl in *; rewrite Nat.add_0_r; rewrite<- IHl...
            ++ change (length nil) with 0.
-              replace (map (fun k => if k <? 0 then k else k + (length (a0 :: l1))) (a :: p)) with (incr_all (a :: p) (length (a0 :: l1)))...
+              replace (map (fun k => if k <? 0 then k else k + (length (a0 :: l1))) (a :: p))
+                 with (incr_all (a :: p) (length (a0 :: l1)))...
               2:{ remember (a :: p); clear; induction l...
                   simpl in *.
                   rewrite Nat.add_comm.
@@ -746,20 +754,26 @@ Proof with try reflexivity; try assumption.
               rewrite app_nat_fun_right...
            ++ change ((a0 :: l) ++ l1 ++ l0) with (a0 :: l ++ l1 ++ l0).
               change ((a0 :: l) ++ l0) with (a0 :: l ++ l0).
-              change (map (fun k => if k<? length (a0 :: l) then k else k + length l1) (a :: p)) with ((if a <? length (a0 :: l) then a else a + length l1) :: (map (fun k => if k <? length (a0 :: l) then k else k + length l1) p)).
-              app_nat_fun_unfold (map (fun k => if k <? length (a0 :: l) then k else k + length l1) p) (l ++ l1 ++ l0) (if a <? length (a0 :: l) then a else a + length l1) a0.
+              change (map (fun k => if k<? length (a0 :: l) then k else k + length l1) (a :: p))
+                with ((if a <? length (a0 :: l) then a else a + length l1)
+                        :: (map (fun k => if k <? length (a0 :: l) then k else k + length l1) p)).
+              app_nat_fun_unfold (map (fun k => if k <? length (a0 :: l) then k else k + length l1) p)
+                                 (l ++ l1 ++ l0) (if a <? length (a0 :: l) then a else a + length l1) a0.
               app_nat_fun_unfold p (l ++ l0) a a0.
               change (a0 :: l ++ l1 ++ l0) with ((a0 :: l) ++ l1 ++ l0).
               change (a0 :: l ++ l0) with ((a0 :: l) ++ l0).
               rewrite IHp.
-              replace (nth a ((a0 :: l) ++ l0) a0) with (nth (if a <? length (a0 :: l) then a else a + length l1) ((a0 :: l) ++ l1 ++ l0) a0)...
+              replace (nth a ((a0 :: l) ++ l0) a0)
+                 with (nth (if a <? length (a0 :: l) then a else a + length l1) ((a0 :: l) ++ l1 ++ l0) a0)...
               clear.
-              case_eq (a <? length (a0 :: l)); intro Hcase; [ apply Nat.ltb_lt in Hcase | apply Nat.ltb_nlt in Hcase].
+              case_eq (a <? length (a0 :: l)); intro Hcase;
+                [ apply Nat.ltb_lt in Hcase | apply Nat.ltb_nlt in Hcase].
               ** rewrite ? app_nth1...
               ** rewrite app_nth2 by length_lia.
                  rewrite app_nth2 by length_lia.
                  rewrite app_nth2 by length_lia.
-                 replace (a + length l1 - length (a0 :: l) - length l1) with (a - length (a0 :: l)) by length_lia...
+                 replace (a + length l1 - length (a0 :: l) - length l1)
+                    with (a - length (a0 :: l)) by length_lia...
               ** apply andb_prop in Hal' as (_ & Hal')...
 Qed.
 
@@ -829,31 +843,36 @@ Proof with try assumption; try reflexivity.
       rewrite Nat.add_comm.
       change (1 + S j) with (S (S j)).
       rewrite Nat.add_comm...
+      rewrite ? incr_all_seq...
     + replace (j <? k) with true.
       replace (k <=? i) with false...
+      simpl; rewrite incr_all_seq...
   - replace (j <? k) with false...
+    simpl; rewrite incr_all_seq...
 Qed.
 
 Lemma incr_all_compo_nc_transpo : forall n l,
-    0 :: incr_all (compo_nc_transpo (S n - 1) l) 1 = compo_nc_transpo (S (S n) - 1) (map (fun x => (S (fst x) , S (snd x))) l).
+    0 :: incr_all (compo_nc_transpo (S n - 1) l) 1
+  = compo_nc_transpo (S (S n) - 1) (map (fun x => (S (fst x) , S (snd x))) l).
 Proof with try reflexivity; try assumption.
   intros n l.
   simpl.
   rewrite Nat.sub_0_r.
-  induction l...
-  destruct a.
-  simpl.
-  rewrite <- IHl.
-  rewrite nc_transpo_S.
-  app_nat_fun_unfold (incr_all (nc_transpo n n0 n1) 1) (incr_all (compo_nc_transpo n l) 1) 0 0.
-  unfold nth.
-  change 1 with (length (0 :: nil)) at 2.
-  change (0 :: incr_all (compo_nc_transpo n l) 1) with ((0 :: nil) ++ incr_all (compo_nc_transpo n l) 1).
-  rewrite app_nat_fun_right.
-  2:{ rewrite incr_all_length.
-      rewrite compo_nc_transpo_length.
-      apply all_lt_nc_transpo. }
-  rewrite app_nat_fun_incr_all...
+  induction l.
+  - simpl; rewrite incr_all_seq...
+  - destruct a.
+    simpl.
+    rewrite <- IHl.
+    rewrite nc_transpo_S.
+    app_nat_fun_unfold (incr_all (nc_transpo n n0 n1) 1) (incr_all (compo_nc_transpo n l) 1) 0 0.
+    unfold nth.
+    change 1 with (length (0 :: nil)) at 2.
+    change (0 :: incr_all (compo_nc_transpo n l) 1) with ((0 :: nil) ++ incr_all (compo_nc_transpo n l) 1).
+    rewrite app_nat_fun_right.
+    2:{ rewrite incr_all_length.
+        rewrite compo_nc_transpo_length.
+        apply all_lt_nc_transpo. }
+    rewrite app_nat_fun_incr_all...
 Qed.
 
 Lemma transpo_is_perm : forall n i, is_perm (transpo n i) = true.
@@ -916,7 +935,9 @@ Proof with try reflexivity; try assumption.
     destruct la.
     { simpl in Heqp.
       destruct (IHn (downshift lb 0)) as [l Heql].
-      1,2,3:replace (downshift lb 0) with (downshift (0 :: lb) 0) by (rewrite downshift_eq; reflexivity); rewrite<- Heqi at 1; rewrite<- Heqp.
+      1,2,3:replace (downshift lb 0)
+               with (downshift (0 :: lb) 0)
+                 by (rewrite downshift_eq; reflexivity); rewrite<- Heqi at 1; rewrite<- Heqp.
       + apply Nat.succ_inj.
         rewrite downshift_perm_length; [ | lia | ]...
         rewrite<- Heqn...
@@ -1163,7 +1184,8 @@ Lemma Perm_rect {A} :
   forall P : list nat -> list A -> Type,
     (forall l, P (Id (length l)) l) ->
     (forall l i, l <> nil -> P (transpo ((length l) - 1) i) l) ->
-    (forall f1 f2 l, is_perm f1 = true -> is_perm f2 = true -> length l = length f1 -> length f2 = length f1 -> P f1 l -> P f2 (app_nat_fun f1 l) -> P (app_nat_fun f2 f1) l) ->
+    (forall f1 f2 l, is_perm f1 = true -> is_perm f2 = true -> length l = length f1 -> length f2 = length f1 ->
+                        P f1 l -> P f2 (app_nat_fun f1 l) -> P (app_nat_fun f2 f1) l) ->
     forall f l, is_perm f = true -> length f = length l -> P f l.
 Proof with try reflexivity; try assumption.
   intros P Hid Htranspo Htrans f l Hperm Hlen.

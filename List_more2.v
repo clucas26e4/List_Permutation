@@ -136,8 +136,9 @@ Proof with try assumption;try reflexivity.
   apply IHl with (max i a).
   transitivity j; lia.
 Qed.
-  
-Lemma fold_left_max_app : forall k l1 l2, fold_left max (l1 ++ l2) k = max (fold_left max l1 k) (fold_left max l2 k).
+
+Lemma fold_left_max_app : forall k l1 l2,
+  fold_left max (l1 ++ l2) k = max (fold_left max l1 k) (fold_left max l2 k).
 Proof with try assumption; try reflexivity.
   intros k l1; revert k; induction l1; intros k l2.
   - simpl.

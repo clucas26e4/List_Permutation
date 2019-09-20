@@ -464,315 +464,156 @@ Proof with try reflexivity.
 Qed.
 
 (* ID *)
-(* TODO vs (seq 0) ? *)
-Fixpoint Id n :=
-  match n with
-  | 0 => nil
-  | (S n) => 0 :: (incr_all (Id n) 1)
-  end.
+Notation Id := (seq 0).
+
+(* TODO move to List_more ? *)
+Lemma seq_max : forall s l k, fold_left max (seq s (S l)) k = max (s + l) k.
+Proof.
+intros s l; revert s; induction l; intros s k.
+- simpl; lia.
+- simpl in IHl; simpl; rewrite IHl; lia.
+Qed.
+
+Lemma seq_plus : forall s l1 l2, seq s (l1 + l2) = seq s l1 ++ seq (s + l1) l2.
+Proof.
+intros s l1; revert s; induction l1; intros s l2.
+- simpl; f_equal; lia.
+- simpl; rewrite IHl1.
+  f_equal; f_equal; f_equal; lia.
+Qed.
+
+Lemma seq_S : forall s l, seq s (S l) = seq s l ++ s + l :: nil.
+Proof.
+intros s l.
+change (s + l :: nil) with (seq (s + l) 1).
+rewrite <- seq_plus.
+f_equal; lia.
+Qed.
+(* end TODO *)
+
+Lemma all_lt_seq : forall s l, all_lt (seq s l) (s + l) = true.
+Proof.
+intros s l.
+apply all_lt_Forall, Forall_forall.
+intros x Hin.
+now apply in_seq in Hin.
+Qed.
+
+Lemma incr_all_seq : forall s l k, incr_all (seq s l) k = seq (s + k) l.
+Proof.
+intros s l k.
+revert s; induction l; intros s; simpl; [ reflexivity | ].
+f_equal; [ lia | apply IHl ].
+Qed.
 
 Lemma Id_max : forall n k, fold_left max (Id (S n)) k = max n k.
-Proof with try reflexivity; try assumption.
-  induction n; intros k.
-  - destruct k...
-  - change (fold_left max (Id (S (S n))) k) with (fold_left max (incr_all (Id (S n)) 1) (max k 0)).
-    rewrite incr_all_max.
-    2:{ simpl.
-        intro H; inversion H. }
-    rewrite IHn.
-    lia.
-Qed.
-
-Lemma Id_incr_all_Id : forall n m,
-    Id n ++ (incr_all (Id m) n) = Id (n + m).
-Proof with try reflexivity; try assumption.
-  induction n; intros m.
-  - rewrite incr_all_0...
-  - simpl.
-    replace (incr_all (Id (n + m)) 1) with (incr_all (Id n) 1 ++ incr_all (Id m) (S n))...
-    replace (S n) with (n + 1) by lia.
-    rewrite incr_all_plus.
-    rewrite<- incr_all_app.
-    rewrite IHn...
-Qed.  
+Proof. apply seq_max. Qed.
 
 Lemma Id_length : forall n, length (Id n) = n.
-Proof with try reflexivity; try assumption.
-  induction n...
-  simpl; rewrite incr_all_length; rewrite IHn...
-Qed.
+Proof. intros; apply seq_length. Qed.
 
 Lemma Id_S : forall n, Id (S n) = Id n ++ n :: nil.
-Proof with try reflexivity; try assumption.
-  induction n...
-  simpl.
-  change (1 :: incr_all (incr_all (Id n) 1) 1) with (incr_all (Id (S n)) 1).
-  rewrite IHn.
-  rewrite incr_all_app...
-Qed.
+Proof. apply seq_S. Qed.
 
 Lemma nth_Id : forall i n a0, i < n -> nth i (Id n) a0 = i.
-Proof with try reflexivity.
-  intros i n a0.
-  revert n.
-  induction i; intros n Hlt.
-  - destruct n...
-    exfalso.
-    lia.
-  - destruct n.
-    + exfalso.
-      lia.
-    + simpl.
-      replace (nth i (incr_all (Id n) 1) a0)
-        with
-          (nth i (incr_all (Id n) 1) (1 + a0)).
-      2:{ apply nth_indep...
-          rewrite incr_all_length.
-          rewrite Id_length.
-          lia. }
-      unfold incr_all.
-      rewrite map_nth.
-      rewrite IHi...
-      lia.
-Qed.
+Proof. intros; now apply seq_nth. Qed.
 
 Lemma In_Id_lt : forall n x, In x (Id n) -> x < n.
-Proof.
-enough (forall n k x, In x (incr_all (Id n) k) -> x < n + k).
-{ intros n x Hin.
-  replace n with (n + 0) by lia; apply H.
-  rewrite incr_all_0; assumption. }
-induction n; intros k x Hin; inversion Hin; try lia.
-replace (S n + k) with (n + S k) by lia.
-apply IHn.
-change (S k) with (1 + k).
-rewrite incr_all_plus; assumption.
-Qed.
+Proof. intros. apply in_seq in H; lia. Qed.
 
 Lemma all_lt_Id : forall n, all_lt (Id n) n = true.
-Proof with try reflexivity; try assumption.
-  induction n...
-  simpl; rewrite<- all_lt_incr_all...
-Qed.
+Proof. apply all_lt_seq. Qed.
 
 Lemma all_distinct_Id : forall n,
     all_distinct (Id n) = true.
-Proof with try reflexivity; try assumption.
-  induction n...
-  apply andb_true_intro; split.
-  + apply negb_true_iff.
-    apply negb_In_incr_all.
-    apply Nat.lt_0_1.
-  + rewrite<- all_distinct_incr_all...
-Qed.
-
-Lemma nth_correct_map_Id {A} : forall a1 a2 a3 (l : list A),
-    map (fun x => nth x (a1 :: l) a2) (Id (S (length l))) = map (fun x => nth x (a1 :: l) a3) (Id (S (length l))).
-Proof with try reflexivity; try assumption.
-  intros a1 a2 a3 l; revert a1 a2 a3; induction l; intros a1 a2 a3...
-  change (map (fun x : nat => nth x (a1 :: a :: l) a2) (Id (S (length (a :: l)))))
-    with (a1 :: map (fun x : nat => nth x (a1 :: a :: l) a2) (incr_all (Id (S (length l))) 1)).
-  change (map (fun x : nat => nth x (a1 :: a :: l) a3) (Id (S (length (a :: l)))))
-    with (a1 :: map (fun x : nat => nth x (a1 :: a :: l) a3) (incr_all (Id (S (length l))) 1)).
-  rewrite 2 map_incr_all.
-  change (map (fun x : nat => nth (1 + x) (a1 :: a :: l) a2) (Id (S (length l))))
-    with (map (fun x : nat => nth x (a :: l) a2) (Id (S (length l)))).
-  change (map (fun x : nat => nth (1 + x) (a1 :: a :: l) a3) (Id (S (length l))))
-    with (map (fun x : nat => nth x (a :: l) a3) (Id (S (length l)))).
-  rewrite IHl with a a2 a3...
-Qed.
+Proof. intros; apply all_distinct_NoDup, seq_NoDup. Qed.
 
 Lemma app_Id {A} : forall (l : list A),
     app_nat_fun (Id (length l)) l = l.
 Proof with try reflexivity; try assumption.
   induction l...
-  simpl; unfold app_nat_fun_dflt.
-  rewrite map_incr_all.
-  simpl; f_equal.
-  unfold app_nat_fun, app_nat_fun_dflt in IHl; destruct l...
+  simpl; unfold app_nat_fun_dflt; f_equal.
+  rewrite <- seq_shift.
+  rewrite map_map.
   etransitivity; [ | apply IHl ].
+  unfold app_nat_fun; destruct l; [ reflexivity | ].
   apply map_ext_in; intros x Hin.
-  now apply nth_indep, In_Id_lt.
+  simpl; destruct x; [reflexivity | apply nth_indep].
+  apply In_Id_lt in Hin; simpl in Hin; lia.
 Qed.
 
-Lemma app_nat_fun_Id_r : forall f k, fold_left max f 0 < k -> app_nat_fun f (Id k) = f.
-Proof with try assumption; try reflexivity.
-  intros f k Hlt.
-  unfold app_nat_fun; unfold app_nat_fun_dflt.
-  destruct k.
-  { exfalso.
-    lia. }
-  change (Id (S k)) with (0 :: incr_all (Id k) 1).
-  unfold app_nat_fun.
-  change (0 :: incr_all (Id k) 1) with (Id (S k)).
-  apply list_ext.
-  - rewrite map_length... 
-  - intros n0 a0.
-    case_eq (n0 <? length f); intro Hcase.
-    + replace (nth n0 (map (fun x : nat => nth x (Id (S k)) 0) f) a0)
-         with (nth n0 (map (fun x : nat => nth x (Id (S k)) 0) f) (nth 0 (Id (S k)) 0)).
-      2:{ apply nth_indep.
-          rewrite map_length.
-          apply Nat.ltb_lt... }
-      change (nth 0 (Id (S k)) 0) with ((fun x => nth x (Id (S k)) 0) 0).
-      rewrite map_nth.
-      rewrite nth_Id.
-      * apply nth_indep.
-        apply Nat.ltb_lt...
-      * apply cond_all_lt_inv.
-        -- apply Nat.ltb_lt...
-        -- apply all_lt_max with 0...
-    + transitivity a0.
-      * apply nth_overflow.
-        rewrite map_length.
-        apply Nat.ltb_nlt in Hcase.
-        lia.
-      * symmetry.
-        apply nth_overflow.
-        apply Nat.ltb_nlt in Hcase.
-        lia.
+Lemma app_nat_fun_Id_r : forall f k, all_lt f k = true -> app_nat_fun f (Id k) = f.
+Proof.
+induction f; intros k Hlen.
+- apply app_nat_fun_nil.
+- simpl in Hlen; apply andb_true_iff in Hlen as [Hlen1 Hlen2]; apply Nat.ltb_lt in Hlen1.
+  destruct k; [ lia | ].
+  apply IHf in Hlen2; simpl in Hlen2.
+  simpl; destruct a; f_equal; try assumption.
+  rewrite seq_nth; lia.
 Qed.
+
 
 (* CFUN *)
-Definition cfun n m := incr_all (Id m) n ++ (Id n).
+Definition cfun n m := seq n m ++ seq 0 n.
 
 Lemma cfun_length : forall n m, length (cfun n m) = n + m.
-Proof with try reflexivity.
-  intros.
-  unfold cfun.
-  rewrite app_length; rewrite incr_all_length; rewrite 2 Id_length.
-  apply Nat.add_comm.
-Qed.
+Proof. intros; unfold cfun; rewrite app_length; rewrite 2 seq_length; lia. Qed.
 
 Lemma all_lt_cfun : forall n m, all_lt (cfun n m) (n + m) = true.
-Proof with try assumption; try reflexivity.
-  intros n m.
-  unfold cfun.
-  rewrite all_lt_app.
-  apply andb_true_intro; split.
-  - rewrite <- all_lt_incr_all.
-    apply all_lt_Id.
-  - apply all_lt_leq with n; [apply all_lt_Id | lia].
+Proof.
+intros n m.
+unfold cfun; rewrite all_lt_app.
+apply andb_true_iff; split.
+- apply all_lt_seq.
+- apply all_lt_leq with n; [ apply all_lt_seq | lia ].
 Qed.
 
 Lemma all_distinct_cfun : forall n m, all_distinct (cfun n m) = true.
-Proof with try assumption; try reflexivity.
+Proof.
   intros n m.
   unfold cfun.
   rewrite all_distinct_app_commu.
-  apply all_distinct_app; try apply all_lt_Id; try apply all_distinct_Id.
+  rewrite <- seq_plus.
+  apply all_distinct_Id.
 Qed.
 
 Lemma app_cfun_eq {A} : forall (l1 : list A) l2,
     app_nat_fun (cfun (length l1) (length l2)) (l1 ++ l2) = l2 ++ l1.
-Proof with try reflexivity; try assumption.
-  intros l1 l2; revert l1.
-  induction l2; intros l1.
-  - simpl.
-    change (cfun (length l1) 0) with (Id (length l1)).
-    rewrite app_nil_r.
-    rewrite app_Id...
-  - simpl.
-    unfold cfun.
-    change (Id (S (length l2))) with (0 :: (incr_all (Id (length l2)) 1)).
-    replace (incr_all (0 :: incr_all (Id (length l2)) 1) (length l1))
-       with ((length l1) :: incr_all (incr_all (Id (length l2)) (length l1)) 1).
-    2:{ simpl.
-        rewrite Nat.add_0_r.
-        rewrite incr_all_incr_all... }
-    simpl.
-    rewrite app_nat_fun_middle.
-    replace (app_nat_fun (incr_all (incr_all (Id (length l2)) (length l1)) 1 ++ Id (length l1)) (l1 ++ a :: l2))
-       with (l2 ++ l1)...
-    rewrite app_nat_fun_downshift.
-    + rewrite downshift_app.
-      rewrite<- incr_all_plus.
-      replace (length l1 + 1) with (S (length l1)) by lia.
-      rewrite downshift_incr_all.
-      rewrite<- IHl2.
-      replace (downshift (Id (length l1)) (length l1)) with (Id (length l1))...
-      rewrite downshift_if_all_lt...
-      apply all_lt_Id.
-    + rewrite In_nat_bool_app.
-      apply orb_false_iff.
-      split.
-      * rewrite<- incr_all_plus.
-        apply negb_In_incr_all.
-        lia.
-      * apply all_lt_In_nat_bool_false.
-        apply all_lt_Id.
-    + rewrite all_lt_app.
-      apply andb_true_iff.
-      split.
-      * rewrite<- incr_all_plus.
-        replace (length l1 + 1) with (S (length l1)) by lia.
-        rewrite app_length.
-        change (S (length l1 + length l2)) with ((S (length l1)) + length l2).
-        rewrite<- all_lt_incr_all.
-        apply all_lt_Id.
-      * apply all_lt_leq with (length l1).
-        -- apply all_lt_Id.
-        -- rewrite app_length.
-           lia.
+Proof.
+intros l1 l2.
+unfold cfun.
+rewrite app_nat_fun_app; f_equal.
+- change (length l1) with (0 + length l1).
+  rewrite <- incr_all_seq.
+  rewrite app_nat_fun_right.
+  + apply app_Id.
+  + apply all_lt_Id.
+- rewrite app_nat_fun_left.
+  + apply app_Id.
+  + apply all_lt_Id.
 Qed.
 
 Lemma cfun_inv : forall n m, app_nat_fun (cfun n m) (cfun m n) = Id (m + n).
-Proof with try reflexivity.
-  intros n m; unfold cfun.
-  rewrite app_nat_fun_app.
-  pattern n at 1.
-  replace n with (length (incr_all (Id n) m)).
-  2:{ rewrite incr_all_length; rewrite Id_length... }
-  rewrite app_nat_fun_right.
-  2:{ rewrite Id_length; apply all_lt_Id. }
-  pattern m at 1.
-  replace m with (length (Id m)) by apply Id_length.
-  rewrite app_Id.
-  rewrite app_nat_fun_left.
-  2:{ rewrite incr_all_length; rewrite Id_length; apply all_lt_Id. }
-  rewrite app_nat_fun_incr_all.
-  pattern n at 1.
-  replace n with (length (Id n)) by apply Id_length.
-  rewrite app_Id.
-  apply Id_incr_all_Id.
+Proof.
+intros n m.
+change (cfun m n) with (seq m n ++ Id m).
+replace (cfun n m) with (cfun (length (seq m n)) (length (Id m))).
+- rewrite app_cfun_eq.
+  symmetry; apply seq_plus.
+- rewrite 2 seq_length; reflexivity.
 Qed.
 
 Lemma cfun_arg_inj : forall n1 n2 m1 m2,
     cfun (S n1) (S m1) = cfun (S n2) (S m2) ->
     n1 = n2 /\ m1 = m2.
-Proof with try reflexivity.
-  induction n1; intros n2 m1 m2 Heq.
-  - unfold cfun in Heq.
-    destruct n2, m1, m2; simpl in Heq; try now inversion Heq.
-    split...
-    inversion Heq.
-    apply app_inv_tail in H0.
-    clear Heq; rename H0 into Heq.
-    revert m2 Heq; induction m1; intros m2 Heq; destruct m2; try now inversion Heq.
-    rewrite IHm1 with m2...
-    simpl in Heq.
-    inversion Heq.
-    clear Heq; rename H0 into Heq.
-    apply incr_all_inj in Heq.
-    apply Heq.
-  - destruct n2.
-    + unfold cfun in Heq.
-      simpl in Heq.
-      inversion Heq.
-    + unfold cfun in Heq.
-      assert (n1 = n2) as Heqn.
-      { inversion Heq.
-        rewrite<- 2 plus_n_O in H0.
-        apply H0. }
-      subst.
-      apply app_inv_tail in Heq.
-      apply incr_all_inj in Heq.
-      split...
-      apply Nat.succ_inj.
-      transitivity (length (Id (S m1))).
-      { rewrite Id_length... }
-      transitivity (length (Id (S m2))).
-      { rewrite Heq... }
-      apply Id_length.
+Proof.
+intros n1 n2 m1 m2 Heq.
+enough (n1 = n2 /\ n1 + m1 = n2 + m2) as [Hn Hp] by (split; lia).
+unfold cfun in Heq; simpl in Heq.
+split.
+- now inversion Heq.
+- apply (f_equal (@length _)) in Heq.
+  simpl in Heq; rewrite ? app_length in Heq; simpl in Heq; rewrite ? seq_length in Heq; lia.
 Qed.
 

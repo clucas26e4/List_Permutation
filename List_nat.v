@@ -88,6 +88,38 @@ Fixpoint In_nat_bool (n : nat) (l : list nat) :=
   | k :: l => (beq_nat n k) || (In_nat_bool n l)
   end.
 
+(* TODO maybe use this in proofs of following statements *)
+(* see for example cond_negb_In_nat_bool *)
+Lemma In_nat_bool_In n l : In_nat_bool n l = true <-> In n l.
+Proof.
+split; intros H; induction l.
+- exfalso; inversion H.
+- apply orb_true_iff in H as [H|H].
+  + apply Nat.eqb_eq in H; subst; now constructor.
+  + now constructor; apply IHl.
+- exfalso; inversion H.
+- apply orb_true_iff; inversion H; subst.
+  + now left; apply Nat.eqb_eq.
+  + now right; apply IHl.
+Qed.
+
+Lemma not_In_nat_bool_In n l : In_nat_bool n l = false <-> ~ In n l.
+Proof.
+split; intros H; induction l.
+- intros Hin; inversion Hin.
+- apply orb_false_iff in H as [H1 H2].
+  intros Hin; inversion Hin; subst.
+  + now apply Nat.eqb_neq in H1.
+  + now apply IHl.
+- reflexivity.
+- apply orb_false_iff; split.
+  + apply Nat.eqb_neq; intros Heq; subst.
+    apply H; now constructor.
+  + apply IHl.
+    intros Hin.
+    apply H; now constructor.
+Qed.
+
 Lemma In_nat_bool_false_tail : forall l n k,
     In_nat_bool n (k :: l) = false ->
     In_nat_bool n l = false.
@@ -103,23 +135,6 @@ Proof with try assumption.
 intros l n k Hin.
 apply orb_true_iff in Hin; destruct Hin; [left|right]...
 apply Nat.eqb_eq...
-Qed.
-
-(* TODO maybe use this in proofs of following statements *)
-(* see for example cond_negb_In_nat_bool *)
-Lemma In_nat_bool_In n l :
-  In_nat_bool n l = true <-> In n l.
-Proof.
-induction l; split; intros H.
-- inversion H.
-- inversion H.
-- apply In_nat_bool_true_tail in H.
-  destruct H; subst.
-  + left; reflexivity.
-  + right; apply IHl, H.
-- inversion H; subst; apply orb_true_intro.
-  + left; apply Nat.eqb_eq; reflexivity.
-  + right; apply IHl; assumption.
 Qed.
 
 (* TODO remove : included in next statement *)
@@ -338,6 +353,17 @@ Fixpoint all_lt (l : list nat) (n : nat) :=
   | k :: l => (k <? n) && (all_lt l n)
   end.
 
+Lemma all_lt_Forall l n : all_lt l n = true <-> Forall (fun x => x < n) l.
+Proof.
+split; intros H; induction l; simpl.
+- constructor.
+- apply andb_true_iff in H as [H1 H2]; apply Nat.ltb_lt in H1.
+  constructor; [ | apply IHl ]; assumption.
+- reflexivity.
+- inversion H; subst.
+  apply andb_true_iff; split; [ apply Nat.ltb_lt | apply IHl ]; assumption.
+Qed.
+
 Lemma all_lt_leq : forall l k n,
     all_lt l k = true ->
     k <= n ->
@@ -525,6 +551,23 @@ Fixpoint all_distinct (l : list nat) :=
   | nil => true
   | n :: l => (negb (In_nat_bool n l)) && (all_distinct l)
   end.
+
+Lemma all_distinct_NoDup l : all_distinct l = true <-> NoDup l.
+Proof.
+split; intros H; induction l; simpl.
+- constructor.
+- apply andb_true_iff in H as [H1 H2].
+  constructor. 
+  + apply negb_true_iff in H1.
+    now apply not_In_nat_bool_In.
+  + now apply IHl.
+- reflexivity.
+- inversion H; subst.
+  apply andb_true_iff; split.
+  + apply negb_true_iff.
+    now apply not_In_nat_bool_In.
+  + now apply IHl.
+Qed.
 
 Lemma all_distinct_incr_all : forall l n,
     all_distinct l = all_distinct (incr_all l n).
