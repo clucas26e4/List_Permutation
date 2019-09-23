@@ -11,7 +11,7 @@ Require Import Transposition.
 Ltac length_lia := repeat (try rewrite concat_app;
                            try rewrite incr_all_length in *;
                            try rewrite app_length in *;
-                           try rewrite Id_length in *;
+                           try rewrite seq_length in *;
                            try rewrite cfun_length in *;
                            try rewrite transpo_length in *;
                            try rewrite map_length in *; simpl in *); lia.

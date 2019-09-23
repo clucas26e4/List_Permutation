@@ -7,548 +7,377 @@ Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 
+Ltac length_lia := repeat (try rewrite concat_app;
+                           try rewrite incr_all_length in *;
+                           try rewrite app_length in *;
+                           try rewrite seq_length in *;
+                           try rewrite cfun_length in *;
+                           try rewrite map_length in *; simpl in *); lia.
+
+
+
+
 (** ** Transposition *)
 Definition transpo m n :=
   if n <? m then
   (*[0...n-1,n+1   , n ,   n+2 ... m ]*)
-    Id n ++ (S n) :: n :: (incr_all (Id (S m - (2 + n))) (2 + n)) else Id (S m).
+    Id n ++ (S n) :: n :: (seq (2 + n) (S m - (2 + n))) else Id (S m).
+
+Lemma transpo_decomp m n :
+  n < m -> transpo m n = Id n ++ incr_all ((1 :: 0 :: nil) ++ incr_all (Id (S m - (2 + n))) 2) n.
+Proof.
+intros Hle.
+apply Nat.ltb_lt in Hle.
+unfold transpo; rewrite Hle.
+f_equal.
+rewrite incr_all_app.
+change (S n :: n :: seq (2 + n) (S m - (2 + n)))
+  with ((S n :: n :: nil) ++ seq (2 + n) (S m - (2 + n))).
+f_equal.
+- simpl; f_equal; [lia | f_equal; lia].
+- rewrite <- incr_all_plus.
+  rewrite incr_all_seq; reflexivity.
+Qed.
+
+Lemma transpo_decomp2 m n :
+   { prod (transpo m n = Id (S m)) (m <= n) }
+ + { prod (transpo m n = Id n ++ incr_all ((1 :: 0 :: nil) ++ incr_all (Id (S m - (2 + n))) 2) n)
+          (n < m) }.
+Proof.
+case_eq (n <? m); intros Hle; unfold transpo; rewrite Hle; [ right | left ]; split.
+- rewrite <- transpo_decomp.
+  + unfold transpo; rewrite Hle; reflexivity.
+  + apply Nat.ltb_lt; assumption.
+- apply Nat.ltb_lt; assumption.
+- reflexivity.
+- apply Nat.ltb_ge in Hle; lia.
+Qed.
+
+Ltac decomp_transpo m n :=
+  destruct (transpo_decomp2 m n) as [[Ht Hltb] | [Ht Hltb]]; rewrite Ht;
+  [ assert (Hlt := (proj2 (Nat.ltb_ge _ _)) Hltb)
+  | assert (Hlt := (proj2 (Nat.ltb_lt _ _)) Hltb) ].
 
 Lemma transpo_length : forall m n, length (transpo m n) = (S m).
-Proof with try assumption; try reflexivity.
-  intros m n.
-  unfold transpo.
-  case_eq (n <? m); intros Hcase.
-  + rewrite app_length.
-    simpl.
-    rewrite incr_all_length.
-    rewrite ? Id_length.
-    apply Nat.ltb_lt in Hcase.
-    lia.
-  + apply Id_length.
+Proof.
+intros m n; decomp_transpo m n.
+- apply seq_length.
+- rewrite app_length; simpl.
+  rewrite 2 incr_all_length.
+  rewrite 2 seq_length ; lia.
 Qed.
 
 Lemma all_lt_transpo : forall m n, all_lt (transpo m n) (S m) = true.
-Proof with try reflexivity; try assumption.
-  intros m n.
-  unfold transpo.
-  case_eq (n <? m); intros Hcase.
-  - apply Nat.ltb_lt in Hcase.
+Proof.
+intros m n; decomp_transpo m n.
+- apply all_lt_seq; lia.
+- rewrite all_lt_app.
+  apply andb_true_iff; split.
+  + apply all_lt_seq; lia.
+  + replace (S m) with (n + (S m - n)) by lia.
+    rewrite <- all_lt_incr_all.
     rewrite all_lt_app.
-    apply andb_true_intro; split.
-    + apply all_lt_leq with n; [ | lia].
-      apply all_lt_Id.
-    + simpl.
-      apply andb_true_intro; split; [ | apply andb_true_intro; split].
-      * apply Nat.ltb_lt; lia.
-      * apply Nat.ltb_lt; lia.
-      * rewrite (Minus.le_plus_minus (S (S n)) (S m)) ; [ | lia].
-        rewrite<- all_lt_incr_all.
-        simpl.
-        apply all_lt_Id.
-  - apply all_lt_Id.
+    apply andb_true_iff; split.
+    * apply all_lt_leq with 2; [ reflexivity | lia].
+    * replace (S m - n) with (2 + (S m - (2 + n))) at 2 by lia.
+      rewrite <- all_lt_incr_all.
+      apply all_lt_seq; lia.
 Qed.
 
 Lemma all_distinct_transpo : forall m n, all_distinct (transpo m n) = true.
-Proof with try reflexivity; try assumption.
-  intros m n.
-  unfold transpo.
-  case_eq (n <? m); intros Hcase.
-  - apply Nat.ltb_lt in Hcase.
-    replace (S n) with (n + 1) by lia.
-    replace n with (n + 0) at 3 by lia.
-    rewrite incr_all_plus.
-    change (n + 1 :: n + 0 :: incr_all (incr_all (Id (S m - (2 + n))) 2) n) with
-        (incr_all (1 :: 0 :: incr_all (Id (S m - (2 + n))) 2) n).
-    rewrite all_distinct_app...
-    + apply all_lt_Id.
-    + apply all_distinct_Id.
-    + simpl; apply andb_true_intro; split; [ | apply andb_true_intro; split].
-      * apply negb_true_iff.
-        apply negb_In_incr_all...
-        lia.
-      * apply negb_true_iff.
-        apply negb_In_incr_all...
-        lia.
-      * rewrite<- all_distinct_incr_all.
-        apply all_distinct_Id.
-  - apply all_distinct_Id.
+Proof.
+intros m n; decomp_transpo m n.
+- apply all_distinct_seq.
+- apply all_distinct_app; [ | | apply all_distinct_app ];
+    try reflexivity; try apply all_distinct_seq.
+  apply all_lt_seq; lia.
 Qed.
 
-Fixpoint compo_transpo m l :=
-  match l with
-  | nil => Id (S m)
-  | i :: l => app_nat_fun (transpo m i) (compo_transpo m l)
-  end.
+Definition compo_transpo m := fold_right (fun i => app_nat_fun (transpo m i)) (Id (S m)).
+
+(* TODO move to List_more *)
+Lemma fold_right_app_assoc2 {A B} f (g : B -> A) h (e : A) l1 l2 :
+    (forall x y z, h (g x) (f y z) = f (h (g x) y) z) ->
+    (f e (fold_right (fun x => h (g x)) e l2) = (fold_right (fun x => h (g x)) e l2)) ->
+  fold_right (fun x => h (g x)) e (l1 ++ l2) =
+  f (fold_right (fun x => h (g x)) e l1) (fold_right (fun x => h (g x)) e l2).
+Proof.
+intros Hassoc Hunit.
+rewrite fold_right_app.
+remember (fold_right (fun x => f (g x)) e l2) as r.
+induction l1; simpl.
+- symmetry; apply Hunit.
+- rewrite <- Hassoc.
+  f_equal; assumption.
+Qed.
+
+Lemma fold_right_app_assoc {A} f (e : A) l1 l2 :
+  (forall x y z, f x (f y z) = f (f x y) z) -> (forall x, f e x = x) ->
+  fold_right f e (l1 ++ l2) = f (fold_right f e l1) (fold_right f e l2).
+Proof. intros Hassoc Hunit; apply fold_right_app_assoc2; [ assumption | apply Hunit ]. Qed.
+(* end TODO *)
 
 Lemma compo_transpo_length : forall m l, length (compo_transpo m l) = S m.
 Proof.
   intros m; induction l.
-  - apply Id_length.
-  - simpl.
-    unfold transpo.
-    case_eq (a <? m); intro Hcase.
-    + rewrite app_nat_fun_length.
-      2:{ intros Heq.
-          remember (compo_transpo m l).
-          destruct l0; [ | inversion Heq].
-          destruct m; [inversion Hcase | inversion IHl]. }
-      rewrite app_length.
-      simpl.
-      rewrite incr_all_length.
-      rewrite 2 Id_length.
-      apply Nat.ltb_lt in Hcase.
-      lia.
-    + rewrite app_nat_fun_length.
-      * apply Id_length.
-      * remember (compo_transpo m l).
-        destruct l0; try inversion IHl.
-        intros Heq; inversion Heq.
+  - apply seq_length.
+  - simpl; rewrite app_nat_fun_length.
+    + apply transpo_length.
+    + intros Hnil; rewrite Hnil in IHl; inversion IHl.
+Qed.
+
+Lemma all_lt_compo_transpo : forall m l, all_lt (compo_transpo m l) (S m) = true.
+Proof.
+  intros m; induction l.
+  - apply all_lt_seq; lia.
+  - simpl; rewrite all_lt_app_nat_fun; [ reflexivity | | assumption ].
+    rewrite compo_transpo_length.
+    apply all_lt_transpo.
 Qed.
 
 Lemma app_compo_transpo : forall m l1 l2,
   compo_transpo m (l1 ++ l2) = app_nat_fun (compo_transpo m l1) (compo_transpo m l2).
-Proof with try reflexivity.
-  intros m; induction l1; intros l2.
-  - simpl.
-    replace (0 :: seq 1 m) with (Id (length (compo_transpo m l2))).
-    + symmetry; apply app_Id.
-    + now rewrite compo_transpo_length.
-  - simpl.
-    rewrite asso_app_nat_fun.
-    rewrite<- IHl1...
+Proof.
+intros.
+apply fold_right_app_assoc2.
+- symmetry; apply asso_app_nat_fun.
+- fold (compo_transpo m).
+  rewrite <- (app_nil_r (compo_transpo _ _)) at 1.
+  apply app_Id_ext, compo_transpo_length.
+Qed.
+
+Lemma compo_transpo_sg : forall m i,
+  compo_transpo m (i :: nil) = transpo m i.
+Proof.
+intros m i.
+unfold compo_transpo, fold_right.
+apply app_nat_fun_Id_r, all_lt_transpo.
 Qed.
 
 (** ** nc_transpo *)
 Definition nc_transpo m i j :=
   if (i <? j) && (j <=? m) then
- (*[0...i-1,j,               i+1...j-1             ,  i , j+1   .... m]*)
-    Id i ++ j :: (incr_all (Id (j - (S i))) (S i)) ++ i :: (incr_all (Id (m - j)) (S j)) else Id (S m).
+ (*[0...i-1,j,   i+1...j-1 ,              i ,  j+1 ... m]*)
+    Id i ++ j :: seq (S i) (j - (S i)) ++ i :: seq (S j) (m - j) else Id (S m).
 
-Lemma nc_transpo_length : forall m i j,
-    length (nc_transpo m i j) = S m.
-Proof with try reflexivity; try assumption.
-  intros m i j.
-  unfold nc_transpo.
-  case_eq (i <? j); intros Hcase1; [case_eq (j <=? m); intros Hcase2 | ]; simpl.
-  - repeat (rewrite app_length; simpl).
-    rewrite ? incr_all_length.
-    rewrite ? Id_length.
-    apply Nat.ltb_lt in Hcase1.
-    apply Nat.leb_le in Hcase2.
-    lia.
-  - rewrite seq_length...
-  - rewrite seq_length...
+Lemma nc_transpo_eq m i : nc_transpo m i i = Id (S m).
+Proof.
+unfold nc_transpo.
+replace (i <? i) with false by (symmetry; apply Nat.ltb_ge; lia); reflexivity.
 Qed.
 
-Lemma all_lt_nc_transpo : forall m i j,
-    all_lt (nc_transpo m i j) (S m) = true.
-Proof with try reflexivity; try assumption.
-  intros m i j.
-  unfold nc_transpo.
-  case_eq (i <? j); intros Hcase1; [case_eq (j <=? m); intros Hcase2 | ]; unfold "&&".
-  - apply Nat.ltb_lt in Hcase1; apply Nat.leb_le in Hcase2.
-    rewrite all_lt_app.
-    apply andb_true_intro; split.
-    + apply all_lt_leq with i; [apply all_lt_Id | lia].
-    + simpl.
-      apply andb_true_intro; split; [apply Nat.ltb_lt; lia | ].
-      rewrite all_lt_app.
-      apply andb_true_intro; split.
-      * rewrite (Minus.le_plus_minus (S i) (S m)); [ | lia].
-        rewrite<- all_lt_incr_all.
-        apply all_lt_leq with (j - S i); [apply all_lt_Id | lia].
-      * simpl.
-        apply andb_true_intro; split; [ apply Nat.ltb_lt; lia | ].
-        rewrite (Minus.le_plus_minus (S j) (S m)); [ | lia].
-        rewrite<- all_lt_incr_all.
-        simpl.
-        apply all_lt_Id.
-  - apply all_lt_Id.
-  - apply all_lt_Id.
+Lemma nc_transpo_S m i : nc_transpo m i (S i) = transpo m i.
+Proof.
+case_eq (i <? m); intros Hlt; unfold nc_transpo, transpo.
+- apply Nat.ltb_lt in Hlt.
+  replace (i <? S i) with true by (symmetry; apply Nat.ltb_lt; lia).
+  replace (S i <=? m) with true by (symmetry; apply Nat.leb_le; lia).
+  replace (i <? m) with true by (symmetry; apply Nat.ltb_lt; lia); simpl.
+  replace (i - i) with 0 by lia; reflexivity.
+- apply Nat.ltb_ge in Hlt.
+  replace (S i <=? m) with false by (symmetry; apply Nat.leb_gt; lia).
+  replace (i <? m) with false by (symmetry; apply Nat.leb_gt; lia); simpl.
+  destruct (i <? S i); reflexivity.
 Qed.
 
-Lemma app_nc_transpo : forall {A} n i j (a : A) b l0 l1 l2,
-    n = pred (length (l0 ++ a :: l1 ++ b :: l2)) ->
-    i = length l0 ->
-    j = length (l0 ++ a :: l1) ->
-    i < j ->
-    j <= n ->
-    app_nat_fun (nc_transpo n i j) (l0 ++ a :: l1 ++ b :: l2) = (l0 ++ b :: l1 ++ a :: l2).
-Proof with try reflexivity; try assumption.
-  intros A n i j a b l0 l1 l2 Hlenn Hleni Hlenj Hij Hjn.
-  unfold nc_transpo.
-  replace (i <? j) with true by (symmetry; apply Nat.ltb_lt; apply Hij).
-  replace (j <=? n) with true by (symmetry; apply Nat.leb_le; apply Hjn).
-  change (if true && true
-          then
-            Id i ++
-               j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j)
-          else Id (S n))
-    with (Id i ++
-             j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j)).
+Lemma app_nc_transpo {A} : forall (a b : A) l1 l2 l3 m i j,
+  m = 1 + length l1 + length l2 + length l3 ->
+  i = length l1 ->
+  j = 1 + length l1 + length l2 ->
+     app_nat_fun (nc_transpo m i j) (l1 ++ a :: l2 ++ b :: l3)
+   = l1 ++ b :: l2 ++ a :: l3.
+Proof.
+intros a b l1 l2 l3 m i j Hm Hi Hj.
+unfold nc_transpo.
+replace (i <? j) with true by (symmetry; apply Nat.ltb_lt; lia).
+replace (j <=? m) with true by (symmetry; apply Nat.leb_le; lia); simpl.
+rewrite app_nat_fun_app.
+rewrite app_Id_ext by lia.
+f_equal.
+replace (j :: seq (S i) (j - S i) ++ i :: seq (S j) (m - j))
+   with (incr_all (S (length l2) :: seq 1 (length l2) ++ 0 :: seq (S (S (length l2))) (length l3)) i)
+  by (repeat (simpl; rewrite ? incr_all_app; rewrite incr_all_seq); repeat (f_equal; try lia)).
+rewrite app_nat_fun_right; try lia.
+- replace (S (length l2) :: seq 1 (length l2) ++ 0 :: seq (S (S (length l2))) (length l3))
+     with ((S (length l2) :: seq 1 (length l2) ++ 0 :: nil) ++ seq (0 + length (a :: l2 ++ b :: nil)) (length l3))
+    by (list_simpl; rewrite app_length; simpl; do 4 f_equal; lia).
+  replace (a :: l2 ++ b :: l3) with ((a :: l2 ++ b :: nil) ++ l3) by (list_simpl; reflexivity).
   rewrite app_nat_fun_app.
-  change (j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (n - j)) (S j))
-    with ((j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (n - j)) (S j)).
-  rewrite app_nat_fun_app.
-  replace (app_nat_fun (Id i) (l0 ++ a :: l1 ++ b :: l2)) with l0.
-  2:{ rewrite app_nat_fun_left.
-      - rewrite Hleni.
-        rewrite app_Id...
-      - rewrite Hleni.
-        apply all_lt_Id. }
-  change (j :: incr_all (Id (j - S i)) (S i)) with ((j :: nil) ++ incr_all (Id (j - S i)) (S i)).
-  change (i :: incr_all (Id (n - j)) (S j)) with ((i :: nil) ++  incr_all (Id (n - j)) (S j)).
-  rewrite ? app_nat_fun_app.
-  replace (app_nat_fun (j :: nil) (l0 ++ a :: l1 ++ b :: l2)) with (b :: nil).
-  2:{ rewrite Hlenj.
-      replace (length (l0 ++ a :: l1) :: nil) with (incr_all (0 :: nil) (length (l0 ++ a :: l1))).
-      2:{ simpl.
-          rewrite Nat.add_0_r... }
-      replace (l0 ++ a :: l1 ++ b :: l2)
-         with ((l0 ++ a :: l1) ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
-      rewrite app_nat_fun_right... }
-  replace ( app_nat_fun (incr_all (Id (j - S i)) (S i)) (l0 ++ a :: l1 ++ b :: l2)) with l1.
-  2:{ rewrite Hleni at 2.
-      replace (l0 ++ a :: l1 ++ b :: l2)
-         with ((l0 ++ a :: nil) ++ l1 ++ b :: l2) by (rewrite<- ? app_assoc; reflexivity).
-      replace (S (length l0)) with (length (l0 ++ a :: nil)) by (rewrite app_length; simpl; lia).
-      replace (j - S i) with (length l1).
-      2:{ rewrite app_length in Hlenj.
-          simpl in Hlenj.
-          lia. }
-      rewrite app_nat_fun_right.
-      - rewrite app_nat_fun_left.
-        + rewrite app_Id...
-        + apply all_lt_Id.
-      - apply all_lt_leq with (length l1).
-        + apply all_lt_Id.
-        + rewrite app_length; lia. }
-  replace (app_nat_fun (i :: nil) (l0 ++ a :: l1 ++ b :: l2)) with (a :: nil).
-  2:{ rewrite Hleni.
-      replace (length l0 :: nil) with (incr_all (0 :: nil) (length l0)).
-      2:{ simpl.
-          rewrite Nat.add_0_r... }
-      rewrite app_nat_fun_right... }
-  replace (app_nat_fun (incr_all (Id (n - j)) (S j)) (l0 ++ a :: l1 ++ b :: l2)) with l2...
-  replace (S j) with (length (l0 ++ a :: l1 ++ (b :: nil))).
-  2:{ repeat (rewrite app_length; simpl).
-      repeat (rewrite app_length in Hlenj; simpl in Hlenj).
-      lia. }
-  replace (l0 ++ a :: l1 ++ b :: l2)
-     with ((l0 ++ a :: l1 ++ b :: nil) ++ l2) by (repeat (rewrite<- app_assoc; simpl); reflexivity).
-  replace (n - j) with (length l2).
-  2:{ rewrite app_length in Hlenj.
-      repeat (rewrite app_length in Hlenn; simpl in Hlenn).
-      simpl in Hlenj.
-      lia. }
-  rewrite app_nat_fun_right.
-  - rewrite app_Id...
-  - apply all_lt_Id.
-Qed.
-
-Fixpoint compo_nc_transpo m l :=
-  match l with
-  | nil => Id (S m)
-  | (i , j) :: l => app_nat_fun (nc_transpo m i j) (compo_nc_transpo m l)
-  end.
-
-Lemma compo_nc_transpo_length : forall m l,
-    length (compo_nc_transpo m l) = S m.
-Proof with try reflexivity; try assumption.
-  intros m l.
-  induction l.
-  - simpl.
-    rewrite seq_length...
-  - destruct a; simpl.
-    rewrite app_nat_fun_length.
-    + apply nc_transpo_length.
-    + intros H; rewrite H in IHl; inversion IHl.
-Qed.
-
-Lemma nc_transpo_decrease : forall m i j, i <> j -> i < S j -> S j <= m ->
-  nc_transpo m i (S j) = app_nat_fun (app_nat_fun (transpo m j) (nc_transpo m i j)) (transpo m j).
-Proof with try reflexivity; try assumption.
-  intros m i j nHij HiSj HSjm.
-  assert (i < j) as Hij by lia.
-  assert (j <= m) as Hjm by lia.
-  unfold nc_transpo.
-  unfold transpo.
-  replace (i <? S j) with true; [ | symmetry; apply Nat.ltb_lt]...
-  replace (S j <=? m) with true; [ | symmetry; apply Nat.leb_le]...
-  replace (i <? j) with true; [ | symmetry; apply Nat.ltb_lt]...
-  replace (j <=? m) with true; [ | symmetry; apply Nat.leb_le]...
-  replace (j <? m) with true ; [ | symmetry; apply Nat.ltb_lt]...
-  simpl.
-  rewrite ? app_nat_fun_app.
-  replace (app_nat_fun (Id j)
-                       (Id i ++
-                           j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j)))
-    with
-      (Id i ++ j :: incr_all (Id (j - S i)) (S i)).
-  2:{ transitivity (app_nat_fun (Id j) (Id i ++ j :: incr_all (Id (j - S i)) (S i))).
-      - symmetry.
-        replace j with (length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) at 1.
-        2:{ rewrite app_length.
-            simpl; rewrite incr_all_length.
-            rewrite? Id_length.
-            lia. }
-        apply app_Id.
-      - replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
-           with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
-          by (rewrite<- ? app_assoc; reflexivity).
-        symmetry; rewrite app_nat_fun_left...
-        rewrite app_length.
-        simpl; rewrite incr_all_length.
-        rewrite ? Id_length.
-        apply all_lt_leq with j.
-        + apply all_lt_Id.
-        + lia. }
-  rewrite ? app_nat_fun_app.
-  replace (app_nat_fun (Id i) (Id j ++ S j :: j :: incr_all (Id (m - S j)) (S (S j)))) with (Id i).
-  2:{ symmetry.
-      rewrite app_nat_fun_left.
-      2:{ rewrite Id_length.
-          apply all_lt_leq with i; [apply all_lt_Id | lia]. }
-      apply app_nat_fun_Id_r.
-      apply all_lt_leq with i; [ | lia ].
-      apply all_lt_Id. }
-  change (S j :: j :: incr_all (Id (m - S j)) (S (S j)))
-    with ((S j :: nil) ++ (j :: nil) ++ (incr_all (Id (m - S j)) (S (S j)))).
-  rewrite ? app_nat_fun_app.
-  replace (app_nat_fun (S j :: nil)
-                       (Id i ++
-                           j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j)))
-    with
-      (S j :: nil).
-  2:{ symmetry.
-      rewrite (Minus.le_plus_minus (length (Id i ++ j :: (incr_all (Id (j - S i)) (S i)))) (S j)) at 1.
-      2:{ rewrite app_length.
-          simpl.
-          rewrite incr_all_length.
-          rewrite ? Id_length.
-          lia. }
-      change (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)) +
-              (S j - length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) :: nil)
-        with (incr_all ((S j - length (Id i ++ j :: incr_all (Id (j - S i)) (S i))) :: nil)
-                       (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)))).
-      replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
-        with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
-        by (rewrite <- ? app_assoc; reflexivity).
-      rewrite app_nat_fun_right.
-      2:{ simpl.
-          rewrite app_length.
-          simpl.
-          rewrite ? incr_all_length.
-          rewrite ? Id_length.
-          replace (match i + S (j - S i) with
-                   | 0 => S j
-                   | S l => j - l
-                   end <? S (m - j)) with true...
-          symmetry.
-          apply Nat.ltb_lt.
-          change (match i + S (j - S i) with
-                  | 0 => S j
-                  | S l => j - l
-                  end)
-            with (S j - (i + S (j - S i))).
-          lia. }
-      rewrite app_length; simpl; rewrite incr_all_length; rewrite ? Id_length.
-      change (match i + S (j - S i) with
-              | 0 => S j
-              | S l => j - l
-              end)
-        with (S j - (i + S (j - S i))).
-      replace (S j - (i  + S (j - S i))) with (S (j - (i + S (j - S i)))) by lia.
-      replace (nth (j - (i + S (j - S i))) (incr_all (Id (m - j)) (S j)) i) with (S j)...
-      replace (nth (j - (i + S (j - S i))) (incr_all (Id (m - j)) (S j)) i) with
-          (nth (j - (i + S (j - S i))) (incr_all (Id (m - j)) (S j)) ((S j) + 0)).
-      2:{ apply nth_indep.
-          rewrite incr_all_length.
-          rewrite Id_length.
-          lia. }
-      unfold incr_all.
-      rewrite map_nth.
-      rewrite nth_Id; lia. }
-  replace (app_nat_fun (S j :: nil)
-                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
-     with (j :: nil).
-  2:{ replace (S j :: nil) with (incr_all (1 :: nil) (length (Id j))) at 1.
-      2:{ simpl.
-          rewrite Id_length.
-          rewrite Nat.add_comm... }
-      rewrite app_nat_fun_right... }
-  replace (app_nat_fun (j :: nil)
-                       (Id i ++
-                           j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))) with
-      (i :: nil).
-  2:{ replace (j :: nil) with (incr_all (0 :: nil) (length (Id i ++ j :: incr_all (Id (j - S i)) (S i)))).
-      2:{ simpl.
-          rewrite app_length.
-          simpl.
-          rewrite incr_all_length.
-          rewrite 2 Id_length.
-          replace (i + S (j - S i) + 0) with j by lia... }
-      replace (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
-        with ((Id i ++ j :: incr_all (Id (j - S i)) (S i)) ++ i :: incr_all (Id (m - j)) (S j))
-        by (rewrite <- ? app_assoc; reflexivity).
-      rewrite app_nat_fun_right... }
-  replace (app_nat_fun (i :: nil) (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
-     with (i :: nil).
-  2:{ rewrite app_nat_fun_left.
-      - rewrite app_nat_fun_Id_r...
-        apply Nat.ltb_lt in Hij; apply andb_true_iff; split...
-      - rewrite Id_length.
-        simpl.
-        replace (i <? j) with true...
-        symmetry; rewrite Nat.ltb_lt... }
-  replace (app_nat_fun (incr_all (Id (m - S j)) (S (S j)))
-                       (Id i ++
-                           j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j)))
-    with (incr_all (Id (m - S j)) (S (S j))).
-  2:{ replace (Id i ++
-                  j :: incr_all (Id (j - S i)) (S i) ++ i :: incr_all (Id (m - j)) (S j))
-        with
-          ((Id i ++
-               j :: incr_all (Id (j - S i)) (S i) ++ i :: (S j) :: nil) ++ incr_all (Id (m - (S j))) (S (S j))).
-      2:{ rewrite <- ? app_assoc.
-          simpl.
-          rewrite <- ? app_assoc.
-          simpl.
-          replace (S j :: incr_all (Id (m - S j)) (S (S j)))
-            with (incr_all (Id (m - j)) (S j))...
-          destruct m ; [ exfalso; lia | ].
-          replace (S m - j) with (S (m - j)) by lia.
-          simpl.
-          f_equal; [ lia | ].
-          rewrite 2 incr_all_seq; f_equal. }
-      replace (S (S j)) with (length (Id i ++ j :: incr_all (Id (j - S i)) (S i) ++ i :: S j :: nil)) at 2.
-      2:{ rewrite app_length; simpl; rewrite app_length.
-          rewrite incr_all_length; simpl.
-          rewrite 2 Id_length.
-          lia. }
-      rewrite app_nat_fun_right.
-      2:{ rewrite incr_all_length; rewrite Id_length.
-          apply all_lt_Id. }
-      replace (m - S j) with (length (incr_all (Id (m - S j)) (S (S j)))) at 2.
-      - rewrite app_Id...
-      - rewrite incr_all_length; rewrite Id_length... }
-  replace (app_nat_fun (incr_all (Id (m - S j)) (S (S j)))
-                       (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j))))
-     with (incr_all (Id (m - S j)) (S (S j))).
-  2:{ replace (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))
-        with ((Id j ++ (S j :: j :: nil)) ++ incr_all (Id (m - S j)) (S (S j)))
-        by (rewrite<- ? app_assoc; reflexivity).
-      replace (S (S j)) with (length (Id j ++ S j :: j :: nil)) at 2.
-      2:{ rewrite app_length; rewrite Id_length; simpl; lia. }
-      rewrite app_nat_fun_right.
-      2:{ rewrite incr_all_length; rewrite Id_length.
-          apply all_lt_Id. }
-      replace (m - S j) with (length (incr_all (Id (m - S j)) (S (S j)))) at 2.
-      - rewrite app_Id...
-      - rewrite incr_all_length; rewrite Id_length... }
-  change (S j :: incr_all (Id (j - i)) (S i) ++ i :: incr_all (Id (m - S j)) (S (S j)))
-   with ((S j :: incr_all (Id (j - i)) (S i)) ++ i :: incr_all (Id (m - S j)) (S (S j))).
-  replace (S j :: incr_all (Id (j - i)) (S i)) with
-      ((app_nat_fun (j :: incr_all (Id (j - S i)) (S i))
-                    (Id j ++ (S j :: nil) ++ (j :: nil) ++ incr_all (Id (m - S j)) (S (S j)))) ++ (j :: nil)).
-  { repeat (simpl; rewrite <- app_assoc)... }
-  change (j :: incr_all (Id (j - S i)) (S i)) with ((j :: nil) ++ incr_all (Id (j - S i)) (S i)).
-  rewrite app_nat_fun_app.
-  replace (j :: nil) with (incr_all (0 :: nil) (length (Id j))) at 1.
-  2:{ rewrite Id_length.
-      simpl.
-      rewrite Nat.add_0_r... }
-  rewrite app_nat_fun_right...
-  simpl.
-  replace (incr_all (Id (j - i)) (S i))
-     with (app_nat_fun (incr_all (Id (j - S i)) (S i))
-                       (Id j ++ S j :: j :: incr_all (Id (m - S j)) (S (S j))) ++ j :: nil)...
   rewrite app_nat_fun_left.
-  2:{ rewrite Id_length.
-      rewrite (Minus.le_plus_minus (S i) j) at 2.
-      2:{ lia. }
-      rewrite<- all_lt_incr_all.
-      apply all_lt_Id. }
-  remember (j - S i); destruct n.
-  + simpl.
-    replace j with (S i) by lia.
-    replace (S i - i) with 1 by lia.
-    simpl.
-    rewrite Nat.add_0_r...
-  + rewrite app_nat_fun_Id_r.
-    2:{ rewrite incr_all_seq; simpl.
-        apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | ].
-        apply all_lt_leq with (S (S i) + n); [ | lia ].
-        apply all_lt_seq. }
-    replace (j - i) with (S (j - S i)) by lia.
-    rewrite (Id_S (j - S i)).
-    rewrite incr_all_app.
-    rewrite Heqn.
-    simpl.
-    replace (S (i + (j - S i))) with j by lia...
+  + rewrite <- incr_all_seq.
+    rewrite app_nat_fun_right; [ | lia | apply all_lt_seq; lia ].
+    rewrite app_Id.
+    rewrite app_nat_fun_cons, <- app_comm_cons; f_equal.
+    * rewrite app_comm_cons, app_nth2; simpl;
+        replace (length l2 - length l2) with 0 by lia; [ reflexivity | lia ].
+    * rewrite app_nat_fun_app.
+      change (a :: l2 ++ b :: nil) with ((a :: nil) ++ l2 ++ b :: nil).
+      replace 1 with (0 + length (a :: nil)) by (simpl; lia).
+      rewrite <- incr_all_seq.
+      rewrite app_nat_fun_right; [ | |
+        rewrite app_length; simpl; apply all_lt_leq with (length l2); [ apply all_lt_seq | ] ]; try lia.
+      rewrite app_nat_fun_left, app_Id; [ | apply all_lt_seq; lia ].
+      list_simpl; reflexivity.
+  + simpl length.
+    rewrite app_length; simpl.
+    apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | rewrite all_lt_app ].
+    apply andb_true_iff; split; [ | reflexivity ].
+    apply all_lt_leq with (1 + length l2); [ apply all_lt_seq| ]; lia.
+- simpl length.
+  rewrite app_length; simpl.
+  apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | rewrite all_lt_app ].
+  apply andb_true_iff; split; [ | simpl ].
+  + apply all_lt_leq with (1 + length l2); [ apply all_lt_seq | ]; lia.
+  + replace (S (length l2 + S (length l3)))
+       with (S (S (length l2)) + length l3) by lia.
+    apply all_lt_seq; lia.
+Qed.
+
+Lemma nc_transpo_idem : forall m i j,
+  app_nat_fun (nc_transpo m i j) (nc_transpo m i j) = Id (S m).
+Proof.
+intros m i j; unfold nc_transpo at 2.
+case_eq (i <? j); intros Hij; [ case_eq (j <=? m); intros Hjm | ]; unfold andb.
+- apply Nat.ltb_lt in Hij; apply Nat.leb_le in Hjm.
+  rewrite app_nc_transpo; try length_lia.
+  replace (S m) with (i + (S ((j - S i) + S (m - j)))) by lia.
+  repeat (rewrite ? seq_plus; f_equal; simpl); lia.
+- unfold nc_transpo; rewrite Hij, Hjm; unfold andb.
+  rewrite <- (app_nil_r (Id (S m))) at 2.
+  apply app_Id_ext with (l2 := nil); length_lia.
+- unfold nc_transpo; rewrite Hij; unfold andb.
+  rewrite <- (app_nil_r (Id (S m))) at 2.
+  apply app_Id_ext with (l2 := nil); length_lia.
+Qed.
+
+Lemma app_transpo {A} : forall (a b : A) l1 l2 m i,
+  m = 1 + length l1 + length l2 ->
+  i = length l1 ->
+   app_nat_fun (transpo m i) (l1 ++ a :: b :: l2)
+ = l1 ++ b :: a :: l2.
+Proof.
+intros a b l1 l2 m i Hm Hi.
+rewrite <- nc_transpo_S.
+change (l1 ++ a :: b :: l2) with (l1 ++ a :: nil ++ b :: l2).
+rewrite app_nc_transpo; simpl; try lia; reflexivity.
+Qed.
+
+Lemma transpo_idem : forall m i,
+  app_nat_fun (transpo m i) (transpo m i) = Id (S m).
+Proof. intros; rewrite <- nc_transpo_S; apply nc_transpo_idem. Qed.
+
+Lemma nc_transpo_transpo : forall m i j, S i < j -> j <= m ->
+  nc_transpo m i j = app_nat_fun (app_nat_fun (transpo m i) (nc_transpo m (S i) j)) (transpo m i).
+Proof.
+intros m i j Hlt Hle.
+rewrite asso_app_nat_fun.
+unfold transpo at 2.
+replace (i <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
+replace (S m - (2 + i)) with ((j - (2 + i)) + (S (m - j))) by lia.
+rewrite seq_plus.
+replace (2 + i + (j - (2 + i))) with j by lia.
+simpl seq at 3.
+rewrite <- (app_nil_l (i :: _)).
+rewrite app_comm_cons, app_assoc.
+rewrite app_nc_transpo; try length_lia.
+rewrite <- app_assoc, <- app_comm_cons, app_nil_l.
+rewrite app_transpo; try length_lia.
+unfold nc_transpo.
+replace (i <? j) with true by (symmetry; apply Nat.ltb_lt; lia).
+replace (j <=? m) with true by (symmetry; apply Nat.leb_le; lia); simpl.
+list_simpl; do 2 f_equal.
+replace (j - S i) with (S (j - S (S i))) at 1 by lia.
+reflexivity.
+Qed.
+
+(*
+Lemma nc_transpo_transpo : forall m i j, i < j -> S j <= m ->
+  nc_transpo m i (S j) = app_nat_fun (app_nat_fun (transpo m j) (nc_transpo m i j)) (transpo m j).
+Proof.
+intros m i j Hlt Hle.
+rewrite asso_app_nat_fun.
+unfold transpo at 2.
+replace (j <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
+replace j with (i + (S (j - S i))) at 4 by lia.
+rewrite seq_plus; simpl seq.
+rewrite <- app_assoc, <- app_comm_cons.
+rewrite app_nc_transpo; try length_lia.
+rewrite app_comm_cons, app_assoc.
+rewrite app_transpo; try length_lia.
+unfold nc_transpo.
+replace (i <? S j) with true by (symmetry; apply Nat.ltb_lt; lia).
+replace (S j <=? m) with true by (symmetry; apply Nat.leb_le; lia); simpl.
+list_simpl; do 2 f_equal.
+replace (j - i) with (S (j - S i)) at 1 by lia.
+rewrite seq_S.
+replace (S i + (j - S i)) with j by lia.
+list_simpl; reflexivity.
+Qed.
+*)
+
+Lemma nc_transpo_compo_transpo : forall m i j, i < j -> j <= m ->
+  nc_transpo m i j = compo_transpo m (seq i (j - i) ++ (j - 1) :: rev (seq i (j - i))).
+Proof.
+intros m i j.
+remember (j - i) as k; revert i j Heqk; induction k; intros i j Hk Hlt Hle;
+  [ lia | destruct (Nat.eq_dec k 0); subst ].
+- replace j with (S i) by lia.
+  simpl seq; simpl rev.
+  replace (S i - 1 :: i :: nil) with ((i :: nil) ++ i :: nil) by (simpl; f_equal; lia).
+  rewrite nc_transpo_S.
+  rewrite 2 app_compo_transpo, compo_transpo_sg.
+  rewrite transpo_idem.
+  symmetry; apply app_nat_fun_Id_r, all_lt_transpo.
+- simpl seq; simpl rev.
+  replace (compo_transpo m ((i :: seq (S i) k) ++ j - 1 :: rev (seq (S i) k) ++ i :: nil))
+     with (app_nat_fun (transpo m i)
+          (app_nat_fun (compo_transpo m (seq (S i) k ++ j - 1 :: rev (seq (S i) k))) (transpo m i)))
+    by (unfold compo_transpo at 2; simpl; f_equal; rewrite <- compo_transpo_sg, <- app_compo_transpo;
+        list_simpl; reflexivity).
+  rewrite <- IHk by lia.
+  rewrite <- asso_app_nat_fun.
+  apply nc_transpo_transpo; lia.
 Qed.
 
 Lemma decomp_nc_transpo : forall m i j,
-    { l & nc_transpo m i j = compo_transpo m l}.
-Proof with try reflexivity; try assumption.
-  intros m i j.
-  case_eq (i <? j); intros Hij ; [case_eq (j <=? m) ; intros Hjm | ].
-  - apply Nat.ltb_lt in Hij.
-    apply Nat.leb_le in Hjm.
-    revert i Hij Hjm; induction j; intros i Hij Hjm.
-    + exfalso.
-      lia.
-    + case_eq (i =? j); intros Hcase.
-      * split with (i :: nil).
-        unfold nc_transpo.
-        replace (i <? S j) with true by (symmetry; apply Nat.ltb_lt; apply Hij).
-        replace (S j <=? m) with true by (symmetry; apply Nat.leb_le; apply Hjm).
-        unfold "&&".
-        unfold compo_transpo.
-        unfold transpo.
-        replace (i <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
-        rewrite app_nat_fun_Id_r.
-        2:{ simpl.
-            rewrite all_lt_app; apply andb_true_iff; split.
-            - apply all_lt_leq with i; [ apply all_lt_Id | lia ].
-            - do 2 (try (apply andb_true_iff; split)).
-              + apply Nat.ltb_lt; lia.
-              + apply Nat.ltb_lt; lia.
-              + rewrite incr_all_seq; simpl.
-                replace (S m) with (S (S i) + (m - S i)) by lia.
-                apply all_lt_seq. }
-        apply Nat.eqb_eq in Hcase.
-        rewrite Hcase.
-        rewrite Nat.sub_diag.
-        simpl...
-      * destruct (IHj i) as (l & Heq).
-        -- apply Nat.eqb_neq in Hcase.
-           lia.
-        -- lia.
-        -- split with (j :: l ++ j :: nil).
-           change (j :: l ++ j :: nil) with ((j :: l) ++ j :: nil).
-           rewrite app_compo_transpo.
-           unfold compo_transpo; fold compo_transpo.
-           replace (S m) with (length (transpo m j)).
-           2:{ unfold transpo.
-               case (j <? m).
-               - rewrite app_length.
-                 simpl.
-                 rewrite incr_all_length.
-                 rewrite 2 Id_length.
-                 lia.
-               - apply Id_length. }
-           rewrite app_nat_fun_Id_r.
-           2:{ rewrite transpo_length.
-               apply all_lt_transpo. }
-           rewrite nc_transpo_decrease...
-           ++ rewrite Heq...
-           ++ apply Nat.eqb_neq...
-  - split with nil.
-    unfold nc_transpo.
-    rewrite Hij, Hjm...
-  - split with nil.
-    unfold nc_transpo.
-    rewrite Hij...
+  { l & nc_transpo m i j = compo_transpo m l}.
+Proof.
+intros m i j.
+case_eq ((i <? j) && (j <=? m)); intros Handb.
+- apply andb_true_iff in Handb as [Hlt Hle].
+  apply Nat.ltb_lt in Hlt.
+  apply Nat.leb_le in Hle.
+  exists (seq i (j - i) ++ (j - 1) :: rev (seq i (j - i))).
+  apply nc_transpo_compo_transpo; lia.
+- unfold nc_transpo; rewrite Handb.
+  exists nil; reflexivity.
+Qed.
+
+Lemma nc_transpo_length : forall m i j,
+  length (nc_transpo m i j) = S m.
+Proof.
+intros m i j.
+destruct (decomp_nc_transpo m i j) as [l Heq]; rewrite Heq.
+apply compo_transpo_length.
+Qed.
+
+Lemma all_lt_nc_transpo : forall m i j,
+  all_lt (nc_transpo m i j) (S m) = true.
+Proof.
+intros m i j.
+destruct (decomp_nc_transpo m i j) as [l Heq]; rewrite Heq.
+apply all_lt_compo_transpo.
+Qed.
+
+Definition compo_nc_transpo m := fold_right (fun i => app_nat_fun (nc_transpo m (fst i) (snd i))) (Id (S m)).
+
+Lemma compo_nc_transpo_length : forall m l,
+  length (compo_nc_transpo m l) = S m.
+Proof.
+  intros m; induction l.
+  - apply seq_length.
+  - simpl; rewrite app_nat_fun_length.
+    + apply nc_transpo_length.
+    + intros Hnil; rewrite Hnil in IHl; inversion IHl.
 Qed.
 

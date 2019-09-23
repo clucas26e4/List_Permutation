@@ -35,10 +35,10 @@ Definition app_nat_fun {A} (p : list nat) (l : list A) :=
   end.
 
 Ltac app_nat_fun_unfold l1 l2 n a :=
-  change (app_nat_fun (n :: l1) (a :: l2)) with ((nth n (a :: l2) a) :: (app_nat_fun l1 (a :: l2))) in *.
+  change (app_nat_fun (n :: l1) (a :: l2)) with (nth n (a :: l2) a :: app_nat_fun l1 (a :: l2)) in *.
 
 Lemma app_nat_fun_nil {A} : forall (l : list A),
-    app_nat_fun nil l = nil.
+  app_nat_fun nil l = nil.
 Proof.
   destruct l; reflexivity.
 Qed.
@@ -49,6 +49,10 @@ Proof.
   intros p l a Hnil.
   destruct l; [ contradiction Hnil | ]; reflexivity.
 Qed.
+
+Lemma app_nat_fun_cons {A} : forall n (a : A) p l,
+  app_nat_fun (n :: p) (a :: l) = nth n (a :: l) a :: app_nat_fun p (a :: l).
+Proof. intros n a p l; app_nat_fun_unfold p l n a; reflexivity. Qed.
 
 Lemma app_nat_fun_app_nat_fun_dflt {A} : forall p (l : list A) d,
   all_lt p (length l) = true -> app_nat_fun p l = app_nat_fun_dflt p l d.
@@ -79,6 +83,23 @@ Lemma app_nat_fun_length {A} : forall f (l : list A), l <> nil -> length (app_na
 Proof.
   intros f l Hnnil.
   destruct l; [ exfalso; apply Hnnil; reflexivity | apply map_length ].
+Qed.
+
+Lemma all_lt_app_nat_fun : forall p l n, all_lt p (length l) = true ->
+  all_lt l n = true -> all_lt (app_nat_fun p l) n = true.
+Proof.
+induction p; intros l n Hl Halt.
+- rewrite app_nat_fun_nil; reflexivity.
+- simpl in Hl; apply andb_true_iff in Hl as [Hl1 Hl2].
+  destruct l; [ apply Nat.ltb_lt in Hl1; simpl in Hl1; lia | ].
+  simpl in Halt; apply andb_true_iff in Halt as [Halt1 Halt2].
+  simpl; apply andb_true_iff; split.
+  + destruct a; [ assumption | ].
+    apply Nat.ltb_lt.
+    apply cond_all_lt_inv; [ | assumption ].
+    apply Nat.ltb_lt in Hl1; simpl in Hl1; lia.
+  + fold (@app_nat_fun nat p (n0 :: l)).
+    apply IHp; [ | apply andb_true_iff; split ]; assumption.
 Qed.
 
 Lemma app_nat_fun_dflt_shift {A} : forall la lb (a : A) p d, length (la ++ lb) <> 0 ->
@@ -243,11 +264,12 @@ f_equal.
 rewrite app_nth2; f_equal; lia.
 Qed.
 
-Lemma app_nat_fun_right {A} : forall (l1 l2 : list A) f,
+Lemma app_nat_fun_right {A} : forall k (l1 l2 : list A) f,
+    k = length l1 ->
     all_lt f (length l2) = true ->
-    app_nat_fun (incr_all f (length l1)) (l1 ++ l2) = app_nat_fun f l2.
+    app_nat_fun (incr_all f k) (l1 ++ l2) = app_nat_fun f l2.
 Proof.
-intros l1 l2 f Hlen.
+intros k l1 l2 f Heq Hlen; subst.
 induction l1; simpl.
 - rewrite incr_all_0; reflexivity.
 - change (S (length l1)) with (length (a :: l1)).
@@ -484,14 +506,6 @@ f_equal; lia.
 Qed.
 (* end TODO *)
 
-Lemma all_lt_seq : forall s l, all_lt (seq s l) (s + l) = true.
-Proof.
-intros s l.
-apply all_lt_Forall, Forall_forall.
-intros x Hin.
-now apply in_seq in Hin.
-Qed.
-
 Lemma incr_all_seq : forall s l k, incr_all (seq s l) k = seq (s + k) l.
 Proof.
 intros s l k.
@@ -499,11 +513,17 @@ revert s; induction l; intros s; simpl; [ reflexivity | ].
 f_equal; [ lia | apply IHl ].
 Qed.
 
-Lemma Id_length : forall n, length (Id n) = n.
-Proof. intros; apply seq_length. Qed.
+Lemma all_lt_seq : forall s l k, s + l <= k -> all_lt (seq s l) k = true.
+Proof.
+intros s l k Hle.
+apply all_lt_Forall, Forall_forall.
+intros x Hin.
+apply in_seq in Hin; lia.
+Qed.
 
-Lemma Id_S : forall n, Id (S n) = Id n ++ n :: nil.
-Proof. apply seq_S. Qed.
+Lemma all_distinct_seq : forall s l,
+  all_distinct (seq s l) = true.
+Proof. intros; apply all_distinct_NoDup, seq_NoDup. Qed.
 
 Lemma nth_Id : forall i n a0, i < n -> nth i (Id n) a0 = i.
 Proof. intros; now apply seq_nth. Qed.
@@ -511,17 +531,10 @@ Proof. intros; now apply seq_nth. Qed.
 Lemma In_Id_lt : forall n x, In x (Id n) -> x < n.
 Proof. intros. apply in_seq in H; lia. Qed.
 
-Lemma all_lt_Id : forall n, all_lt (Id n) n = true.
-Proof. apply all_lt_seq. Qed.
-
-Lemma all_distinct_Id : forall n,
-    all_distinct (Id n) = true.
-Proof. intros; apply all_distinct_NoDup, seq_NoDup. Qed.
-
 Lemma app_Id {A} : forall (l : list A),
-    app_nat_fun (Id (length l)) l = l.
-Proof with try reflexivity; try assumption.
-  induction l...
+  app_nat_fun (Id (length l)) l = l.
+Proof.
+  induction l; [ reflexivity | ].
   simpl; unfold app_nat_fun_dflt; f_equal.
   rewrite <- seq_shift.
   rewrite map_map.
@@ -530,6 +543,14 @@ Proof with try reflexivity; try assumption.
   apply map_ext_in; intros x Hin.
   simpl; destruct x; [reflexivity | apply nth_indep].
   apply In_Id_lt in Hin; simpl in Hin; lia.
+Qed.
+
+Lemma app_Id_ext {A} : forall k (l1 l2 : list A), length l1 = k ->
+  app_nat_fun (Id k) (l1 ++ l2) = l1.
+Proof.
+intros k l1 l2 Heq.
+rewrite <- Heq.
+rewrite app_nat_fun_left; [ apply app_Id | apply all_lt_seq; lia ].
 Qed.
 
 Lemma app_nat_fun_Id_r : forall f k, all_lt f k = true -> app_nat_fun f (Id k) = f.
@@ -554,9 +575,7 @@ Lemma all_lt_cfun : forall n m, all_lt (cfun n m) (n + m) = true.
 Proof.
 intros n m.
 unfold cfun; rewrite all_lt_app.
-apply andb_true_iff; split.
-- apply all_lt_seq.
-- apply all_lt_leq with n; [ apply all_lt_seq | lia ].
+apply andb_true_iff; split; apply all_lt_seq; lia.
 Qed.
 
 Lemma all_distinct_cfun : forall n m, all_distinct (cfun n m) = true.
@@ -565,7 +584,7 @@ Proof.
   unfold cfun.
   rewrite all_distinct_app_commu.
   rewrite <- seq_plus.
-  apply all_distinct_Id.
+  apply all_distinct_seq.
 Qed.
 
 Lemma app_cfun_eq {A} : forall (l1 : list A) l2,
@@ -576,12 +595,12 @@ unfold cfun.
 rewrite app_nat_fun_app; f_equal.
 - change (length l1) with (0 + length l1).
   rewrite <- incr_all_seq.
-  rewrite app_nat_fun_right.
+  rewrite app_nat_fun_right; try lia.
   + apply app_Id.
-  + apply all_lt_Id.
+  + apply all_lt_seq; lia.
 - rewrite app_nat_fun_left.
   + apply app_Id.
-  + apply all_lt_Id.
+  + apply all_lt_seq; lia.
 Qed.
 
 Lemma cfun_inv : forall n m, app_nat_fun (cfun n m) (cfun m n) = Id (m + n).

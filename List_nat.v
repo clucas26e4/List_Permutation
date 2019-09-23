@@ -290,7 +290,8 @@ Proof with try reflexivity; try assumption.
     rewrite Heq...
   - rewrite Heq in Hin.
     simpl.
-    replace ((b =? a0) || ((b =? a) || In_nat_bool b (l1 ++ l2))) with (((b =? a0) || In_nat_bool b (l1 ++ l2)) || (b =? a)).
+    replace ((b =? a0) || ((b =? a) || In_nat_bool b (l1 ++ l2)))
+       with (((b =? a0) || In_nat_bool b (l1 ++ l2)) || (b =? a)).
     2:{ case (b =? a0); case (In_nat_bool b (l1 ++ l2)) ; case (b =? a)... }
     rewrite IHl1...
 Qed.
@@ -538,15 +539,6 @@ split; intros H; induction l; simpl.
   + now apply IHl.
 Qed.
 
-Lemma all_distinct_incr_all : forall l n,
-    all_distinct l = all_distinct (incr_all l n).
-Proof with try reflexivity; try assumption.
-  induction l; intros n...
-  simpl.
-  rewrite (In_nat_bool_incr_all l a n).
-  rewrite (IHl n)...
-Qed.
-
 Lemma cond_all_distinct : forall l,
     (forall n1 n2 k,
         n1 < length l ->
@@ -660,7 +652,8 @@ Qed.
 
 Lemma cond_all_distinct_false_inv : forall l k0,
     all_distinct l = false ->
-    {' (k1 , k2) : _ & prod (k1 < length l) (prod (k2 < length l) (prod (k1 <> k2) (nth k1 l k0 = nth k2 l k0)))}.
+    {' (k1 , k2) : _ & prod (k1 < length l) (prod (k2 < length l)
+                      (prod (k1 <> k2) (nth k1 l k0 = nth k2 l k0)))}.
 Proof with try reflexivity; try assumption.
   induction l; intros k0 nHalt; try now inversion nHalt.
   apply andb_false_elim in nHalt as [Hin | nHalt].
@@ -713,6 +706,31 @@ Proof with try reflexivity; try assumption.
         rewrite In_nat_bool_app_commu...
 Qed.
 
+Lemma all_distinct_map : forall f p, injective f ->
+  all_distinct (map f p) = all_distinct p.
+Proof.
+intros f p Hinj; induction p; [ reflexivity | ]; simpl.
+remember (In_nat_bool a p) as b; symmetry in Heqb; destruct b; simpl.
+- enough (In_nat_bool (f a) (map f p) = true) as Hf by (rewrite Hf; reflexivity).
+  clear - Heqb; induction p; [ inversion Heqb | ].
+  simpl in Heqb.
+  apply orb_true_iff; apply orb_true_iff in Heqb as [Hin|Hin].
+  + left; apply Nat.eqb_eq in Hin; apply Nat.eqb_eq; subst; reflexivity.
+  + right; apply IHp; assumption.
+- remember (all_distinct p) as b'; symmetry in Heqb'; destruct b'; simpl.
+  + apply andb_true_iff; split; [ | assumption ].
+    enough (In_nat_bool (f a) (map f p) = false) as Hf by (rewrite Hf; reflexivity).
+    clear - Hinj Heqb; induction p; [ reflexivity | ]; simpl in Heqb.
+    apply orb_false_iff; apply orb_false_iff in Heqb as [Hin1 Hin2]; split.
+    * apply Nat.eqb_neq in Hin1; apply Nat.eqb_neq; intros H; subst; apply Hin1, Hinj; assumption.
+    * apply IHp; assumption.
+  + apply andb_false_iff; right; assumption.
+Qed.
+
+Lemma all_distinct_incr_all : forall l n,
+    all_distinct (incr_all l n) = all_distinct l.
+Proof. intros l n; apply all_distinct_map; intros x y H; lia. Qed.
+
 Lemma all_distinct_left : forall la lb k,
     all_distinct (la ++ k :: lb) = true ->
     In_nat_bool k la = false.
@@ -735,7 +753,7 @@ Proof with try reflexivity; try assumption.
   - apply andb_prop in Had as (nHin & Had).
     apply negb_true_iff in nHin...
   - apply andb_prop in Had as (_ & Had).
-    apply IHla...    
+    apply IHla...
 Qed.
 
 Lemma all_distinct_app : forall la lb k,
@@ -745,7 +763,7 @@ Lemma all_distinct_app : forall la lb k,
     all_distinct (la ++ incr_all lb k) = true.
 Proof with try reflexivity; try assumption.
   induction la; intros lb k Hal Hada Hadb.
-  - simpl; rewrite<- all_distinct_incr_all...
+  - simpl; rewrite all_distinct_incr_all...
   - simpl.
     simpl in Hada.
     apply andb_true_iff in Hada as (nHin & Hada).
@@ -762,27 +780,6 @@ Proof with try reflexivity; try assumption.
     + apply IHla...
 Qed.
 
-Lemma all_distinct_map : forall f p,
-    all_distinct p = true ->
-    injective f ->
-    all_distinct (map f p) = true.
-Proof with try assumption; try reflexivity.
-  intros f p Had inj.
-  revert Had; induction p; intros Had...
-  apply andb_prop in Had as (nHin & Had).
-  simpl.
-  apply andb_true_intro; split; [ | apply IHp]...
-  apply negb_true_iff.
-  apply cond_negb_In_nat_bool.
-  intros k k0 Hlen.
-  intros Heq.
-  rewrite (nth_indep _ _ (f 0)) in Heq...
-  rewrite map_nth in Heq.
-  apply negb_true_iff in nHin.
-  apply neg_nth_eq with _ _ 0 k in nHin; [ | rewrite map_length in Hlen]...
-  apply nHin.
-  apply inj...
-Qed.
 
 
 (** ** shift *)
@@ -964,7 +961,7 @@ Proof with try reflexivity; try assumption.
       simpl in Hgt.
       lia.
     + case_eq (a <? n); intros Hlt; rewrite Hlt in Hgt; apply Lt.lt_S_n in Hlen; refine (IHl _ _ _ Hlen Hgt).
-Qed.  
+Qed.
 
 Lemma nth_lt_shift : forall l n k0 k,
     k < length l ->
@@ -1052,7 +1049,17 @@ Qed.
 
 
 (** ** downshift *)
-(* TODO test equality first *)
+
+Definition down_nat n m := if n <? m then n else pred n.
+
+(* TODO test equality first 
+Fixpoint downshift l k :=
+  match l with
+  | nil => nil
+  | n :: l => if n =? k then downshift l k
+              else down_nat n k :: downshift l k
+  end.
+*)
 Fixpoint downshift l k :=
   match l with
   | nil => nil
@@ -1060,8 +1067,6 @@ Fixpoint downshift l k :=
         else (if n =? k then downshift l k
                         else (pred n) :: downshift l k)
   end.
-
-Definition down_nat n m := if n <? m then n else pred n.
 
 Lemma downshift_eq : forall l k, downshift (k :: l) k = downshift l k.
 Proof with try reflexivity; try assumption.
@@ -1169,62 +1174,11 @@ Qed.
 
 Lemma downshift_In_nat_bool_eq : forall l k,
     In_nat_bool k (downshift l k) = In_nat_bool (S k) l.
-Proof with try reflexivity; try assumption.
-  induction l; intro k...
-  destruct (Compare_dec.lt_eq_lt_dec a k) as [[H1 | H2] | H3].
-  - simpl.
-    apply Nat.ltb_lt in H1.
-    rewrite H1.
-    change (match a with
-            | 0 => false
-            | S m' => k =? m'
-            end) with (S k =? a).
-    apply Nat.ltb_lt in H1.
-    replace (S k =? a) with false.
-    2:{ symmetry.
-        apply Nat.eqb_neq.
-        lia. }
-    simpl.
-    replace (k =? a) with false.
-    2:{ symmetry.
-        apply Nat.eqb_neq.
-        lia. }
-    refine (IHl k).
-  - subst.
-    rewrite downshift_eq.
-    simpl.
-    change ( match k with
-              | 0 => false
-              | S m' => k =? m'
-             end) with (S k =? k).
-    replace (S k =? k) with false.
-    2:{ symmetry.
-        apply Nat.eqb_neq.
-        lia. }
-    refine (IHl _).
-  - simpl.
-    change ( match a with
-              | 0 => false
-              | S m' => k =? m'
-             end) with (S k =? a).
-    replace (a <? k) with false.
-    2:{ symmetry.
-        apply Nat.ltb_nlt.
-        lia. }
-    replace (a =? k) with false.
-    2:{ symmetry.
-        apply Nat.eqb_neq.
-        lia. }
-    destruct a ; [exfalso; lia |].
-    case_eq (k =? a); intro Heq.
-    + apply Nat.eqb_eq in Heq.
-      subst.
-      simpl.
-      replace (a =? a) with true...
-      symmetry; apply Nat.eqb_eq...
-    + simpl.
-      rewrite Heq.
-      refine (IHl k).
+Proof.
+intros l k.
+etransitivity; [ | apply downshift_In_nat_bool_gt with (k := k) ].
+- reflexivity.
+- apply Nat.ltb_lt; lia.
 Qed.
 
 Lemma downshift_length : forall l n,
@@ -1288,7 +1242,9 @@ Proof with try reflexivity; try assumption.
   induction l; intros n k0 k nHin...
   destruct (orb_false_elim _ _ nHin) as (_ & nHin').
   simpl.
-  case (a <? n) ; [ | case_eq (a =? n); intros Heq; [simpl in nHin; rewrite Nat.eqb_sym in Heq; rewrite Heq in nHin; inversion nHin | ]]; destruct k; try apply IHl...
+  case (a <? n) ; [ | case_eq (a =? n); intros Heq;
+    [simpl in nHin; rewrite Nat.eqb_sym in Heq; rewrite Heq in nHin; inversion nHin | ]];
+    destruct k; try apply IHl...
   - apply Nat.le_pred_l.
 Qed.
 
@@ -1433,7 +1389,7 @@ Proof with try reflexivity; try assumption.
   replace (S n + a =? n) with false...
   symmetry.
   apply Nat.eqb_neq.
-  lia.  
+  lia.
 Qed.
 
 Lemma downshift_app : forall l1 l2 n,

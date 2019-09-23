@@ -75,13 +75,13 @@ Proof with try reflexivity; try assumption.
     apply Id_is_perm.
   - simpl.
     rewrite incr_all_length.
-    rewrite Id_length...
+    rewrite seq_length...
   - simpl.
     change (app_nat_fun_dflt (incr_all (Id (length l)) 2) (x :: y :: l) x) with
         (app_nat_fun (incr_all (Id (length l)) (length (x :: y :: nil))) ((x :: y :: nil) ++ l)).
-    rewrite app_nat_fun_right.
+    rewrite app_nat_fun_right; [ | reflexivity | ].
     + rewrite app_Id...
-    + apply all_lt_Id.
+    + apply all_lt_seq; lia.
 Defined.
 
 (* Permutation over lists is an equivalence relation *)
@@ -93,7 +93,7 @@ Proof with try reflexivity.
   split with (Id (length l)).
   repeat split.
   - apply Id_is_perm.
-  - rewrite Id_length...
+  - rewrite seq_length...
   - rewrite app_Id...
 Defined.
 
@@ -201,7 +201,7 @@ Proof with try reflexivity; try assumption.
       rewrite Heq...
     + apply andb_prop in Hperm as (Hal & _).
       rewrite<- Hlen...
-    + apply all_lt_Id.
+    + apply all_lt_seq; lia.
 Defined.
 
 Lemma Perm_R_app_head : forall (l tl tl' : list A),
@@ -210,14 +210,14 @@ Proof with try assumption; try reflexivity.
   intros l tl tl' (p & (Hperm & Hlen & Heq)).
   split with (Id (length l) ++ incr_all p (length l)).
   repeat split.
-  - replace (length l) with (length (Id (length l))) at 2 by now rewrite Id_length.
+  - replace (length l) with (length (Id (length l))) at 2 by now rewrite seq_length.
     apply append_perm_is_perm...
     apply Id_is_perm.
   - length_lia.
   - rewrite append_fun_eq.
     + rewrite app_Id.
       rewrite Heq...
-    + apply all_lt_Id.
+    + apply all_lt_seq; lia.
     + apply andb_prop in Hperm as (Hal & _).
       rewrite<- Hlen...
 Defined.
@@ -629,12 +629,14 @@ Proof with try assumption; try reflexivity.
         apply Hskip...
       * replace (0 <? (length (a :: a0 :: l0)) - 1) with true...
         simpl.
-        replace (app_nat_fun_dflt (incr_all (Id (length l0 - 0)) 2) (a :: a0 :: l0) a)
+        replace (app_nat_fun_dflt (seq 2 (length l0 - 0)) (a :: a0 :: l0) a)
            with l0; [apply Hswap | ].
         rewrite Nat.sub_0_r.
-        change (app_nat_fun_dflt (incr_all (Id (length l0)) 2) (a :: a0 :: l0) a)
-          with (app_nat_fun (incr_all (Id (length l0)) (length (a :: a0 :: nil))) ((a :: a0 :: nil) ++ l0)).
-        rewrite app_nat_fun_right; [rewrite app_Id | apply all_lt_Id]...
+        change (app_nat_fun_dflt (seq 2 (length l0)) (a :: a0 :: l0) a)
+          with (app_nat_fun (seq 2 (length l0)) ((a :: a0 :: nil) ++ l0)).
+        replace 2 with (0 + 2) by lia.
+        rewrite <- incr_all_seq.
+        rewrite app_nat_fun_right; [rewrite app_Id | | apply all_lt_seq ]...
     + destruct l0; try now (exfalso; apply Hnnil).
       assert (forall n i, transpo (S n) (S i) = 0 :: incr_all (transpo n i) 1) as transpo_S.
       { clear.
@@ -644,9 +646,8 @@ Proof with try assumption; try reflexivity.
         - replace (S i <? S n) with true...
           rewrite incr_all_app.
           simpl.
-          rewrite<- incr_all_plus.
+          rewrite ? incr_all_seq.
           replace (S (S i) + 1) with (S (S (S i))) by lia...
-          rewrite ? incr_all_seq...
         - replace (S i <? S n) with false...
           rewrite ? incr_all_seq... }
       destruct l0.
@@ -657,7 +658,7 @@ Proof with try assumption; try reflexivity.
         app_nat_fun_unfold (incr_all (transpo (length (a0 :: l0) - 1) i) 1) (a0 :: l0) 0 a.
         change 1 with (length (a :: nil)) at 2...
         change (a :: a0 :: l0) with ((a :: nil) ++ a0 :: l0) at 3.
-        rewrite app_nat_fun_right.
+        rewrite app_nat_fun_right; [ | reflexivity | ].
         2:{ replace (length (a0 :: l0)) with (S (length (a0 :: l0) - 1)) at 2 by length_lia.
             apply all_lt_transpo. }
         apply Hskip.

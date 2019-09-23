@@ -1,8 +1,5 @@
-Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
-Require Import EqNat.
-Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_Type_more.
@@ -366,8 +363,8 @@ Proof.
   intros n.
   splitb.
   - rewrite seq_length.
-    apply all_lt_seq.
-  - apply all_distinct_Id.
+    apply all_lt_seq; lia.
+  - apply all_distinct_seq.
 Qed.
 
 Lemma cfun_is_perm : forall n m,
@@ -401,7 +398,7 @@ Proof with try reflexivity; try assumption.
     clear Heqn Hal2.
     revert n Hal1.
     induction f1; intros n Hal.
-    + simpl; rewrite<- all_distinct_incr_all...
+    + simpl; rewrite all_distinct_incr_all...
     + simpl in Had1, Hal |- *.
       splitb.
       * apply negb_true_iff.
@@ -665,17 +662,13 @@ Proof with try reflexivity; try assumption.
         clear - Hal' Had' Hlenn1 Hadi Hali.
         induction l.
         -- simpl.
-           apply all_distinct_map...
+           rewrite all_distinct_map...
            intros x y.
            case_eq (x <? n); case_eq (y <? n); intros H1 H2 H3...
-           ++ apply Nat.ltb_nlt in H1; apply Nat.ltb_lt in H2.
-              lia.
-           ++ apply Nat.ltb_lt in H1; apply Nat.ltb_nlt in H2.
-              lia.
-           ++ apply Nat.ltb_nlt in H1; apply Nat.ltb_nlt in H2.
-              lia.
-        -- simpl.
-           splitb.
+           ++ apply Nat.ltb_nlt in H1; apply Nat.ltb_lt in H2; lia.
+           ++ apply Nat.ltb_lt in H1; apply Nat.ltb_nlt in H2; lia.
+           ++ apply Nat.ltb_nlt in H1; apply Nat.ltb_nlt in H2; lia.
+        -- simpl; splitb.
            ++ apply negb_true_iff.
               rewrite In_nat_bool_app.
               apply orb_false_intro.
@@ -712,7 +705,7 @@ Proof with try reflexivity; try assumption.
         rewrite HeqL1.
         replace (concat (L1a ++ nth i L1 nil :: L1b))
            with (concat L1a ++ (nth i L1 nil) ++ concat L1b) by now rewrite concat_app.
-        rewrite app_nat_fun_right.
+        rewrite app_nat_fun_right; [ | reflexivity | ].
         2:{ apply all_lt_leq with (length (nth i lp nil))...
             length_lia. }
         rewrite app_nat_fun_left.
@@ -805,7 +798,7 @@ Proof with try reflexivity; try assumption.
       * destruct n; simpl.
         -- split; [ split | ].
            ++ apply Id_is_perm.
-           ++ rewrite Id_length...
+           ++ rewrite seq_length...
            ++ rewrite app_Id...
         -- replace (nth n L1 a) with (nth 0 (app_nat_fun (n :: p1) L1) nil); [ apply IHL1; length_lia | ].
            destruct L1.
@@ -839,11 +832,8 @@ Proof with try assumption; try reflexivity.
       simpl.
       rewrite incr_all_app.
       simpl.
-      rewrite<- 2 incr_all_plus.
-      rewrite Nat.add_comm.
-      change (1 + S j) with (S (S j)).
-      rewrite Nat.add_comm...
-      rewrite ? incr_all_seq...
+      rewrite 3 incr_all_seq.
+      repeat f_equal; lia.
     + replace (j <? k) with true.
       replace (k <=? i) with false...
       simpl; rewrite incr_all_seq...
@@ -868,7 +858,7 @@ Proof with try reflexivity; try assumption.
     unfold nth.
     change 1 with (length (0 :: nil)) at 2.
     change (0 :: incr_all (compo_nc_transpo n l) 1) with ((0 :: nil) ++ incr_all (compo_nc_transpo n l) 1).
-    rewrite app_nat_fun_right.
+    rewrite app_nat_fun_right; [ | reflexivity | ].
     2:{ rewrite incr_all_length.
         rewrite compo_nc_transpo_length.
         apply all_lt_nc_transpo. }
@@ -1137,21 +1127,11 @@ Proof with try reflexivity; try assumption.
         rewrite Heqi...
       * rewrite Heqn.
         rewrite Heqp.
-        repeat (rewrite app_length; simpl).
-        lia.
+        repeat (simpl; rewrite app_length).
+        simpl; lia.
       * simpl.
         simpl in Hlenp.
         rewrite Hlenp...
-      * destruct i.
-        -- exfalso.
-           inversion Hlenp.
-        -- lia.
-      * rewrite<- Hlenp.
-        rewrite Heqn.
-        rewrite Heqp.
-        repeat (simpl; rewrite app_length).
-        simpl.
-        lia.
 Qed.
 
 Lemma decomp_perm_transpo : forall p,
@@ -1206,8 +1186,7 @@ Proof with try reflexivity; try assumption.
     destruct l0; try now (exfalso; apply Hnnil).
     replace (S (length (a :: l0) - 1)) with (length (a :: l0)) by length_lia.
     apply Hid.
-  - unfold compo_transpo; fold compo_transpo.
-    apply Htrans.
+  - simpl; apply Htrans.
     + apply compo_transpo_is_perm.
     + apply transpo_is_perm.
     + rewrite compo_transpo_length.
