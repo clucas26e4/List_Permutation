@@ -200,7 +200,7 @@ Proof with try reflexivity; try assumption.
   simpl.
   rewrite Nat.add_succ_r.
   rewrite 2 downshift_length...
-Qed.  
+Qed.
 
 Lemma downshift_perm : forall l k,
     is_perm l = true ->
@@ -596,32 +596,21 @@ Proof with try reflexivity; try assumption.
       * assert (nth j p1 0 <> i) by now apply neg_nth_eq.
         rewrite nth_downshift_gt; try lia...
         destruct (H (S j)) as ((Hpermj & Hlenj) & Heqj); [ length_lia | ].
+        rewrite app_nth2 by (rewrite Hlenlpa ; lia).
+        rewrite app_nth2 by (rewrite HlenL1a ; lia).
+        replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
+        2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
+        replace (nth (pred (nth j p1 0) - length L1a) L1b nil) with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
+        2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
+        rewrite<- (app_nth2 lpa); [| rewrite Hlenlpa; length_lia].
+        rewrite<- (app_nth2 L1a); [ | rewrite HlenL1a; length_lia].
         split; [ split |].
-        -- rewrite app_nth2 by (rewrite Hlenlpa ; lia).
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
-           2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
-           rewrite<- (app_nth2 lpa); [| rewrite Hlenlpa; length_lia].
-           change (nth j p1 0) with (nth (S j) (i :: p1) 0).
+        -- change (nth j p1 0) with (nth (S j) (i :: p1) 0).
            rewrite Heqlp in Hpermj...
         -- rewrite Heqlp in Hlenj; rewrite HeqL1 in Hlenj.
-           rewrite app_nth2; [ | rewrite Hlenlpa; length_lia].
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
-           2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
-           rewrite app_nth2; [ | rewrite HlenL1a; length_lia].
-           replace (nth (pred (nth j p1 0) - length L1a) L1b nil) with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
-           2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
-           rewrite<- (app_nth2 lpa); [ | rewrite Hlenlpa; length_lia].
-           rewrite<- (app_nth2 L1a); [ | rewrite HlenL1a; length_lia].
            change (nth j p1 0) with (nth (S j) (i :: p1) 0)...
         -- change (nth j L2 nil) with (nth (S j) (a :: L2) nil).
-           rewrite 2 app_nth2 ; [ | lia | lia ].
-           replace (nth (pred (nth j p1 0) - length lpa) lpb nil) with (nth (nth j p1 0 - length lpa) (nth i lp nil :: lpb) nil).
-           2:{ replace (nth j p1 0 - length lpa) with (S (pred (nth j p1 0) - length lpa)) by lia... }
-           replace (nth (pred (nth j p1 0) - length L1a) L1b nil) with (nth (nth j p1 0 - length L1a) (nth i L1 nil :: L1b) nil).
-           2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
-           rewrite<- app_nth2 by lia.
-           rewrite<- app_nth2 by lia.
-           rewrite HeqL1 in Heqj; rewrite Heqlp in Heqj...           
+           rewrite HeqL1 in Heqj; rewrite Heqlp in Heqj... 
     + split with (incr_all (nth i lp nil) (length (concat L1a)) ++ map (fun k => if k <? length (concat L1a) then k else k + length (nth i lp nil)) p); split ; [splitb | split].
       * rewrite all_lt_app.
         splitb.
@@ -632,10 +621,7 @@ Proof with try reflexivity; try assumption.
               destruct (H 0) as ((Hpermi & _) & _); [length_lia | ]...
               apply andb_prop in Hpermi as (Hali & _).
               change i with (nth 0 (i :: p1) 0)...
-           ++ rewrite app_length.
-              rewrite map_length.
-              rewrite Hlen'.
-              rewrite concat_app; length_lia.
+           ++ length_lia.
         -- rewrite app_length; rewrite map_length.
            rewrite incr_all_length.
            apply andb_prop in Hperm'; destruct Hperm' as (Hal' & _).
@@ -687,18 +673,10 @@ Proof with try reflexivity; try assumption.
            ++ apply andb_prop in Hali as (_ & Hali); apply andb_prop in Hadi as (_ & Hadi).
               apply IHl...
               length_lia.
-      * rewrite ? app_length.
-        rewrite incr_all_length.
-        rewrite map_length.
-        rewrite Hlen'.
-        rewrite HeqL1.
-        rewrite 2 concat_app.
-        rewrite 2 app_length.
-        simpl; rewrite app_length.
+      * rewrite HeqL1.
         destruct (H 0) as ((_ & Hleni) & _); [ length_lia | ].
         change (nth 0 (i :: p1) 0) with i in Hleni.
-        rewrite Hleni.
-        lia.
+        length_lia.
       * destruct (H 0) as ((Hpermi & Hleni) & Heqi'); [ length_lia | ].
         change (nth 0 (i :: p1) 0) with i in Hpermi, Hleni, Heqi'.
         apply andb_prop in Hpermi as (Hali & Hadi).
@@ -761,7 +739,7 @@ Proof with try reflexivity; try assumption.
                  rewrite app_nth2 by length_lia.
                  replace (a + length l1 - length (a0 :: l) - length l1) with (a - length (a0 :: l)) by length_lia...
               ** apply andb_prop in Hal' as (_ & Hal')...
-Qed.                            
+Qed.           
 
 Lemma perm_block {A} : forall (p1 : list nat) (L1 L2 : list (list A)),
     length p1 = length L1 ->
@@ -965,13 +943,7 @@ Proof with try reflexivity; try assumption.
         change (S n0 :: la ++ 0 :: lb) with ((S n0 :: la) ++ 0 :: lb) in Had.
         apply all_distinct_right in Had as Had1.
         apply all_distinct_left in Had.
-        apply orb_false_iff in Had.
-        change (fix In_nat_bool (n : nat) (l : list nat) {struct l} : bool :=
-                  match l with
-                  | nil => false
-                  | k :: l0 => (n =? k) || In_nat_bool n l0
-                  end) with In_nat_bool in Had.
-        destruct Had as [H1 Had2].
+        simpl in Had.
         rewrite In_nat_bool_app.
         apply orb_false_intro...
     + splitb.
@@ -983,13 +955,7 @@ Proof with try reflexivity; try assumption.
             change (S n0 :: la ++ 0 :: lb) with ((S n0 :: la) ++ 0 :: lb) in Had.
             apply all_distinct_right in Had as Had1.
             apply all_distinct_left in Had.
-            apply orb_false_iff in Had.
-            change (fix In_nat_bool (n : nat) (l : list nat) {struct l} : bool :=
-                      match l with
-                      | nil => false
-                      | k :: l0 => (n =? k) || In_nat_bool n l0
-                      end) with In_nat_bool in Had.
-            destruct Had as [H1 Had2].
+            simpl in Had.
             rewrite In_nat_bool_app.
             apply orb_false_intro... }
         rewrite all_lt_app.
@@ -1008,77 +974,28 @@ Proof with try reflexivity; try assumption.
         splitb...
         splitb...
       * apply downshift_keep_all_distinct.
-        apply cond_all_distinct.
-        apply andb_prop in Hperm as [_ Had].
-        rewrite Heqp in Had.
-        rewrite Heqi in Had.
-        clear - Had.
-        revert Had.
-        induction la; intros Had n1 n2 k Hlt1 Hlt2 Heq.
-        -- simpl in Had.
-           apply andb_prop in Had as [nHin Had].
-           apply andb_prop in Had as [_ Had].
-           apply cond_all_distinct_inv with (S n0 :: lb) k...
-           splitb...
-        -- destruct n1; destruct n2...
-           ++ simpl in Heq.
-              exfalso.
-              symmetry in Heq.
-              simpl in Hlt2.
-              apply Lt.lt_S_n in Hlt2.
-              apply neg_nth_eq in Heq...
-              simpl in Had.
-              change (match a with | 0 => false | S m' => n0 =? m' end) with (S n0 =? a) in Had.
-              apply andb_prop in Had as [nHin Had].
-              apply negb_true_iff in nHin.
-              apply orb_false_iff in nHin as [nHeq _].
-              apply andb_prop in Had as [nHin _].
-              apply negb_true_iff in nHin.
-              rewrite In_nat_bool_app in nHin.
-              apply orb_false_iff in nHin as [nHina nHin].
-              simpl in nHin.
-              apply orb_false_iff in nHin as [_ nHinb].
-              rewrite In_nat_bool_app.
-              apply orb_false_iff.
-              split...
+        rewrite all_distinct_app_commu.
+        simpl.
+        rewrite Heqp in Hperm.
+        apply andb_prop in Hperm as (_ & Had).
+        simpl in Had; apply andb_prop in Had as (nHin & Had).
+        apply negb_true_iff in nHin.
+        splitb.
+        -- destruct (In_nat_bool_middle_false la lb (S n0) (nth i p 0))...
+           rewrite In_nat_bool_app_commu.
+           apply negb_true_iff...
+        -- rewrite all_distinct_app_commu.
+           clear - Had.
+           induction la.
+           ++ apply andb_prop in Had as (_ & Had)...
+           ++ simpl in Had.
               simpl.
-              apply orb_false_iff; split...
-              rewrite Nat.eqb_sym...
-           ++ simpl in Heq.
-              exfalso.
-              simpl in Hlt1.
-              apply Lt.lt_S_n in Hlt1.
-              apply neg_nth_eq in Heq...
-              simpl in Had.
-              change (match a with | 0 => false | S m' => n0 =? m' end) with (S n0 =? a) in Had.
-              apply andb_prop in Had as [nHin Had].
-              apply negb_true_iff in nHin.
-              apply orb_false_iff in nHin as [nHeq _].
-              apply andb_prop in Had as [nHin _].
-              apply negb_true_iff in nHin.
-              rewrite In_nat_bool_app in nHin.
-              apply orb_false_iff in nHin as [nHina nHin].
-              simpl in nHin.
-              apply orb_false_iff in nHin as [_ nHinb].
-              rewrite In_nat_bool_app.
-              apply orb_false_iff.
-              split...
-              simpl.
-              apply orb_false_iff; split...
-              rewrite Nat.eqb_sym...
-           ++ replace n2 with n1...
-              simpl in Heq.
-              simpl in Hlt1, Hlt2.
-              apply Lt.lt_S_n in Hlt1.
-              apply Lt.lt_S_n in Hlt2.
-              apply IHla with k...
-              simpl in Had.
-              apply andb_prop in Had as [nHin Had].
-              apply negb_true_iff in nHin.
-              apply orb_false_iff in nHin as [_ nHin].
-              apply andb_prop in Had as [_ Had].
-              splitb...
-              apply negb_true_iff...
+              apply andb_prop in Had as (nHin & Had).
+              splitb.
+              ** apply negb_true_iff...
+                 apply negb_true_iff in nHin.
+                 destruct (In_nat_bool_middle_false la lb a (nth i p 0))...
+              ** apply IHla...
     + apply not_eq_sym.
       rewrite downshift_app.
       rewrite downshift_gt...
