@@ -17,159 +17,70 @@ Definition is_perm (l : list nat) :=
 (* Some facts about is_perm *)
 
 Lemma tail_perm : forall l k,
-    is_perm (k :: l) = true ->
-    is_perm (downshift l k) = true.
-Proof with try reflexivity; try assumption.
-  intros l k Hperm.
-  apply andb_prop in Hperm as (Hal & Had).
-  splitb.
-  - simpl in Had, Hal.
-    apply andb_prop in Had as (nHin & Had).
-    apply negb_true_iff in nHin.
-    rewrite downshift_length...
-    apply andb_prop in Hal as (Hlt' & Hal).
-    rewrite<- downshift_all_lt...
-  - clear Hal.
-    induction l...
-    simpl.
-    case_eq (a <? k); intros Hlt.
-    + simpl.
-      splitb.
-      * rewrite downshift_In_nat_bool_lt...
-        apply andb_prop in Had as (_ & Had).
-        apply andb_prop in Had as (nHin & _)...
-      * apply IHl.
-        simpl in Had |- *.
-        apply andb_prop in Had as (nHin & Had).
-        apply andb_prop in Had as (_ & Had).
-        apply negb_true_iff in nHin.
-        apply orb_false_iff in nHin as (_ & nHin).
-        apply negb_true_iff in nHin.
-        splitb...
-    + case_eq (a =? k); intros nHeq.
-      { exfalso.
-        simpl in Had.
-        apply andb_prop in Had as (nnHeq & _).
-        apply negb_true_iff in nnHeq.
-        apply orb_false_iff in nnHeq as (nnHeq & _).
-        rewrite Nat.eqb_sym in nnHeq.
-        rewrite nnHeq in nHeq.
-        inversion nHeq. }
-      destruct a.
-      { exfalso.
-        apply Nat.ltb_nlt in Hlt.
-        apply Nat.eqb_neq in nHeq.
-        lia. }
-      simpl.
-      simpl in Had.
-      apply andb_prop in Had as (H & Had).
-      apply andb_prop in Had as (nHin & Had).
-      splitb.
-      * change a with (pred (S a)).
-        rewrite downshift_In_nat_bool_gt...
-        apply Nat.ltb_nlt in Hlt.
-        apply Nat.eqb_neq in nHeq.
-        apply Nat.ltb_lt.
-        lia.
-      * apply IHl.
-        splitb...
-        apply negb_true_iff in H.
-        apply orb_false_iff in H as (_ & H).
-        apply negb_true_iff...   
+  is_perm (k :: l) = true ->
+  is_perm (downshift l k) = true.
+Proof with try assumption.
+intros l k Hp.
+apply andb_true_iff in Hp as [Hp1 Hp2].
+simpl in Hp1; apply andb_true_iff in Hp1 as [Hp1 Hp3].
+apply Nat.ltb_lt in Hp1.
+simpl in Hp2; apply andb_true_iff in Hp2 as [Hp2 Hp4].
+apply negb_true_iff in Hp2.
+apply andb_true_iff; split.
+- rewrite downshift_length...
+  rewrite <- downshift_all_lt by (apply Nat.leb_le; lia)...
+- apply downshift_keep_all_distinct; assumption.
 Qed.
 
 Lemma perm_surj : forall p k0 k,
-    is_perm p = true ->
-    k < length p ->
-    {i & prod (i < length p) (nth i p k0 = k)}.
-Proof with try reflexivity; try assumption.
-  intro p.
-  remember (length p).
-  revert p Heqn.
-  induction n; intros p Heq k0 k Hperm Hlt.
-  - exfalso.
-    lia.
-  - destruct p; try now inversion Heq.
-    destruct (andb_prop _ _ Hperm) as (_ & H).
-    apply andb_prop in H as (nHin & _).
-    apply negb_true_iff in nHin.
-    destruct (Compare_dec.lt_eq_lt_dec k n0) as [[H1 | H2] | H3].
-    + assert (k < n) as Hlt'.
-      { destruct (andb_prop _ _ Hperm) as (H & _).
-        apply andb_prop in H as (Hlt' & _).
-        apply Nat.ltb_lt in Hlt'.
-        lia. }
-      apply tail_perm in Hperm.
-      simpl in Heq.
-      apply Nat.succ_inj in Heq.
-      assert (n = length (downshift p n0)) as Heqd.
-      { rewrite downshift_length... }
-      destruct (IHn _ Heqd k0 _ Hperm Hlt') as (i & (Hlen & H)).
-      split with (S i).
-      split.
-      * simpl; lia.
-      * rewrite<- H.
-        symmetry.
-        simpl.
-        rewrite Heq in Hlen.
-        apply nth_lt_downshift...
-        rewrite H...
-    + split with 0.
-      simpl.
-      symmetry in H2.
-      split...
-      lia.
-    + destruct k; [ exfalso; lia | ].
-      apply Lt.lt_S_n in Hlt.
-      apply tail_perm in Hperm.
-      simpl in Heq; apply Nat.succ_inj in Heq.
-      assert (n = length (downshift p n0)) as Heqd.
-      { rewrite downshift_length... }
-      destruct (IHn _ Heqd k0 _ Hperm Hlt) as (i & (Hlen & H)).
-      split with (S i).
-      split.
-      * simpl; lia.
-      * rewrite<- H.
-        symmetry.
-        simpl.
-        rewrite Heq in Hlen.
-        rewrite nth_ge_downshift...
-        2:{ lia. }
-        destruct k.
-        -- destruct n0; [ | exfalso; lia].
-           assert {m & nth i p k0 = S m}.
-           { clear - Hlen nHin.
-             revert i Hlen.
-             induction p; intros i Hlen.
-             -  simpl in Hlen.
-                exfalso.
-                lia.
-             - destruct i.
-               + destruct a.
-                 * inversion nHin.
-                 * split with a...
-               + apply orb_false_elim in nHin as (_ & nHin).
-                 apply Lt.lt_S_n in Hlen.
-                 destruct (IHp nHin i Hlen) as (m & Heq).
-                 split with m... }
-           destruct H0 as (m & Heqm).
-           rewrite Heqm...
-        -- rewrite Nat.lt_succ_pred with k _...
-           unfold "<".
-           rewrite <- H.
-           apply le_nth_downshift...
+  is_perm p = true -> k < length p ->
+  {i & prod (i < length p) (nth i p k0 = k)}.
+Proof.
+intro p; remember (length p); revert p Heqn.
+induction n; intros p Heq k0 k Hperm Hlt.
+- exfalso; lia.
+- destruct p; inversion Heq; subst.
+  assert (Hperm' := Hperm).
+  apply andb_true_iff in Hperm' as [Hperm1 Hperm2]; simpl in Hperm2.
+  apply andb_true_iff in Hperm2 as [Hperm2 _]; simpl in Hperm2.
+  assert (In_nat_bool n0 p = false) as Hn0 by (apply (proj1 (negb_true_iff _) Hperm2)).
+  apply tail_perm in Hperm.
+  case_eq (n0 =? k); intros Heqk;
+    [ | case_eq (n0 <? k); intros Hlt2; [ apply Nat.ltb_lt in Hlt2 | ] ].
+  + apply Nat.eqb_eq in Heqk; subst.
+    exists 0; split; [ lia | reflexivity ].
+  + apply IHn with _ k0 (pred k) in Hperm; [ | | lia ].
+    * destruct Hperm as [i [Hnth1 Hnth2]].
+      exists (S i); split; [ lia | simpl ].
+      rewrite nth_ge_downshift in Hnth2; [ | assumption | assumption | lia ].
+      assert (In_nat_bool (nth i p k0) p = true)
+        by (apply cond_In_nat_bool; now exists (k0,i)).
+      destruct (nth i p k0); try lia.
+      destruct k; [ reflexivity | exfalso ].
+      simpl in Hnth2; subst.
+      destruct n0; try lia.
+      rewrite Hn0 in H; inversion H.
+    * now rewrite downshift_length.
+  + assert (k < n0) as Hlt3
+      by (apply Nat.ltb_ge in Hlt2; apply Nat.eqb_neq in Heqk; lia).
+    apply IHn with _ k0 k in Hperm.
+    * destruct Hperm as [i [Hnth1 Hnth2]].
+      exists (S i); split; [ lia | simpl ].
+      now rewrite nth_lt_downshift in Hnth2; try lia. 
+    * now rewrite downshift_length.
+    * apply andb_true_iff in Hperm1 as [Hperm1 _]; simpl in Hperm1.
+      apply Nat.ltb_lt in Hperm1; lia.
 Qed.
 
 Lemma decomp_perm : forall l k,
     k < length l ->
     is_perm l = true ->
-    {' (la , lb) : _ & prod (l = la ++ k :: lb) (prod (In_nat_bool k la = false) (In_nat_bool k lb = false))}.
+    {' (la , lb) : _ & l = la ++ k :: lb & (prod (In_nat_bool k la = false) (In_nat_bool k lb = false))}.
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
-  destruct (perm_surj l 0 k Hperm Hlen) as (i & (Hleni & Heq)).
+  destruct (perm_surj l 0 k Hperm Hlen) as (i & Hleni & Heq).
   destruct (nth_split_Type i l 0 Hleni) as [(la,lb) Heql Heq_len].
-  split with (la , lb).
-  split; [ | split].
+  split with (la , lb); [ | split].
   - rewrite<- Heq...
   - apply andb_prop in Hperm as (_ & Had).
     rewrite Heql in Had.
@@ -187,7 +98,7 @@ Lemma downshift_perm_length : forall l k,
     length (downshift l k) = pred (length l).
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
-  destruct (decomp_perm l k Hlen Hperm) as ((la & lb) & (Heq & (nHinla & nHinlb))).
+  destruct (decomp_perm l k Hlen Hperm) as [(la & lb) Heq (nHinla & nHinlb)].
   rewrite Heq.
   rewrite downshift_app.
   rewrite 2 app_length.
@@ -195,7 +106,7 @@ Proof with try reflexivity; try assumption.
   simpl.
   rewrite Nat.add_succ_r.
   rewrite 2 downshift_length...
-Qed.  
+Qed.
 
 Lemma downshift_perm : forall l k,
     is_perm l = true ->
@@ -205,28 +116,23 @@ Proof with try reflexivity; try assumption.
   case_eq (k <? length l); intros Hlt.
   - apply Nat.ltb_lt in Hlt.
     unfold is_perm in *.
-    apply andb_prop in Hperm as (Halt & Had).
-    replace (all_distinct (downshift l k)) with true.
-    2:{ symmetry.
-      apply downshift_keep_all_distinct... }
-    replace (all_lt (downshift l k) (length (downshift l k))) with true...
-    symmetry.
+    destruct (andb_prop _ _ Hperm) as (Halt & Had).
+    replace (all_distinct (downshift l k)) with true
+      by (symmetry; apply downshift_keep_all_distinct; assumption).
+    rewrite andb_true_r.
     rewrite downshift_perm_length...
-    2:{ splitb... }
     destruct l; try now inversion Hlt.
-    change (length (n :: l)) with (S (length l)) in Halt.
-    change (pred (length (n :: l))) with (length l).
+    simpl length in Halt.
+    simpl length; simpl pred.
     rewrite downshift_all_lt with _ _ k in Halt...
     simpl in Hlt.
-    apply Nat.leb_le.
-    lia.
+    apply Nat.leb_le; lia.
   - rewrite downshift_if_all_lt...
     apply Nat.ltb_nlt in Hlt.
     apply andb_prop in Hperm as (Hal & _).
-    apply all_lt_leq with (length l)...
-    lia.
+    apply all_lt_leq with (length l); [ assumption | lia ].
 Qed.
-                               
+
 Lemma app_perm_keep_all_distinct : forall (l : list nat) p,
     length p = length l ->
     is_perm p = true ->
@@ -241,10 +147,6 @@ Proof with try reflexivity; try assumption.
   simpl in Hlen.
   change (negb (In_nat_bool n l) && all_distinct l) with (all_distinct (n :: l)).
   apply andb_prop in H1 as (H1 & H2).
-  change (map (fun x : nat => match x with
-                              | 0 => n
-                                | S n0 => nth n0 l n
-                              end) p) with (map (fun x => nth x (n :: l) n) p).
   case_eq (all_distinct (n :: l)); intros Hal; symmetry.
   - apply cond_all_distinct.
     intros n1 n2 k Hlt1 Hlt2 Heq.
@@ -258,21 +160,8 @@ Proof with try reflexivity; try assumption.
     apply H with n; try (simpl; rewrite<- Hlen)...
     + apply cond_all_lt_inv...
     + apply cond_all_lt_inv...
-    + replace (nth (nth n1 p n) (n :: l) n) with (nth n1 (map (fun x => (nth x (n :: l) n)) p) k).
-      2:{ symmetry.
-          replace (nth n1 (map (fun x : nat => nth x (n :: l) n) p) k)
-             with (nth n1 (map (fun x : nat => nth x (n :: l) n) p) n).
-          - apply nth_nth...
-          - apply nth_indep.
-            rewrite map_length... }
-      replace (nth (nth n2 p n) (n :: l) n) with (nth n2 (map (fun x => (nth x (n :: l) n)) p) k).
-      2:{ symmetry.
-          replace (nth n2 (map (fun x : nat => nth x (n :: l) n) p) k)
-             with (nth n2 (map (fun x : nat => nth x (n :: l) n) p) n).
-          - apply nth_nth...
-          - apply nth_indep.
-            rewrite map_length... }
-      apply Heq.
+    + rewrite 2 nth_nth...
+      rewrite 2 nth_indep with _ _ _ n k by (rewrite map_length; assumption)...
   - apply cond_all_distinct_false_inv with _ n in Hal as ((k1 & k2) & (Hlt1 & (Hlt2 & (nHeq & Heq)))).
     simpl in Hlt1 , Hlt2.
     rewrite<- Hlen in Hlt1, Hlt2.
@@ -308,10 +197,6 @@ Proof with try reflexivity; try assumption.
     unfold app_nat_fun.
     simpl.
     simpl in Hlt.
-    change (fun x : nat => match x with
-                           | 0 => n0
-                           | S n1 => nth n1 l n0
-                           end) with (fun x => nth x (n0 :: l) n0) in *.
     unfold app_nat_fun_dflt in Hlt; rewrite map_length in Hlt.
     replace (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) k0)
        with (nth k (map (fun x : nat => nth x (n0 :: l) n0) p) n0).
@@ -621,7 +506,7 @@ Proof with try reflexivity; try assumption.
            2:{ replace (nth j p1 0 - length L1a) with (S (pred (nth j p1 0) - length L1a)) by lia... }
            rewrite<- app_nth2 by lia.
            rewrite<- app_nth2 by lia.
-           rewrite HeqL1 in Heqj; rewrite Heqlp in Heqj...           
+           rewrite HeqL1 in Heqj; rewrite Heqlp in Heqj...
     + split with (incr_all (nth i lp nil) (length (concat L1a))
                      ++ map (fun k => if k <? length (concat L1a)
                                       then k else k + length (nth i lp nil)) p); split ; [splitb | split].
@@ -902,8 +787,8 @@ Proof with try reflexivity; try assumption.
     apply compo_perm_is_perm...
     + apply nc_transpo_is_perm.
     + rewrite nc_transpo_length; rewrite compo_nc_transpo_length...
-Qed.    
-  
+Qed.
+
 Lemma decomp_perm_nc_transpo : forall p,
     is_perm p = true ->
     p <> nil ->

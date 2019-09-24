@@ -1353,25 +1353,24 @@ Lemma downshift_keep_all_distinct : forall l k,
     all_distinct l = true ->
     all_distinct (downshift l k) = true.
 Proof with try reflexivity; try assumption.
-  induction l; intros k Hal...
+  intros l k; induction l; intros Hal...
   destruct (Compare_dec.lt_eq_lt_dec a k) as [[H1 | H2] | H3].
   - apply Nat.ltb_lt in H1.
     simpl; rewrite H1.
     apply andb_prop in Hal as (nHin & Hal).
     apply andb_true_intro; split.
     + rewrite downshift_In_nat_bool_lt...
-    + refine (IHl k Hal).
+    + apply IHl...
   - subst.
     rewrite downshift_eq.
     apply andb_prop in Hal as (nHin & Hal).
-    refine (IHl k Hal).
+    apply IHl...
   - apply andb_prop in Hal as (nHin & Hal).
-    specialize (IHl k Hal).
-    clear Hal.
     rewrite downshift_gt.
     2:{ apply Nat.ltb_lt... }
-    apply andb_true_intro; split...
-    rewrite downshift_In_nat_bool_gt by (apply Nat.ltb_lt; apply H3)...
+    apply andb_true_intro; split.
+    + rewrite downshift_In_nat_bool_gt by (apply Nat.ltb_lt; apply H3)...
+    + apply IHl...
 Qed.
 
 Lemma downshift_incr_all : forall l n,
