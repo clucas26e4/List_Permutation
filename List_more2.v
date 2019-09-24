@@ -54,108 +54,38 @@ Proof with try reflexivity.
     refine (H (S n) a1).
 Qed.
 
+(* TODO put in List_Type *)
+  Lemma nth_In_Type {A} :
+    forall (n:nat) (l:list A) (d:A), n < length l -> In_Type (nth n l d) l.
+  Proof.
+    unfold lt; induction n as [| n hn]; simpl.
+    - destruct l; simpl; [ inversion 2 | auto ].
+    - destruct l; simpl.
+      * inversion 2.
+      * intros d ie; right; apply hn; auto with arith.
+  Qed.
 
-Lemma cond_In {A} :
-  forall l (x : A),
-    (exists p, prod (fst p < length l) (nth (fst p) l (snd p) = x)) ->
-    In x l.
-Proof with try reflexivity; try assumption.
-  induction l; intros x [(k , a0) (Hlen & Heq)]; simpl in Hlen, Heq.
-  - inversion Hlen.
-  - destruct k.
-    + left...
-    + simpl in Hlen; apply Lt.lt_S_n in Hlen.
-      right.
-      apply IHl.
-      exists (k , a0).
-      split...
-Qed.
+  Lemma In_nth_Type {A:Type} l (x:A) d : In_Type x l ->
+    { n : _ & n < length l & nth n l d = x }.
+  Proof.
+    induction l as [|a l IH].
+    - easy.
+    - intros [H|H].
+      * subst; exists 0; simpl; auto with arith.
+      * destruct (IH H) as [n Hn Hn'].
+        exists (S n); simpl; auto with arith.
+  Qed.
+(* end TODO *)
 
-Lemma cond_In_inv {A} :
-  forall l (x : A),
-    In x l ->
-    exists p, prod (fst p < length l) (nth (fst p) l (snd p) = x).
-Proof with try reflexivity; try assumption.
-  induction l; intros x Hin.
-  - inversion Hin.
-  - refine (@or_ind (a = x) (In x l) _ _ _ _).
-    + intros H.
-      exists (0 , a).
-      simpl.
-      split...
-      lia.
-    + clear Hin; intros Hin.
-      destruct (IHl x Hin) as [(k & a0) (Hlen & Heq)].
-      exists (S k , a0).
-      split...
-      simpl in Hlen |- *; lia.
-    + apply in_inv...
-Qed.
-
-Lemma cond_In_Type {A} :
-  forall l (x : A),
-    {' (k , a0) : _ & prod (k < length l) (nth k l a0 = x) } ->
-    In_Type x l.
-Proof with try reflexivity; try assumption.
-  induction l; intros x ((k , a0) & (Hlen & Heq)); simpl in Hlen, Heq.
-  - exfalso.
-    inversion Hlen.
-  - destruct k.
-    + left...
-    + simpl in Hlen; apply Lt.lt_S_n in Hlen.
-      right.
-      apply IHl.
-      split with (k , a0).
-      split...
-Qed.
-
-Lemma cond_In_Type_inv {A} :
-  forall l (x : A),
-    In_Type x l ->
-    {' (k , a0) : _ & prod (k < length l) (nth k l a0 = x)}.
-Proof with try reflexivity; try assumption.
-  induction l; intros x Hin.
-  - inversion Hin.
-  - destruct Hin.
-    + exists (0 , a).
-      simpl.
-      split...
-      lia.
-    + destruct (IHl x i) as [(k & a0) (Hlen & Heq)].
-      exists (S k , a0).
-      split...
-      simpl in Hlen |- *; lia.
-Qed.
-
-Lemma map_nth {A B} : forall (f : A -> B) l a0 k,
-    nth k (map f l) (f a0) = f (nth k l a0).
-Proof with try reflexivity.
-  intros f.
-  induction l; intros a0 k.
-  - destruct k...
-  - destruct k...
-    rewrite map_cons.
-    apply IHl.
-Qed.
-
-Lemma nth_decomp {A} : forall l (a0 : A) k,
-    k < length l ->
-    {' (la , lb) : _ & prod (length la = k) (l = la ++ (nth k l a0) :: lb)}.
-Proof with try reflexivity; try assumption.
-  induction l; intros a0 k Hlt.
-  - exfalso; simpl in Hlt; lia.
-  - destruct k.
-    + split with (nil, l).
-      split...
-    + simpl in Hlt.
-      apply Lt.lt_S_n in Hlt.
-      specialize (IHl a0 k Hlt) as ((la & lb) & (Hlen & Heq)).
-      split with (a :: la, lb).
-      split.
-      * rewrite<- Hlen...
-      * pattern l at 1.
-        rewrite Heq...
-Qed.     
+Lemma nth_split_Type {A:Type} n l (d:A) : n < length l ->
+    {' (l1,l2) : _ & l = l1 ++ nth n l d :: l2 & length l1 = n }.
+  Proof.
+    revert l.
+    induction n as [|n IH]; intros [|a l] H; try (exfalso; easy).
+    - exists (nil,l); now simpl.
+    - destruct (IH l) as [(l1,l2) Hl Hl1]; auto with arith.
+      exists (a::l1,l2); simpl; now f_equal.
+  Qed.
 
 
 (* fold_left max *)
@@ -206,8 +136,9 @@ Proof with try assumption;try reflexivity.
   apply IHl with (max i a).
   transitivity j; lia.
 Qed.
-  
-Lemma fold_left_max_app : forall k l1 l2, fold_left max (l1 ++ l2) k = max (fold_left max l1 k) (fold_left max l2 k).
+
+Lemma fold_left_max_app : forall k l1 l2,
+  fold_left max (l1 ++ l2) k = max (fold_left max l1 k) (fold_left max l2 k).
 Proof with try assumption; try reflexivity.
   intros k l1; revert k; induction l1; intros k l2.
   - simpl.
@@ -248,4 +179,5 @@ Proof with try reflexivity; try assumption.
   apply Eqdep_dec.UIP_dec.
   apply list_eq_dec.
   apply Nat.eq_dec.
-Qed.    
+Qed.
+

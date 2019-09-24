@@ -1,11 +1,3 @@
-(* ll library for yalla *)
-
-(* CyclicPerm_Type library *)
-
-
-(** * Cyclic Permutations
-Definition and basic properties of cyclic permutations in Type. *)
-
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
@@ -37,18 +29,16 @@ Proof with try reflexivity.
     split with (app_nat_fun (Id (S n)) l1, app_nat_fun (incr_all (Id (S m)) (S n)) l1).
     split.
     + rewrite<- app_nat_fun_app.
-      rewrite Id_incr_all_Id.
+      rewrite incr_all_seq.
+      rewrite <- seq_plus.
       simpl in Hlen.
-      rewrite app_length in Hlen; simpl in Hlen.
-      rewrite ? incr_all_length in Hlen.
-      rewrite 2 Id_length in Hlen.
-      replace (S (m + S n)) with (S n + S m) in Hlen.
-      2:{ lia. }
-      rewrite Hlen.
-      rewrite app_Id...    
+      rewrite app_length in Hlen; simpl in Hlen; rewrite 2 seq_length in Hlen.
+      replace (S n + S m) with (length l1) by lia.
+      rewrite app_Id...
     + rewrite Heq.
       unfold cfun.
       rewrite app_nat_fun_app...
+      rewrite incr_all_seq...
   - split with (l1 , nil).
     rewrite e in Heq.
     rewrite Hlen in Heq.
@@ -66,15 +56,15 @@ Proof with try reflexivity.
   - split with (Id (length l2)).
     repeat split.
     + right.
-      rewrite Id_length...
-    + rewrite Id_length...
+      rewrite seq_length...
+    + rewrite seq_length...
     + rewrite app_Id.
       rewrite app_nil_r...
   - split with (Id (length (a :: l1))).
     repeat split.
     + right.
-      rewrite Id_length...
-    + rewrite Id_length.
+      rewrite seq_length...
+    + rewrite seq_length.
       rewrite app_nil_r...
     + rewrite app_nil_r.
       rewrite app_Id...
@@ -87,22 +77,14 @@ Proof with try reflexivity.
 Qed.
 
 Instance CyclicPerm_Perm_R {A} : Proper (CyclicPerm_R ==> (@Perm_R A)) (fun a => a).
-Proof.
+Proof with try assumption.
 intros l1 l2 HC.
 destruct HC as (cp & (H & Hlen & Heq)).
 destruct H as [[[n m] Heqcp] | Heqcp].
 - symmetry in Heqcp; destruct Heqcp.
   split with (cfun (S n) (S m)).
-  repeat split.
-  + apply cfun_is_perm.
-  + unfold cfun.
-    rewrite app_length; simpl; rewrite ? incr_all_length; rewrite 2 Id_length.
-    replace (S (m + S n)) with (S n + S m) by lia.
-    rewrite<- Hlen.
-    unfold cfun.
-    rewrite app_length; rewrite incr_all_length; rewrite ? Id_length.
-    apply Nat.add_comm.
-  + apply Heq.
+  repeat split...
+  apply cfun_is_perm.
 - simpl in *.
   rewrite Heqcp in Heq.
   rewrite Hlen in Heq.
@@ -117,7 +99,7 @@ Proof with try reflexivity.
   split with (Id (length l)).
   repeat split.
   - right.
-    rewrite Id_length...
+    rewrite seq_length...
   - length_lia.
   - rewrite app_Id...
 Defined.
@@ -132,16 +114,14 @@ Proof with try reflexivity.
       split with (m, n)...
     + destruct l1.
       * destruct n; destruct m; try now inversion Hlen...
-      * length_lia.
+      * unfold app_nat_fun; unfold app_nat_fun_dflt.
+        rewrite map_length; rewrite 2 cfun_length; lia.
     + rewrite<- asso_app_nat_fun.
       rewrite cfun_inv.
       replace (S n + S m) with (length l1).
       2:{ rewrite<- Hlen.
           unfold cfun.
-          rewrite app_length.
-          rewrite incr_all_length.
-          rewrite ? Id_length.
-          apply Nat.add_comm. }
+          rewrite app_length; rewrite 2 seq_length; lia. }
       rewrite app_Id...
   - rewrite Hlen in Heq.
     rewrite Heq.
@@ -149,8 +129,8 @@ Proof with try reflexivity.
     split with (Id (length l1)).
     repeat split.
     + right.
-      rewrite Id_length...
-    + rewrite Id_length...
+      rewrite seq_length...
+    + rewrite seq_length...
     + rewrite app_Id...
 Defined.
 
@@ -501,3 +481,4 @@ intros f a l l' HP.
 eapply Perm_R_image.
 apply CyclicPerm_Perm_R ; eassumption.
 Qed.
+
