@@ -283,7 +283,7 @@ Lemma app_nat_fun_right {A} : forall k (l1 l2 : list A) f,
 Proof.
 intros k l1 l2 f Heq Hlen; subst.
 induction l1; simpl.
-- rewrite incr_all_0; reflexivity.
+- rewrite shift_0; reflexivity.
 - change (S (length l1)) with (length (a :: l1)).
   rewrite app_comm_cons.
   rewrite app_nat_fun_dflt_right; [ | assumption ].
@@ -421,13 +421,13 @@ Proof with try reflexivity.
   intros n l p.
   destruct l...
   induction p...
-  change (incr_all (n0 :: l) n) with (n + n0 :: incr_all l n).
+  change (shift (n0 :: l) 0 n) with (n + n0 :: shift l 0 n).
   unfold app_nat_fun.
-  app_nat_fun_dflt_unfold p (incr_all l n) a (n + n0) (n + n0).
+  app_nat_fun_dflt_unfold p (shift l 0 n) a (n + n0) (n + n0).
   app_nat_fun_dflt_unfold p l a n0 n0.
   simpl in IHp.
   rewrite IHp.
-  change (n + n0 :: incr_all l n) with (incr_all (n0 :: l) n).
+  change (n + n0 :: shift l 0 n) with (shift (n0 :: l) 0 n).
   rewrite nth_incr_all...
 Qed.
 

@@ -47,15 +47,15 @@ Proof with try reflexivity; try assumption.
   intros l l' x (p & (Hperm & Hlen & Heq)).
   split with (0 :: incr_all p 1).
   repeat split.
-  - change (0 :: incr_all p 1) with ((0 :: nil) ++ (incr_all p (length (0 :: nil)))).
+  - change (0 :: shift p 0 1) with ((0 :: nil) ++ (shift p 0 (length (0 :: nil)))).
     apply append_perm_is_perm...
   - simpl.
-    rewrite incr_all_length.
+    rewrite shift_length.
     rewrite <- Hlen...
   - rewrite Heq.
     simpl.
-    change (app_nat_fun_dflt (incr_all p 1) (x :: l) x)
-      with (app_nat_fun (incr_all p (length (x :: nil))) ((x :: nil) ++ l)).
+    change (app_nat_fun_dflt (shift p 0 1) (x :: l) x)
+      with (app_nat_fun (shift p 0 (length (x :: nil))) ((x :: nil) ++ l)).
     rewrite app_nat_fun_right...
     simpl in Hlen.
     clear Heq.
@@ -69,17 +69,17 @@ Proof with try reflexivity; try assumption.
   intros l x y.
   split with (1 :: 0 :: (incr_all (Id (length l)) 2)).
   repeat split.
-  - change (1 :: 0 :: (incr_all (Id (length l)) 2))
+  - change (1 :: 0 :: (shift (Id (length l)) 0 2))
       with ((1 :: 0 :: nil) ++ (incr_all (Id (length l)) (length (1 :: 0 :: nil)))).
     apply append_perm_is_perm...
     apply Id_is_perm.
   - simpl.
-    rewrite incr_all_length.
+    rewrite shift_length.
     rewrite seq_length...
   - simpl.
-    change (app_nat_fun_dflt (incr_all (Id (length l)) 2) (x :: y :: l) x) with
-        (app_nat_fun (incr_all (Id (length l)) (length (x :: y :: nil))) ((x :: y :: nil) ++ l)).
-    rewrite app_nat_fun_right; [ | reflexivity | ].
+    change (app_nat_fun_dflt (shift (Id (length l)) 0 2) (x :: y :: l) x) with
+        (app_nat_fun (shift (Id (length l)) 0 (length (x :: y :: nil))) ((x :: y :: nil) ++ l)).
+    rewrite app_nat_fun_right...
     + rewrite app_Id...
     + apply all_lt_seq; lia.
 Defined.
@@ -644,7 +644,7 @@ Proof with try assumption; try reflexivity.
         unfold transpo.
         case_eq (i <? n); intros Hcase.
         - replace (S i <? S n) with true...
-          rewrite incr_all_app.
+          rewrite shift_app.
           simpl.
           rewrite ? incr_all_seq.
           replace (S (S i) + 1) with (S (S (S i))) by lia...
@@ -655,7 +655,7 @@ Proof with try assumption; try reflexivity.
         apply Hskip...
       * replace (length (a :: a0 :: l0) - 1) with (S (length (a0 :: l0) - 1)) by length_lia.
         rewrite transpo_S.
-        app_nat_fun_unfold (incr_all (transpo (length (a0 :: l0) - 1) i) 1) (a0 :: l0) 0 a.
+        app_nat_fun_unfold (shift (transpo (length (a0 :: l0) - 1) i) 0 1) (a0 :: l0) 0 a.
         change 1 with (length (a :: nil)) at 2...
         change (a :: a0 :: l0) with ((a :: nil) ++ a0 :: l0) at 3.
         rewrite app_nat_fun_right; [ | reflexivity | ].

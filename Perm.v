@@ -262,7 +262,7 @@ Proof with try reflexivity; try assumption.
   apply andb_prop in Hp2 as (Hal2 & Had2).
   splitb.
   - rewrite app_length.
-    rewrite incr_all_length.
+    rewrite shift_length.
     apply append_fun_all_lt...
   - apply all_distinct_app...
 Qed.
@@ -317,7 +317,7 @@ Lemma all_distinct_app_shift : forall l1 l2 k i,
     all_distinct (shift l1 k i ++ incr_all l2 k) = true.
 Proof with try assumption.
   induction l1; intros l2 k i Had1 Had2 Hal2...
-  - simpl; rewrite all_distinct_incr_all...
+  - simpl; rewrite all_distinct_shift...
   - simpl in Had1; apply andb_prop in Had1 as [nHin Had1].
     specialize (IHl1 l2 k i Had1 Had2 Hal2).
     simpl; splitb...
@@ -331,7 +331,7 @@ Proof with try assumption.
     + apply Nat.ltb_nlt in Hcase.
       rewrite (Minus.le_plus_minus k a) by lia.
       replace (i + (k + (a - k))) with (k + (i + (a - k))) by lia.
-      rewrite<- In_nat_bool_incr_all.
+      rewrite In_nat_bool_incr_all.
       apply all_lt_In_nat_bool_false.
       apply all_lt_leq with i...
       lia.
@@ -374,7 +374,7 @@ Proof with try reflexivity; try assumption.
       rewrite app_nat_fun_downshift_shift...
       * rewrite Heq.
         change (map S (downshift (app_nat_fun (shift p_inv n0 1) (n1 :: p)) 0))
-          with (incr_all (downshift (app_nat_fun (shift p_inv n0 1) (n1 :: p)) 0)1).
+          with (shift (downshift (app_nat_fun (shift p_inv n0 1) (n1 :: p)) 0) 0 1).
         rewrite incr_all_downshift_0...
         rewrite <- Heq at 1.
         apply In_nat_bool_shift_false...
@@ -387,12 +387,10 @@ Proof with try reflexivity; try assumption.
         rewrite shift_length.
         lia.
       * rewrite shift_length.
-        rewrite<- shift_all_lt...
-        apply Nat.leb_le.
-        lia.
+        rewrite all_lt_shift_true...
       * apply negb_true_iff.
         apply not_In_nat_bool_shift...
-      * apply shift_keep_all_distinct...
+      * rewrite all_distinct_shift...
     + rewrite shift_length.
       rewrite Heq_len...
 Qed.
@@ -477,18 +475,16 @@ Proof with try reflexivity; try assumption.
       * rewrite all_lt_app.
         splitb.
         -- apply all_lt_leq with (length (incr_all (nth i lp nil) (length (concat L1a))) + length (concat L1a)).
-           ++ rewrite incr_all_length.
+           ++ rewrite shift_length.
               rewrite Nat.add_comm.
-              rewrite<- all_lt_incr_all.
+              rewrite all_lt_shift_true...
               destruct (H 0) as ((Hpermi & _) & _); [length_lia | ]...
               apply andb_prop in Hpermi as (Hali & _)...
            ++ length_lia.
         -- rewrite app_length; rewrite shift_length.
-           rewrite incr_all_length.
+           rewrite shift_length.
            apply andb_prop in Hperm'; destruct Hperm' as (Hal' & _).
-           rewrite<- shift_all_lt...
-           apply Nat.leb_le.
-           length_lia.
+           rewrite all_lt_shift_true...
       * destruct (H 0) as ((Hpermi & _) & _); [length_lia | ].
         apply andb_prop in Hpermi as (Hali & Hadi).
         apply andb_prop in Hperm' as (Hal' & Had').
@@ -582,11 +578,8 @@ Proof with try assumption; try reflexivity.
   - case_eq (S k <=? S i); intros Hcase2.
     + replace (j <? k) with true.
       replace (k <=? i) with true.
-      simpl.
-      rewrite incr_all_app.
-      simpl.
-      rewrite incr_all_app.
-      simpl.
+      simpl; rewrite shift_app.
+      simpl; rewrite shift_app; simpl.
       rewrite 3 incr_all_seq.
       repeat f_equal; lia.
     + replace (j <? k) with true.
@@ -609,12 +602,12 @@ Proof with try reflexivity; try assumption.
     simpl.
     rewrite <- IHl.
     rewrite nc_transpo_S.
-    app_nat_fun_unfold (incr_all (nc_transpo n n0 n1) 1) (incr_all (compo_nc_transpo n l) 1) 0 0.
+    app_nat_fun_unfold (shift (nc_transpo n n0 n1) 0 1) (shift (compo_nc_transpo n l) 0 1) 0 0.
     unfold nth.
     change 1 with (length (0 :: nil)) at 2.
-    change (0 :: incr_all (compo_nc_transpo n l) 1) with ((0 :: nil) ++ incr_all (compo_nc_transpo n l) 1).
+    change (0 :: shift (compo_nc_transpo n l) 0 1) with ((0 :: nil) ++ shift (compo_nc_transpo n l) 0 1).
     rewrite app_nat_fun_right; [ | reflexivity | ].
-    2:{ rewrite incr_all_length.
+    2:{ rewrite shift_length.
         rewrite compo_nc_transpo_length.
         apply all_lt_nc_transpo. }
     rewrite app_nat_fun_incr_all...
@@ -766,8 +759,8 @@ Proof with try reflexivity; try assumption.
               rewrite Heqi in Hperm.
               apply andb_prop in Hperm as [_ Had].
               apply andb_prop in Had as [_ Had]... }
-          change (S n0 :: incr_all (downshift lb 0) 1) with (incr_all (n0 :: downshift lb 0) 1).
-          rewrite<- incr_all_app.
+          change (S n0 :: shift (downshift lb 0) 0 1) with (shift (n0 :: downshift lb 0) 0 1).
+          rewrite <- shift_app.
           rewrite downshift_app in Heql.
           rewrite downshift_gt in Heql...
           simpl in Heql.

@@ -8,7 +8,7 @@ Require Import List_nat.
 Require Import Fun_nat.
 
 Ltac length_lia := repeat (try rewrite concat_app;
-                           try rewrite incr_all_length in *;
+                           try rewrite shift_length in *;
                            try rewrite app_length in *;
                            try rewrite seq_length in *;
                            try rewrite cfun_length in *;
@@ -30,12 +30,12 @@ intros Hle.
 apply Nat.ltb_lt in Hle.
 unfold transpo; rewrite Hle.
 f_equal.
-rewrite incr_all_app.
+rewrite shift_app.
 change (S n :: n :: seq (2 + n) (S m - (2 + n)))
   with ((S n :: n :: nil) ++ seq (2 + n) (S m - (2 + n))).
 f_equal.
 - simpl; f_equal; [lia | f_equal; lia].
-- rewrite <- incr_all_plus.
+- rewrite <- shift_plus.
   rewrite incr_all_seq; reflexivity.
 Qed.
 
@@ -63,7 +63,7 @@ Proof.
 intros m n; decomp_transpo m n.
 - apply seq_length.
 - rewrite app_length; simpl.
-  rewrite 2 incr_all_length.
+  rewrite 2 shift_length.
   rewrite 2 seq_length ; lia.
 Qed.
 
@@ -75,12 +75,12 @@ intros m n; decomp_transpo m n.
   apply andb_true_iff; split.
   + apply all_lt_seq; lia.
   + replace (S m) with (n + (S m - n)) by lia.
-    rewrite <- all_lt_incr_all.
+    rewrite all_lt_shift_true; [ reflexivity | ].
     rewrite all_lt_app.
     apply andb_true_iff; split.
     * apply all_lt_leq with 2; [ reflexivity | lia].
     * replace (S m - n) with (2 + (S m - (2 + n))) at 2 by lia.
-      rewrite <- all_lt_incr_all.
+      rewrite all_lt_shift_true; [ reflexivity | ].
       apply all_lt_seq; lia.
 Qed.
 
@@ -196,7 +196,7 @@ rewrite app_Id_ext by lia.
 f_equal.
 replace (j :: seq (S i) (j - S i) ++ i :: seq (S j) (m - j))
    with (incr_all (S (length l2) :: seq 1 (length l2) ++ 0 :: seq (S (S (length l2))) (length l3)) i)
-  by (repeat (simpl; rewrite ? incr_all_app; rewrite incr_all_seq); repeat (f_equal; try lia)).
+  by (repeat (simpl; rewrite ? shift_app; rewrite incr_all_seq); repeat (f_equal; try lia)).
 rewrite app_nat_fun_right; try lia.
 - replace (S (length l2) :: seq 1 (length l2) ++ 0 :: seq (S (S (length l2))) (length l3))
      with ((S (length l2) :: seq 1 (length l2) ++ 0 :: nil) ++ seq (0 + length (a :: l2 ++ b :: nil)) (length l3))
