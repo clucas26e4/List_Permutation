@@ -1,27 +1,24 @@
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
-Require Import EqNat.
 
 Require Import Bool_more.
 Require Import List_Type_more.
-Require Import List_nat.
 Require Import List_more2.
-Require Import Perm.
+
 Require Import Permutation_Type.
+
+Require Import List_nat.
+Require Import Fun_nat.
 Require Import Transposition.
 Require Import misc.
-Require Import Fun_nat.
+Require Import Perm.
+
 Set Implicit Arguments.
 
-Section Perm_R.
+Definition Perm_R {A} (l1 : list A) l2 : Type :=
+  {p & prod (is_perm p = true) ((length p = length l1) * (l2 = app_nat_fun p l1))}.
 
-  Variable A : Type.
-
-  Definition Perm_R (l1 : list A) l2 : Type :=
-    {p  & prod (is_perm p = true) ((length p = length l1) * (l2 = app_nat_fun p l1))}.
-
-End Perm_R.
 (* Some facts about Perm_R *)
 
 Lemma Perm_R_nil {A} : forall (l : list A),
@@ -34,11 +31,7 @@ Qed.
 
 Lemma Perm_R_nil_cons {A} : forall (l : list A) x,
     Perm_R nil (x :: l) -> False.
-Proof with try reflexivity; try assumption.
-  intros l x Hperm.
-  destruct Hperm as (f & (Hp & Hlen & Heq)).
-  inversion Heq.
-Qed.
+Proof. intros l x Hp; apply Perm_R_nil in Hp; inversion Hp. Qed.
 
 Lemma Perm_R_skip {A} : forall l l' (x : A),
     Perm_R l l' ->
@@ -86,8 +79,7 @@ Defined.
 
 (* Permutation over lists is an equivalence relation *)
 
-Lemma Perm_R_refl {A} : forall (l : list A),
-    Perm_R l l.
+Lemma Perm_R_refl {A} : forall (l : list A), Perm_R l l.
 Proof with try reflexivity.
   intro l.
   split with (Id (length l)).
@@ -126,7 +118,7 @@ Lemma Perm_R_sym {A} : forall (l1 l2 : list A),
     Perm_R l2 l1.
 Proof with try reflexivity; try assumption.
   intros l1 l2 (p & (Hperm & Hlen & Heq)).
-  destruct (perm_has_inv p Hperm) as (p_inv & (Heq_inv & (Hperm_inv & Hlen_eq))).
+  destruct (perm_inv p Hperm) as (p_inv & ((Heq_inv & _ )& (Hperm_inv & Hlen_eq))).
   split with p_inv.
   repeat split...
   - rewrite Heq.
@@ -242,7 +234,7 @@ Proof with try reflexivity; try assumption.
   intros a l l' tl tl' Hperm_l Hperm_tl.
   transitivity (l' ++ a :: tl) ; [ apply Perm_R_app_tail | apply Perm_R_app_head ]...
   apply Perm_R_cons...
-Defined.  
+Defined.
 
 Lemma Perm_R_cons_append : forall (l : list A) x,
   Perm_R (x :: l) (l ++ x :: nil).
@@ -255,7 +247,7 @@ Proof with try reflexivity; try assumption.
   - change (x :: l) with ((x :: nil) ++ l).
     change 1 with (length (x :: nil)).
     rewrite app_cfun_eq...
-Defined.  
+Defined.
 Local Hint Resolve Perm_R_cons_append.
 
 Theorem Perm_R_app_comm : forall (l l' : list A),
@@ -267,7 +259,7 @@ Proof with try reflexivity; try assumption.
   - apply cfun_is_perm.
   - length_lia.
   - rewrite app_cfun_eq...
-Qed.    
+Qed.
 Local Hint Resolve Perm_R_app_comm.
 
 Theorem Perm_R_cons_app : forall (l l1 l2:list A) a,
@@ -301,8 +293,7 @@ Proof.
   apply Perm_R_app_tail. assumption.
 Defined.
 
-Global Instance Perm_R_rev' :
- Proper (@Perm_R A ==> @Perm_R A) (@rev A) | 10.
+Global Instance Perm_R_rev' : Proper (@Perm_R A ==> @Perm_R A) (@rev A) | 10.
 Proof.
   intros l1 l2 HP.
   eapply Perm_R_trans ; [ | eapply Perm_R_trans ].
@@ -312,11 +303,8 @@ Proof.
   - apply Perm_R_rev.
 Defined.
 
-Global Instance Perm_R_length' :
-  Proper (@Perm_R A ==> Logic.eq) (@length A) | 10.
-Proof.
-  exact Perm_R_length.
-Qed.
+Global Instance Perm_R_length' : Proper (@Perm_R A ==> Logic.eq) (@length A) | 10.
+Proof. exact Perm_R_length. Qed.
 
 Theorem Perm_R_nil_app_cons : forall (l l' : list A) (x : A),
     Perm_R nil (l++x::l') -> False.
@@ -417,7 +405,7 @@ Proof with auto.
         simpl in Hal.
         rewrite Nat.add_succ_r in Hal.
         rewrite app_length...
-Defined. 
+Defined.
 
 Theorem Perm_R_Add_Type_inv a l1 l2 :
   Perm_R l1 l2 -> forall l1' l2', Add_Type a l1' l1 -> Add_Type a l2' l2 ->
@@ -436,11 +424,11 @@ Theorem Perm_R_app_inv (l1 l2 l3 l4:list A) a :
   Perm_R (l1++a::l2) (l3++a::l4) -> Perm_R (l1++l2) (l3 ++ l4).
 Proof with auto.
   intros Hperm.
-  apply Perm_R_cons_inv with a.  
+  apply Perm_R_cons_inv with a.
   transitivity (l1 ++ a :: l2)...
   transitivity (l3 ++ a :: l4)...
 Defined.
-  
+
 Theorem Perm_R_cons_app_inv l l1 l2 a :
   Perm_R (a :: l) (l1 ++ a :: l2) -> Perm_R l (l1 ++ l2).
 Proof with auto.
@@ -448,13 +436,13 @@ Proof with auto.
   apply Perm_R_cons_inv with a.
   transitivity (l1 ++ a :: l2)...
 Defined.
-  
+
 Theorem Perm_R_app_inv_l : forall l l1 l2,
     Perm_R (l ++ l1) (l ++ l2) -> Perm_R l1 l2.
 Proof with auto.
   induction l; intros l1 l2 Hperm; [ | apply IHl; apply Perm_R_cons_inv with a]...
 Defined.
-           
+
 Theorem Perm_R_app_inv_r l l1 l2 :
   Perm_R (l1 ++ l) (l2 ++ l) -> Perm_R l1 l2.
 Proof with auto.
@@ -795,8 +783,7 @@ Ltac rect_transpo_bis P Hperm :=
 Require Import Permutation_Type_solve.
 
 Lemma Permutation_Type_to_Perm_R {A} : forall l1 (l2 : list A),
-    Permutation_Type l1 l2 ->
-    Perm_R l1 l2.
+  Permutation_Type l1 l2 -> Perm_R l1 l2.
 Proof with try reflexivity; try assumption.
   intros l1 l2 Hp.
   induction Hp.
@@ -808,8 +795,7 @@ Proof with try reflexivity; try assumption.
 Defined.
 
 Lemma Perm_R_to_Permutation_Type {A} : forall (l1 : list A) l2,
-    Perm_R l1 l2 ->
-    Permutation_Type l1 l2.
+  Perm_R l1 l2 -> Permutation_Type l1 l2.
 Proof with try reflexivity; try assumption.
   intros l1 l2 Hperm.
   apply Perm_R_rect_transpo; try now (intros; constructor)...

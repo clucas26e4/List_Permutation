@@ -290,8 +290,7 @@ replace (j - S i) with (S (j - S (S i))) at 1 by lia.
 reflexivity.
 Qed.
 
-(*
-Lemma nc_transpo_transpo : forall m i j, i < j -> S j <= m ->
+Lemma nc_transpo_transpo_2 : forall m i j, i < j -> S j <= m ->
   nc_transpo m i (S j) = app_nat_fun (app_nat_fun (transpo m j) (nc_transpo m i j)) (transpo m j).
 Proof.
 intros m i j Hlt Hle.
@@ -313,10 +312,9 @@ rewrite seq_S.
 replace (S i + (j - S i)) with j by lia.
 list_simpl; reflexivity.
 Qed.
-*)
 
 Lemma nc_transpo_compo_transpo : forall m i j, i < j -> j <= m ->
-  nc_transpo m i j = compo_transpo m (seq i (j - i) ++ (j - 1) :: rev (seq i (j - i))).
+  nc_transpo m i j = compo_transpo m (seq i (j - i - 1) ++ rev (seq i (j - i))).
 Proof.
 intros m i j.
 remember (j - i) as k; revert i j Heqk; induction k; intros i j Hk Hlt Hle;
@@ -325,16 +323,16 @@ remember (j - i) as k; revert i j Heqk; induction k; intros i j Hk Hlt Hle;
   simpl seq; simpl rev.
   replace (S i - 1 :: i :: nil) with ((i :: nil) ++ i :: nil) by (simpl; f_equal; lia).
   rewrite nc_transpo_S.
-  rewrite 2 app_compo_transpo, compo_transpo_sg.
-  rewrite transpo_idem.
-  symmetry; apply app_nat_fun_Id_r, all_lt_transpo.
+  now rewrite app_nil_l, compo_transpo_sg.
 - simpl seq; simpl rev.
-  replace (compo_transpo m ((i :: seq (S i) k) ++ j - 1 :: rev (seq (S i) k) ++ i :: nil))
+  destruct k; [ now contradiction n | ].
+  replace (compo_transpo m (seq i (S k - 0) ++ rev (seq (S i) (S k)) ++ i :: nil))
      with (app_nat_fun (transpo m i)
-          (app_nat_fun (compo_transpo m (seq (S i) k ++ j - 1 :: rev (seq (S i) k))) (transpo m i)))
+          (app_nat_fun (compo_transpo m (seq (S i) k ++ rev (seq (S i) (S k)))) (transpo m i)))
     by (unfold compo_transpo at 2; simpl; f_equal; rewrite <- compo_transpo_sg, <- app_compo_transpo;
         list_simpl; reflexivity).
-  rewrite <- IHk by lia.
+  replace (S k - 1) with k in IHk by lia.
+  rewrite <- (IHk (S i) j); try lia.
   rewrite <- asso_app_nat_fun.
   apply nc_transpo_transpo; lia.
 Qed.
@@ -347,7 +345,7 @@ case_eq ((i <? j) && (j <=? m)); intros Handb.
 - apply andb_true_iff in Handb as [Hlt Hle].
   apply Nat.ltb_lt in Hlt.
   apply Nat.leb_le in Hle.
-  exists (seq i (j - i) ++ (j - 1) :: rev (seq i (j - i))).
+  exists (seq i (j - i - 1) ++ rev (seq i (j - i))).
   apply nc_transpo_compo_transpo; lia.
 - unfold nc_transpo; rewrite Handb.
   exists nil; reflexivity.

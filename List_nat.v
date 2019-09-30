@@ -583,8 +583,7 @@ intros x1 x2; case_eq (x1 <? n); case_eq (x2 <? n); intros H1 H2 Heq; try now li
 - apply Nat.ltb_lt in H1; apply Nat.ltb_ge in H2; lia.
 Qed.
 
-Definition shift l n i :=
-  map (fun x => if x <? n then x else i + x) l.
+Definition shift l n i := map (fun x => if x <? n then x else i + x) l.
 
 Lemma shift_length : forall l n i,
   length (shift l n i) = length l.
@@ -651,7 +650,7 @@ now destruct (a <? n); rewrite Hin.
 Qed.
 
 Lemma shift_shift : forall l n i j,
-    shift (shift l n i) n j = shift (shift l n j) n i.
+  shift (shift l n i) n j = shift (shift l n j) n i.
 Proof. intros; rewrite <- 2 shift_plus; f_equal; lia. Qed.
 
 Lemma shift_In_nat_bool_lt : forall l n k i,

@@ -9,8 +9,7 @@ Require Import List_nat.
 
 
 (* APP_NAT_FUN *)
-Definition app_nat_fun_dflt {A} (p : list nat) (l : list A) a :=
-  map (fun x => nth x l a) p.
+Definition app_nat_fun_dflt {A} p (l : list A) a := map (fun x => nth x l a) p.
 
 Lemma app_nat_fun_dflt_indep {A} :
  forall p l (d d' : A), all_lt p (length l) = true -> app_nat_fun_dflt p l d = app_nat_fun_dflt p l d'.
@@ -21,7 +20,7 @@ induction p; intros l d d' Hlt; simpl; f_equal; simpl in Hlt; apply andb_true_if
 Qed.
 
 Lemma app_nat_fun_dflt_nil {A} : forall p (d : A),
-    app_nat_fun_dflt p nil d = map (fun _ => d) p.
+  app_nat_fun_dflt p nil d = map (fun _ => d) p.
 Proof.
   intros p d; induction p; [ reflexivity | ].
   simpl; rewrite IHp.
@@ -35,22 +34,18 @@ Definition app_nat_fun {A} (p : list nat) (l : list A) :=
   end.
 
 Ltac app_nat_fun_dflt_unfold l1 l2 n a d :=
-  change (app_nat_fun_dflt (n :: l1) (a :: l2) d) with (nth n (a :: l2) a :: app_nat_fun_dflt l1 (a :: l2) d) in *.
+  change (app_nat_fun_dflt (n :: l1) (a :: l2) d)
+    with (nth n (a :: l2) a :: app_nat_fun_dflt l1 (a :: l2) d) in *.
 Ltac app_nat_fun_unfold l1 l2 n a :=
   change (app_nat_fun (n :: l1) (a :: l2)) with (nth n (a :: l2) a :: app_nat_fun l1 (a :: l2)) in *.
 
 Lemma app_nat_fun_nil {A} : forall (l : list A),
   app_nat_fun nil l = nil.
-Proof.
-  destruct l; reflexivity.
-Qed.
+Proof. destruct l; reflexivity. Qed.
 
 Lemma app_nat_fun_not_nil {A} : forall p (l : list A) a,
   l <> nil -> app_nat_fun p l = app_nat_fun_dflt p l (hd a l).
-Proof.
-  intros p l a Hnil.
-  destruct l; [ contradiction Hnil | ]; reflexivity.
-Qed.
+Proof. intros p l a Hnil; destruct l; [ contradiction Hnil | ]; reflexivity. Qed.
 
 Lemma app_nat_fun_cons {A} : forall n (a : A) p l,
   app_nat_fun (n :: p) (a :: l) = nth n (a :: l) a :: app_nat_fun p (a :: l).
@@ -66,15 +61,14 @@ destruct l.
   + exfalso.
     apply andb_true_iff in Hlen as [Hlen _].
     apply Nat.ltb_lt in Hlen; simpl in Hlen; lia.
-- simpl.
-  now apply app_nat_fun_dflt_indep.
+- now apply app_nat_fun_dflt_indep.
 Qed.
 
 Lemma app_nat_fun_middle {A} : forall l1 l2 (a : A) p,
-    app_nat_fun (length l1 :: p) (l1 ++ a :: l2) = a :: (app_nat_fun p (l1 ++ a :: l2)).
-Proof with try reflexivity; try assumption.
-  destruct l1...
-  intros l2 a0 p.
+  app_nat_fun (length l1 :: p) (l1 ++ a :: l2) = a :: (app_nat_fun p (l1 ++ a :: l2)).
+Proof.
+  intros l1 l2 a0 p.
+  destruct l1; [ reflexivity | ].
   change (app_nat_fun (length (a :: l1) :: p) ((a :: l1) ++ a0 :: l2))
     with ((nth (length (a :: l1)) ((a :: l1) ++ a0 :: l2) a) :: app_nat_fun p ((a :: l1) ++ a0 :: l2)).
   replace a0 with (nth (length (a :: l1)) ((a :: l1) ++ a0 :: l2) a);
@@ -82,10 +76,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma app_nat_fun_length {A} : forall f (l : list A), l <> nil -> length (app_nat_fun f l) = length f.
-Proof.
-  intros f l Hnnil.
-  destruct l; [ exfalso; apply Hnnil; reflexivity | apply map_length ].
-Qed.
+Proof. intros f l Hnnil; destruct l; [ exfalso; apply Hnnil; reflexivity | apply map_length ]. Qed.
 
 Lemma all_lt_app_nat_fun : forall p l n, all_lt p (length l) = true ->
   all_lt l n = true -> all_lt (app_nat_fun p l) n = true.
@@ -111,25 +102,22 @@ Proof.
   induction p; simpl; [ reflexivity | ].
   rewrite <- IHp.
   case_eq (a <? length la); intros Ha0; subst; list_simpl; f_equal.
-  - rewrite 2 app_nth1; try (apply Nat.ltb_lt; assumption).
-    reflexivity.
+  - now rewrite 2 app_nth1; try (apply Nat.ltb_lt; assumption).
   - apply Nat.ltb_ge in Ha0.
     rewrite app_nth2; try lia.
     replace (length lb + a - length la) with (length lb + (a - length la)) by lia.
     rewrite nth_plus.
-    rewrite <- app_nth2; try lia.
-    reflexivity.
+    now rewrite <- app_nth2; try lia.
 Qed.
 
-Lemma app_nat_fun_shift {A} : forall (la lb lc :list A) p
-                                     (H : length (la ++ lc) <> 0)
-                                     (Halt : all_lt p (length (la ++ lc)) = true),
+Lemma app_nat_fun_shift {A} : forall (la lb lc :list A) p,
+  length (la ++ lc) <> 0 -> all_lt p (length (la ++ lc)) = true ->
     app_nat_fun (shift p (length la) (length lb)) (la ++ lb ++ lc) = app_nat_fun p (la ++ lc).
 Proof.
   intros la lb lc p Hlen Hlt.
   destruct la; [ destruct lc | ].
   - exfalso.
-    apply Hlen; reflexivity.
+    now apply Hlen.
   - rewrite 2 app_nat_fun_not_nil with _ _ a.
     + replace (app_nat_fun_dflt p (nil ++ a :: lc) (hd a (nil ++ a :: lc)))
         with (app_nat_fun_dflt p (nil ++ a :: lc) (hd a (nil ++ lb ++ a :: lc))).
@@ -141,7 +129,7 @@ Proof.
     change (S (length la)) with (length (a :: la)).
     change (a :: la ++ lb ++ lc) with ((a :: la) ++ lb ++ lc).
     change (a :: la ++ lc) with ((a :: la) ++ lc).
-    apply app_nat_fun_dflt_shift; assumption.
+    now apply app_nat_fun_dflt_shift.
 Qed.
 
 Lemma app_nat_fun_dflt_downshift {A} : forall la lb (a : A) p d, In_nat_bool (length la) p = false ->
@@ -166,9 +154,8 @@ Proof.
     destruct n; [ inversion Hnz | reflexivity ].
 Qed.
 
-Lemma app_nat_fun_downshift {A} : forall la lb (a : A) p
-                                         (nHin : In_nat_bool (length la) p = false)
-                                         (Halt : all_lt p (S (length (la ++ lb))) = true),
+Lemma app_nat_fun_downshift {A} : forall la lb (a : A) p,
+  In_nat_bool (length la) p = false -> all_lt p (S (length (la ++ lb))) = true ->
     app_nat_fun p (la ++ a :: lb) = app_nat_fun (downshift p (length la)) (la ++ lb).
 Proof.
 intros la lb a p Hlen Hlt.
@@ -249,7 +236,7 @@ rewrite IHx; reflexivity.
 Qed.
 
 Lemma asso_app_nat_fun {A} : forall l1 l2 (l3 : list A),
-    app_nat_fun (app_nat_fun l1 l2) l3 = app_nat_fun l1 (app_nat_fun l2 l3).
+  app_nat_fun (app_nat_fun l1 l2) l3 = app_nat_fun l1 (app_nat_fun l2 l3).
 Proof.
 intros l1 l2 l3.
 destruct l3; [ reflexivity | ].
@@ -325,12 +312,8 @@ intros l f1 f2 d; apply map_app.
 Qed.
 
 Lemma app_nat_fun_app {A} : forall (l : list A) f1 f2,
-    app_nat_fun (f1 ++ f2) l = app_nat_fun f1 l ++ app_nat_fun f2 l.
-Proof.
-intros l f1 f2.
-destruct l; [ reflexivity | ].
-apply app_nat_fun_dflt_app.
-Qed.
+  app_nat_fun (f1 ++ f2) l = app_nat_fun f1 l ++ app_nat_fun f2 l.
+Proof. intros l f1 f2; destruct l; [ reflexivity | apply app_nat_fun_dflt_app ]. Qed.
 
 Lemma append_fun_eq {A} : forall (l1 l2 : list A) f1 f2,
     all_lt f1 (length l1) = true ->
@@ -387,7 +370,8 @@ Proof with try reflexivity; try assumption.
   - simpl in Hal.
     rewrite <- Hlenla.
     change 1 with (length (nth (length (n1 :: la)) l n0 :: nil)).
-    change ((n1 :: la) ++ nth (length (n1 :: la)) l n0 :: lb) with ((n1 :: la) ++ (nth (length (n1 :: la)) l n0 :: nil) ++ lb).
+    change ((n1 :: la) ++ nth (length (n1 :: la)) l n0 :: lb)
+      with ((n1 :: la) ++ (nth (length (n1 :: la)) l n0 :: nil) ++ lb).
     rewrite app_nat_fun_shift.
     + rewrite downshift_app.
       change ((nth (length (n1 :: la)) l n0 :: nil) ++ lb) with (nth (length (n1 :: la)) l n0 :: lb).
@@ -478,7 +462,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma app_nat_fun_map {A B} : forall (f : A -> B) l p,
-    app_nat_fun p (map f l) = map f (app_nat_fun p l).
+  app_nat_fun p (map f l) = map f (app_nat_fun p l).
 Proof with try reflexivity.
   intros f l p.
   destruct l...

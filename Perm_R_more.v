@@ -326,7 +326,7 @@ Lemma Perm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
 Proof with try reflexivity; try assumption.
   intros f l1 l2 (p & (Hperm & Hlen & Heq)).
   simpl in Hlen.
-  destruct (perm_has_inv _ Hperm) as (p_inv & (Heq' & Hperm_inv & Heq_len)).
+  destruct (perm_inv _ Hperm) as (p_inv & ((Heq' & _) & Hperm_inv & Heq_len)).
   split with (app_nat_fun p_inv l2).
   - rewrite<- app_nat_fun_map.
     rewrite Heq.
