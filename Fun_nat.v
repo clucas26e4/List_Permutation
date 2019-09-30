@@ -149,19 +149,17 @@ Lemma app_nat_fun_dflt_downshift {A} : forall la lb (a : A) p d, In_nat_bool (le
 Proof.
   intros la lb a p d Hlen.
   induction p; simpl; [ reflexivity | ].
-  simpl in Hlen; apply orb_false_iff in Hlen.
-  rewrite IHp; [ | apply Hlen ].
+  simpl in Hlen; apply orb_false_iff in Hlen as [Hl Hr].
+  rewrite Nat.eqb_sym in Hl; rewrite Hl.
+  rewrite IHp; [ | apply Hr ].
   case_eq (a0 <? length la); intros Ha0; subst; list_simpl; f_equal.
   - rewrite 2 app_nth1; try (apply Nat.ltb_lt; assumption).
     reflexivity.
-  - assert (length la < a0) as Ha.
-    { apply Nat.ltb_ge in Ha0.
-      destruct Hlen as [Hlen _].
-      apply Nat.eqb_neq in Hlen; lia. }
-    rewrite app_nth2; try lia.
-    assert (beq_nat a0 (length la) = false) as Ha1 by (apply Nat.eqb_neq; lia); rewrite Ha1.
+  - apply Nat.ltb_ge in Ha0.
+    rewrite app_nth2 by lia.
+    apply Nat.eqb_neq in Hl.
+    rewrite app_nth2 by lia.
     simpl; f_equal.
-    rewrite app_nth2; try lia.
     replace (Init.Nat.pred a0 - length la) with (Init.Nat.pred (a0 - length la)) by lia.
     assert (a0 - length la > 0) as Hnz by lia.
     remember (a0 - length la) as n; clear - Hnz.
@@ -204,20 +202,23 @@ Proof.
 intros l f; revert l.
 induction f; intros l k d Hlt Hnin; [ reflexivity | ].
 simpl in Hlt; apply andb_true_iff in Hlt; destruct Hlt as [Hlt Hlt'].
-simpl; case_eq (nth a l d <? k); intros Hlt2.
-- rewrite IHf; [ f_equal | assumption | assumption ].
-  apply Nat.ltb_lt in Hlt2.
-  apply nth_downshift_lt; assumption.
-- apply Nat.ltb_lt in Hlt; apply Nat.ltb_ge in Hlt2.
-  replace (beq_nat (nth a l d) k) with false; simpl.
+simpl app_nat_fun_dflt; simpl downshift.
+replace (beq_nat (nth a l d) k) with false.
+- case_eq (nth a l d <? k); intros Hlt2.
   + rewrite IHf; [ f_equal | assumption | assumption ].
-    apply nth_downshift_ge; assumption.
-  + clear - Hlt Hnin; revert a Hlt; induction l; intros b Hlt.
-    * exfalso; simpl in Hlt; lia.
-    * simpl in Hnin; apply orb_false_iff in Hnin; destruct Hnin as [Hnin1 Hnin2].
-      destruct b; simpl.
-      -- symmetry; apply Nat.eqb_neq; intros H; subst; apply Nat.eqb_neq in Hnin1; auto.
-      -- simpl in Hlt; apply IHl; [assumption | lia].
+    apply Nat.ltb_lt in Hlt2.
+    apply nth_downshift_lt; assumption.
+  + rewrite IHf; [ f_equal | assumption | assumption ].
+    apply Nat.ltb_ge in Hlt2.
+    rewrite nth_indep with _ _ _ _ (pred d) by (now apply Nat.ltb_lt in Hlt; rewrite downshift_length; try lia).
+    now apply nth_downshift_ge.
+- apply Nat.ltb_lt in Hlt.
+  clear - Hlt Hnin; revert a Hlt; induction l; intros b Hlt.
+  + exfalso; simpl in Hlt; inversion Hlt.
+  + simpl in Hnin; apply orb_false_iff in Hnin; destruct Hnin as [Hnin1 Hnin2].
+    destruct b; simpl.
+    * symmetry; apply Nat.eqb_neq; intros H; subst; apply Nat.eqb_neq in Hnin1; auto.
+    * simpl in Hlt; apply IHl; [assumption | lia].
 Qed.
 
 Lemma app_nat_fun_downshift_commu : forall a l f k,
@@ -232,10 +233,8 @@ rewrite 2 app_nat_fun_not_nil with _ _ 0.
 - intros H; inversion H.
 - intros H; simpl in H.
   simpl in Hlen; apply orb_false_iff in Hlen; destruct Hlen as [Hlen _].
-  case_eq (a <? k); intros Hlt; rewrite Hlt in H.
-  + inversion H.
-  + replace (beq_nat a k) with false in H; [ inversion H | ].
-    symmetry; apply Nat.eqb_neq; intros H'; rewrite H' in Hlen; apply Nat.eqb_neq in Hlen; now apply Hlen.
+  rewrite Nat.eqb_sym in Hlen; rewrite Hlen in H.
+  inversion H.
 Qed.
 
 Lemma asso_app_nat_fun_dflt {A} : forall l1 l2 (l3 : list A) n d,

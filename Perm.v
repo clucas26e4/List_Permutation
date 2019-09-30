@@ -33,7 +33,7 @@ simpl in Hp2; apply andb_true_iff in Hp2 as [Hp2 Hp4].
 apply negb_true_iff in Hp2.
 apply andb_true_iff; split.
 - rewrite downshift_length...
-  rewrite <- downshift_all_lt by (apply Nat.leb_le; lia)...
+  rewrite all_lt_downshift by (apply Nat.leb_le; lia)...
 - apply downshift_keep_all_distinct; assumption.
 Qed.
 
@@ -57,14 +57,16 @@ induction n; intros p Heq k0 k Hperm Hlt.
   + apply IHn with _ k0 (pred k) in Hperm; [ | | lia ].
     * destruct Hperm as [i [Hnth1 Hnth2]].
       exists (S i); split; [ lia | simpl ].
-      rewrite nth_ge_downshift in Hnth2; [ | assumption | assumption | lia ].
-      assert (In_nat_bool (nth i p k0) p = true)
-        by (apply cond_In_nat_bool; now exists (k0,i)).
-      destruct (nth i p k0); try lia.
-      destruct k; [ reflexivity | exfalso ].
-      simpl in Hnth2; subst.
-      destruct n0; try lia.
-      rewrite Hn0 in H; inversion H.
+      rewrite nth_indep with _ _ _ _ (pred k0) in Hnth2 by (rewrite downshift_length; assumption).
+      rewrite nth_ge_downshift in Hnth2; [ | assumption | ].
+      -- assert (In_nat_bool (nth i p k0) p = true)
+           by (apply cond_In_nat_bool; now exists (k0,i)).
+         destruct (nth i p k0); try lia.
+         destruct k; [ reflexivity | exfalso ].
+         simpl in Hnth2; subst.
+         destruct n0; try lia.
+         rewrite Hn0 in H; inversion H.
+      -- rewrite nth_indep with _ _ _ _ (pred k0) by (rewrite downshift_length; assumption); lia.
     * now rewrite downshift_length.
   + assert (k < n0) as Hlt3
       by (apply Nat.ltb_ge in Hlt2; apply Nat.eqb_neq in Heqk; lia).
@@ -129,7 +131,7 @@ Proof with try reflexivity; try assumption.
     destruct l; try now inversion Hlt.
     simpl length in Halt.
     simpl length; simpl pred.
-    rewrite downshift_all_lt with _ _ k in Halt...
+    rewrite <- all_lt_downshift with _ _ k in Halt...
     simpl in Hlt.
     apply Nat.leb_le; lia.
   - rewrite downshift_if_all_lt...
@@ -375,7 +377,7 @@ Proof with try reflexivity; try assumption.
       * rewrite Heq.
         change (map S (downshift (app_nat_fun (shift p_inv n0 1) (n1 :: p)) 0))
           with (shift (downshift (app_nat_fun (shift p_inv n0 1) (n1 :: p)) 0) 0 1).
-        rewrite incr_all_downshift_0...
+        rewrite shift_downshift...
         rewrite <- Heq at 1.
         apply In_nat_bool_shift_false...
         -- rewrite<- Heqn; simpl; rewrite Heq_len...
@@ -453,7 +455,8 @@ Proof with try reflexivity; try assumption.
            ++ rewrite Hlenlpa...
            ++ rewrite HlenL1a...
            ++ rewrite Hlenlpa...
-      * assert (nth j p1 0 <> i) by now apply neg_nth_eq.
+      * assert (nth j p1 0 <> i) by now apply cond_negb_In_nat_bool.
+        change 0 with (pred 0).
         rewrite nth_downshift_ge; try lia...
         destruct (H (S j)) as ((Hpermj & Hlenj) & Heqj); [ length_lia | ].
         rewrite app_nth2 by (rewrite Hlenlpa ; lia).
@@ -692,7 +695,9 @@ Proof with try reflexivity; try assumption.
       + split with (map (fun x => (S (fst x), S (snd x))) l).
         rewrite Heqp.
         rewrite Heqi.
-        replace lb with (incr_all (downshift lb 0) 1) by (apply incr_all_downshift_0; apply all_distinct_right with (@nil nat); apply andb_prop in Hperm as [_ Had]; rewrite<- Heqi; now rewrite<- Heqp).
+        replace lb with (incr_all (downshift lb 0) 1)
+          by (apply shift_downshift; apply all_distinct_right with (@nil nat);
+              apply andb_prop in Hperm as [_ Had]; rewrite<- Heqi; now rewrite<- Heqp).
         rewrite Heql.
         rewrite incr_all_compo_nc_transpo... }
     destruct n0.
@@ -746,14 +751,14 @@ Proof with try reflexivity; try assumption.
       replace (0 :: incr_all (compo_nc_transpo (S n - 1) l) 1) with (0 :: (la ++ S n0 :: lb)).
       2:{ replace (incr_all (compo_nc_transpo (S n - 1) l) 1) with (la ++ S n0 :: lb)...
           replace la with (incr_all (downshift la 0) 1).
-          2:{ apply incr_all_downshift_0.
+          2:{ apply shift_downshift.
               apply all_distinct_left with lb.
               rewrite Heqp in Hperm.
               rewrite Heqi in Hperm.
               apply andb_prop in Hperm as [_ Had].
               apply andb_prop in Had as [_ Had]... }
           replace lb with (incr_all (downshift lb 0) 1).
-          2:{ apply incr_all_downshift_0.
+          2:{ apply shift_downshift.
               apply all_distinct_right with la.
               rewrite Heqp in Hperm.
               rewrite Heqi in Hperm.

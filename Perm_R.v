@@ -376,11 +376,11 @@ Proof with auto.
       2:{ change (a :: lb) with ((a :: nil) ++ lb).
           change 1 with (length (a :: nil)).
           rewrite app_nat_fun_right...
-          rewrite<- downshift_all_lt...
+          rewrite all_lt_downshift...
           inversion Hlenla; rewrite <- H0.
           simpl in Hlen.
           rewrite<- Hlen... }
-      rewrite incr_all_downshift_0.
+      rewrite shift_downshift.
       2:{ apply negb_true_iff... }
       rewrite<- H0.
       inversion Heq...
