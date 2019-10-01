@@ -9,7 +9,7 @@ Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 Require Import Perm.
-Require Import Perm_R.
+Require Import Perm_R_more.
 Require Import misc.
 Require Import Perm_solve.
 
@@ -71,36 +71,6 @@ Fixpoint psize {l} (pi : mll l) :=
   | parr_r _ _ _ pi => S (psize pi)
   end.
 
-(* TODO: NEED MOVING *)
-Lemma app_antecedent_dflt {A} : forall (d a : A) f l l1 l2,
-    all_lt f (length l) = true ->
-    app_nat_fun_dflt f l d = l1 ++ a :: l2 ->
-    nth (nth (length l1) f 0) l d = a.
-Proof.
-  intros d a f l l1.
-  revert d a f l.
-  induction l1; intros d b f l l2 Hal Heq.
-  - simpl in *.
-    destruct f; destruct l; try now inversion Heq.
-  - destruct f; [ destruct l; inversion Heq | ].
-    simpl.
-    simpl in Hal; apply andb_prop in Hal as [_ Hal].
-    apply IHl1 with l2; try assumption.
-    destruct l; try now inversion Heq.
-Qed.
-
-Lemma app_antecedent {A} : forall (d a : A) f l l1 l2,
-    all_lt f (length l) = true ->
-    app_nat_fun f l = l1 ++ a :: l2 ->
-    nth (nth (length l1) f 0) l d = a.
-Proof.
-  intros d a f l l1 l2 Hal Heq.
-  apply app_antecedent_dflt with l2; try assumption.
-  destruct l; [ destruct l1; inversion Heq | ].
-  unfold app_nat_fun in Heq.
-  rewrite app_nat_fun_dflt_indep with _ _ _ a0; try assumption.
-Qed.
-
 Lemma cut_admissible : forall A l1 l2,
     mll (dual A :: l1) ->
     mll (A :: l2) ->
@@ -140,11 +110,7 @@ Proof with try assumption; try reflexivity.
       { rewrite Heq'; apply ex_r...
         apply IHsize with A pi1 pi2...
         lia. }
-      transitivity (l0 ++ l2 ++ l1); [ | rewrite (app_assoc _ _ l1); apply Perm_R_app_comm ].
-      transitivity (l0 ++ lb ++ la); [ rewrite (app_assoc _ _ la); apply Perm_R_app_comm | ]. 
-      apply Perm_R_app_head.
-      transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
-      transitivity (l1 ++ l2) ; [ | apply Perm_R_app_comm ].
+      apply Perm_R_app_middle.
       apply Perm_R_app_inv with A.
       split with f.
       rewrite<- Heq; repeat split; [ | | symmetry]...
@@ -164,10 +130,7 @@ Proof with try assumption; try reflexivity.
         { rewrite Heq'; apply ex_r...
           apply IHsize with  (parr (dual B) (dual A0)) pi2 pi1; [ lia | ].
           simpl in *; rewrite 2 fsize_dual; lia. }
-        transitivity ((l4 ++ l3) ++ l0); [ | apply Perm_R_app_comm ].
-        transitivity ((l4 ++ l3) ++ lb ++ la); [ rewrite (app_assoc _ _ la); apply Perm_R_app_comm | ]. 
-        apply Perm_R_app_head.
-        transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
+        replace (l0 ++ l4 ++ l3) with (l0 ++ (l4 ++ l3) ++ nil) by (now rewrite app_nil_r); apply Perm_R_app_middle; rewrite app_nil_r.
         change l0 with (nil ++ l0).
         apply Perm_R_app_inv with (parr (dual B) (dual A0)).
         split with (n :: f).
@@ -208,10 +171,7 @@ Proof with try assumption; try reflexivity.
         { rewrite Heq'; apply ex_r...
           apply IHsize with  (tens (dual B) (dual A0)) pi2 pi1; [ lia | ].
           simpl in *; rewrite 2 fsize_dual; lia. }
-        transitivity (l2 ++ l0); [ | apply Perm_R_app_comm ].
-        transitivity (l2 ++ lb ++ la); [ rewrite (app_assoc _ _ la); apply Perm_R_app_comm | ]. 
-        apply Perm_R_app_head.
-        transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
+        rewrite <- (app_nil_r l2) at 2; apply Perm_R_app_middle; rewrite app_nil_r.
         change l0 with (nil ++ l0); apply Perm_R_app_inv with (tens (dual B) (dual A0)).
         split with (n :: f);rewrite<- Heq; repeat split ; [ | | symmetry]...
       * (* tens_r *)
