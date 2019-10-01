@@ -61,4 +61,4 @@ all_lt_solve.vo : all_lt_solve.v List_nat.vo List_more2.vo Fun_nat.vo Perm.vo mi
 app_nat_fun_more.vo : app_nat_fun_more.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_nat.vo misc.vo List_more2.vo Fun_nat.vo
 Perm_more.vo : Perm_more.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo
 
-mll.vo : mll.v $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo Fun_nat.vo Perm.vo misc.vo Perm_solve.vo
+mll.vo : mll.v $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo Fun_nat.vo Perm.vo Perm_R.vo misc.vo
