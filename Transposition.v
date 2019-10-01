@@ -95,28 +95,6 @@ Qed.
 
 Definition compo_transpo m := fold_right (fun i => app_nat_fun (transpo m i)) (Id (S m)).
 
-(* TODO move to List_more *)
-Lemma fold_right_app_assoc2 {A B} f (g : B -> A) h (e : A) l1 l2 :
-    (forall x y z, h (g x) (f y z) = f (h (g x) y) z) ->
-    (f e (fold_right (fun x => h (g x)) e l2) = (fold_right (fun x => h (g x)) e l2)) ->
-  fold_right (fun x => h (g x)) e (l1 ++ l2) =
-  f (fold_right (fun x => h (g x)) e l1) (fold_right (fun x => h (g x)) e l2).
-Proof.
-intros Hassoc Hunit.
-rewrite fold_right_app.
-remember (fold_right (fun x => f (g x)) e l2) as r.
-induction l1; simpl.
-- symmetry; apply Hunit.
-- rewrite <- Hassoc.
-  f_equal; assumption.
-Qed.
-
-Lemma fold_right_app_assoc {A} f (e : A) l1 l2 :
-  (forall x y z, f x (f y z) = f (f x y) z) -> (forall x, f e x = x) ->
-  fold_right f e (l1 ++ l2) = f (fold_right f e l1) (fold_right f e l2).
-Proof. intros Hassoc Hunit; apply fold_right_app_assoc2; [ assumption | apply Hunit ]. Qed.
-(* end TODO *)
-
 Lemma compo_transpo_length : forall m l, length (compo_transpo m l) = S m.
 Proof.
   intros m; induction l.

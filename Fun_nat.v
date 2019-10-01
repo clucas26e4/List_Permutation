@@ -477,26 +477,38 @@ Proof with try reflexivity.
   rewrite map_nth...
 Qed.
 
+Lemma app_antecedent_dflt {A} : forall (d a : A) f l l1 l2,
+    all_lt f (length l) = true ->
+    app_nat_fun_dflt f l d = l1 ++ a :: l2 ->
+    nth (nth (length l1) f 0) l d = a.
+Proof.
+  intros d a f l l1.
+  revert d a f l.
+  induction l1; intros d b f l l2 Hal Heq.
+  - simpl in *.
+    destruct f; destruct l; try now inversion Heq.
+  - destruct f; [ destruct l; inversion Heq | ].
+    simpl.
+    simpl in Hal; apply andb_prop in Hal as [_ Hal].
+    apply IHl1 with l2; try assumption.
+    destruct l; try now inversion Heq.
+Qed.
+
+Lemma app_antecedent {A} : forall (d a : A) f l l1 l2,
+    all_lt f (length l) = true ->
+    app_nat_fun f l = l1 ++ a :: l2 ->
+    nth (nth (length l1) f 0) l d = a.
+Proof.
+  intros d a f l l1 l2 Hal Heq.
+  apply app_antecedent_dflt with l2; try assumption.
+  destruct l; [ destruct l1; inversion Heq | ].
+  unfold app_nat_fun in Heq.
+  rewrite app_nat_fun_dflt_indep with _ _ _ a0; try assumption.
+Qed.
+
+
 (* ID *)
 Notation Id := (seq 0).
-
-(* TODO move to List_more ? *)
-Lemma seq_plus : forall s l1 l2, seq s (l1 + l2) = seq s l1 ++ seq (s + l1) l2.
-Proof.
-intros s l1; revert s; induction l1; intros s l2.
-- simpl; f_equal; lia.
-- simpl; rewrite IHl1.
-  f_equal; f_equal; f_equal; lia.
-Qed.
-
-Lemma seq_S : forall s l, seq s (S l) = seq s l ++ s + l :: nil.
-Proof.
-intros s l.
-change (s + l :: nil) with (seq (s + l) 1).
-rewrite <- seq_plus.
-f_equal; lia.
-Qed.
-(* end TODO *)
 
 Lemma incr_all_seq : forall s l k, incr_all (seq s l) k = seq (s + k) l.
 Proof.

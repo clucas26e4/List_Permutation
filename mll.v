@@ -36,14 +36,10 @@ Fixpoint dual A :=
   end.
 
 Lemma bidual : forall A, dual (dual A) = A.
-Proof with try reflexivity.
-  induction A; simpl; try rewrite IHA1; try rewrite IHA2...
-Qed.
+Proof. now induction A; simpl; try rewrite IHA1; try rewrite IHA2. Qed.
 
 Lemma fsize_dual : forall A, fsize (dual A) = fsize A.
-Proof with try reflexivity.
-  induction A; simpl; try rewrite IHA1; try rewrite IHA2; try rewrite Nat.add_comm...
-Qed.
+Proof. now induction A; simpl; try rewrite IHA1; try rewrite IHA2; try lia. Qed.
 
 Inductive mll_cut : list formulas -> Type :=
 | ax_cut_r : forall X, mll_cut (covar X :: var X :: nil)
@@ -70,36 +66,6 @@ Fixpoint psize {l} (pi : mll l) :=
   | tens_r _ _ _ _ pi1 pi2 => S (psize pi1 + psize pi2)
   | parr_r _ _ _ pi => S (psize pi)
   end.
-
-(* TODO: NEED MOVING *)
-Lemma app_antecedent_dflt {A} : forall (d a : A) f l l1 l2,
-    all_lt f (length l) = true ->
-    app_nat_fun_dflt f l d = l1 ++ a :: l2 ->
-    nth (nth (length l1) f 0) l d = a.
-Proof.
-  intros d a f l l1.
-  revert d a f l.
-  induction l1; intros d b f l l2 Hal Heq.
-  - simpl in *.
-    destruct f; destruct l; try now inversion Heq.
-  - destruct f; [ destruct l; inversion Heq | ].
-    simpl.
-    simpl in Hal; apply andb_prop in Hal as [_ Hal].
-    apply IHl1 with l2; try assumption.
-    destruct l; try now inversion Heq.
-Qed.
-
-Lemma app_antecedent {A} : forall (d a : A) f l l1 l2,
-    all_lt f (length l) = true ->
-    app_nat_fun f l = l1 ++ a :: l2 ->
-    nth (nth (length l1) f 0) l d = a.
-Proof.
-  intros d a f l l1 l2 Hal Heq.
-  apply app_antecedent_dflt with l2; try assumption.
-  destruct l; [ destruct l1; inversion Heq | ].
-  unfold app_nat_fun in Heq.
-  rewrite app_nat_fun_dflt_indep with _ _ _ a0; try assumption.
-Qed.
 
 Lemma cut_admissible : forall A l1 l2,
     mll (dual A :: l1) ->

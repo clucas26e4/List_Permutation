@@ -1,7 +1,7 @@
 Require Import Lia.
 Require Import PeanoNat.
 
-Require Import List_Type_more.
+Require Export List.
 
 (* Properties on nth *)
 Lemma nth_nth {A} : forall (l1 : list nat) (l2 : list A) a0 k0 k,
@@ -54,29 +54,6 @@ Proof with try reflexivity.
     refine (H (S n) a1).
 Qed.
 
-(* TODO put in List_Type *)
-  Lemma nth_In_Type {A} :
-    forall (n:nat) (l:list A) (d:A), n < length l -> In_Type (nth n l d) l.
-  Proof.
-    unfold lt; induction n as [| n hn]; simpl.
-    - destruct l; simpl; [ inversion 2 | auto ].
-    - destruct l; simpl.
-      * inversion 2.
-      * intros d ie; right; apply hn; auto with arith.
-  Qed.
-
-  Lemma In_nth_Type {A:Type} l (x:A) d : In_Type x l ->
-    { n : _ & n < length l & nth n l d = x }.
-  Proof.
-    induction l as [|a l IH].
-    - easy.
-    - intros [H|H].
-      * subst; exists 0; simpl; auto with arith.
-      * destruct (IH H) as [n Hn Hn'].
-        exists (S n); simpl; auto with arith.
-  Qed.
-(* end TODO *)
-
 Lemma nth_split_Type {A:Type} n l (d:A) : n < length l ->
     {' (l1,l2) : _ & l = l1 ++ nth n l d :: l2 & length l1 = n }.
   Proof.
@@ -87,6 +64,26 @@ Lemma nth_split_Type {A:Type} n l (d:A) : n < length l ->
       exists (a::l1,l2); simpl; now f_equal.
   Qed.
 
+(* fold_right *)
+Lemma fold_right_app_assoc2 {A B} f (g : B -> A) h (e : A) l1 l2 :
+    (forall x y z, h (g x) (f y z) = f (h (g x) y) z) ->
+    (f e (fold_right (fun x => h (g x)) e l2) = (fold_right (fun x => h (g x)) e l2)) ->
+  fold_right (fun x => h (g x)) e (l1 ++ l2) =
+  f (fold_right (fun x => h (g x)) e l1) (fold_right (fun x => h (g x)) e l2).
+Proof.
+intros Hassoc Hunit.
+rewrite fold_right_app.
+remember (fold_right (fun x => f (g x)) e l2) as r.
+induction l1; simpl.
+- symmetry; apply Hunit.
+- rewrite <- Hassoc.
+  f_equal; assumption.
+Qed.
+
+Lemma fold_right_app_assoc {A} f (e : A) l1 l2 :
+  (forall x y z, f x (f y z) = f (f x y) z) -> (forall x, f e x = x) ->
+  fold_right f e (l1 ++ l2) = f (fold_right f e l1) (fold_right f e l2).
+Proof. intros Hassoc Hunit; apply fold_right_app_assoc2; [ assumption | apply Hunit ]. Qed.
 
 (* fold_left max *)
 Lemma fold_left_max_r : forall f a, a <= fold_left max f a.
@@ -170,6 +167,25 @@ Proof with try assumption; try reflexivity.
       * apply fold_left_max_le_r.
         lia.
 Qed.
+
+
+(* seq *)
+Lemma seq_plus : forall s l1 l2, seq s (l1 + l2) = seq s l1 ++ seq (s + l1) l2.
+Proof.
+intros s l1; revert s; induction l1; intros s l2.
+- simpl; f_equal; lia.
+- simpl; rewrite IHl1.
+  f_equal; f_equal; f_equal; lia.
+Qed.
+
+Lemma seq_S : forall s l, seq s (S l) = seq s l ++ s + l :: nil.
+Proof.
+intros s l.
+change (s + l :: nil) with (seq (s + l) 1).
+rewrite <- seq_plus.
+f_equal; lia.
+Qed.
+
 
 (* Properties on list nat *)
 Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2),
