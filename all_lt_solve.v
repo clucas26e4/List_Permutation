@@ -20,9 +20,10 @@ Ltac all_lt_run :=
                                             destruct (Nat.le_exists_sub n m) as  (p & (Heq & _));
                                             [ length_lia |
                                               rewrite (Nat.add_comm p) in Heq;
-                                              rewrite Heq; rewrite<- all_lt_incr_all ]
+                                              rewrite Heq; rewrite all_lt_shift_true ]
   | |- all_lt (Id ?n) ?m = true => apply all_lt_leq with n ; [apply all_lt_seq | length_lia]
   | |- all_lt nil _ = true => reflexivity
   | |- all_lt (nil ++ _) _ = true => rewrite app_nil_l
   | |- all_lt (_ ++ nil) _ = true => rewrite app_nil_r
   end.
+

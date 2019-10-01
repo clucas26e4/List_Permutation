@@ -14,11 +14,7 @@ Require Import misc.
 
 
 Instance Perm_R_refl' {A} : Proper (Logic.eq ==> @Perm_R A) (fun a => a).
-Proof.
-intros x y Heq.
-rewrite Heq.
-reflexivity.
-Qed.
+Proof. intros x y Heq; now rewrite Heq. Qed.
 
 Lemma Perm_R_morph_transp {A} : forall P : list A -> Prop,
   (forall a b l1 l2, P (l1 ++ a :: b :: l2) -> P (l1 ++ b :: a :: l2)) ->
@@ -69,8 +65,8 @@ Proof with try assumption ; try reflexivity.
   intros a l l1 l2 HP.
   remember (l1 ++ a :: l2) as l0.
   revert l1 l2 Heql0.
-  rect_transpo (fun la lb => forall l1 l2 : list A,
-                    lb = l1 ++ a :: l2 -> {pl : list A * list A | la = fst pl ++ a :: snd pl}) HP; intros l1 l2 Heql.
+  rect_transpo (fun la lb => forall l1 l2, lb = l1 ++ a :: l2 ->
+                    {pl | la = fst pl ++ a :: snd pl}) HP; intros l1 l2 Heql.
   - destruct l1 ; inversion Heql.
   - destruct l1 ; inversion Heql.
     + exists (@nil A, la)...
@@ -283,15 +279,14 @@ Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
   forall l1 l1' l2, Perm_R l1 l1' -> Forall2_Type P l1 l2 ->
     { l2' : _ & Perm_R l2 l2' & Forall2_Type P l1' l2' }.
 Proof with try reflexivity; try assumption.
-  intros l1 l1' l2 (p & (Hperm & Hlen & Heq)) H.
+  intros l1 l1' l2 [p Hperm [Hlen Heq]] H.
   assert (length l1 = length l2) as Hlen'.
   { clear - H.
     induction H...
     simpl; rewrite IHForall2_Type... }
   split with (app_nat_fun p l2).
-  - split with p.
-    rewrite Hlen.
-    repeat split...
+  - split with p; repeat split...
+    now transitivity (length l1).
   - rewrite Heq.
     apply andb_prop in Hperm as (Hal & _).
     assert (Hal2 := Hal).
@@ -324,9 +319,9 @@ Defined.
 Lemma Perm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
   Perm_R l1 (map f l2) -> { l : _ & l1 = map f l & (Perm_R l2 l) }.
 Proof with try reflexivity; try assumption.
-  intros f l1 l2 (p & (Hperm & Hlen & Heq)).
+  intros f l1 l2 [p Hperm [Hlen Heq]].
   simpl in Hlen.
-  destruct (perm_has_inv _ Hperm) as (p_inv & (Heq' & Hperm_inv & Heq_len)).
+  destruct (perm_inv _ Hperm) as [p_inv [Heq' _] [Hperm_inv Heq_len]].
   split with (app_nat_fun p_inv l2).
   - rewrite<- app_nat_fun_map.
     rewrite Heq.
@@ -334,8 +329,7 @@ Proof with try reflexivity; try assumption.
     rewrite Heq'.
     rewrite Hlen.
     rewrite app_Id...
-  - split with p_inv.
-    repeat split...
+  - split with p_inv; repeat split...
     rewrite<- Heq_len.
     rewrite<- map_length with _ _ f _.
     rewrite Heq.
@@ -347,9 +341,8 @@ Defined.
 Lemma Perm_R_map_inv_inj {A B} : forall f : A -> B, injective f ->
   forall l1 l2, Perm_R (map f l1) (map f l2) -> Perm_R l1 l2.
 Proof with try reflexivity; try assumption.
-  intros f Hi l1 l2 (p & (Hperm & Hlen & Heq)).
-  split with p.
-  repeat split...
+  intros f Hi l1 l2 [p Hperm [Hlen Heq]].
+  split with p; repeat split...
   - rewrite map_length in Hlen...
   - rewrite app_nat_fun_map in Heq.
     apply map_inj_local with f...
