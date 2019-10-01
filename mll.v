@@ -88,9 +88,9 @@ Proof with try assumption; try reflexivity.
   induction s as [s IHsize0] using lt_wf_rect.
   assert (forall A l0 l1 l2 (pi1 : mll (dual A :: l0)) (pi2 : mll (l1 ++ A :: l2)),
             psize pi1 + psize pi2 < s -> fsize A <= c -> mll (l1 ++ l0 ++ l2))
-    as IHsize by (intros ; eapply IHsize0 ; try eassumption; try reflexivity) ; clear IHsize0.
+    as IHsize by (now intros ; eapply IHsize0 ; try eassumption) ; clear IHsize0.
   intros A l0 l1 l2 pi1 pi2 Heqs Hc.
-  rewrite_all Heqs ; clear s Heqs.
+  rewrite_all Heqs; clear s Heqs.
   remember (l1 ++ A :: l2) as l ; destruct pi2.
   - (* ax_r *)
     destruct l1 ; inversion Heql ; subst.
@@ -103,8 +103,7 @@ Proof with try assumption; try reflexivity.
     simpl in IHsize.
     destruct (nth_split_Type (nth (length l1) f 0) l A) as [[la lb] Heq Hlen].
     + apply andb_prop in e as [Hal _]; rewrite e0 in Hal; apply cond_all_lt_inv...
-      rewrite<- app_nat_fun_length with _ l ;
-        [ | destruct l; [destruct l1; inversion Heql | intros H; inversion H ]].
+      rewrite<- app_nat_fun_length with _ l...
       rewrite Heql; length_lia.
     + rewrite app_antecedent with _ A _ _ _ l2 in Heq ;
         [ | rewrite<- e0; apply andb_prop in e as [Hal _] | ]...
@@ -132,7 +131,7 @@ Proof with try assumption; try reflexivity.
           apply andb_prop in Hal as [Hlt Hal]; apply Nat.ltb_lt in Hlt.
         destruct (nth_split_Type n l A0) as [[la lb] Heq Hlen]...
         replace (nth n l A0) with (parr (dual B) (dual A0)) in Heq
-          by (destruct l; [ | app_nat_fun_unfold f l n f0; rewrite nth_indep with _ _ _ _ f0; try assumption];
+          by (destruct l; [ | app_nat_fun_unfold f l n f0; rewrite nth_indep with _ _ _ _ f0; try assumption ];
               now inversion H0).
         revert pi1 pi2 IHsize;
           rewrite Heq; replace (tens A0 B) with (dual (parr (dual B) (dual A0)))
@@ -169,7 +168,7 @@ Proof with try assumption; try reflexivity.
         rewrite <- app_assoc ; refine (IHsize _ _ _ _ pi1 pi2_2 _ _) ; simpl; lia.
       * list_simpl ; apply tens_r...
         revert pi2_1 IHsize ; simpl ; rewrite (app_comm_cons _ _ A0) ; intros pi2_1 IHsize.
-        refine (IHsize _ _ _ _ pi1 pi2_1 _ _) ; simpl; lia.
+        refine (IHsize _ _ _ _ pi1 pi2_1 _ _); simpl; lia.
   - (* parr_r *)
     destruct l1 ; inversion Heql ; subst ; list_simpl.
     + (* main case *)
@@ -182,7 +181,7 @@ Proof with try assumption; try reflexivity.
           apply andb_prop in Hal as [Hlt Hal]; apply Nat.ltb_lt in Hlt.
         destruct (nth_split_Type n l A0) as [[la lb] Heq Hlen]...
         replace (nth n l A0) with (tens (dual B) (dual A0)) in Heq
-          by (destruct l; [ | app_nat_fun_unfold f l n f0; rewrite nth_indep with _ _ _ _ f0; try assumption];
+          by (destruct l; [ | app_nat_fun_unfold f l n f0; rewrite nth_indep with _ _ _ _ f0; try assumption ];
               now inversion H0).
         revert pi1 pi2 IHsize; rewrite Heq; replace (parr A0 B) with (dual (tens (dual B) (dual A0)))
           by (simpl; now rewrite 2 bidual) ; intros pi1 pi2 IHsize.
@@ -200,12 +199,11 @@ Proof with try assumption; try reflexivity.
         clear IHsize ; subst.
         rewrite <- (app_nil_l (dual B :: _)) in pi1_1 ; simpl in Hc ; list_simpl.
         refine (IHcut _ _ _ _ _ pi1_1 _); try lia.
-        rewrite <- (app_nil_l _) ; refine (IHcut _ _ _ _ _ pi1_2 _); try lia...
+        rewrite <- (app_nil_l _); refine (IHcut _ _ _ _ _ pi1_2 _); try lia...
     + (* commutative case *)
       apply parr_r.
-      revert pi2 IHsize ; simpl ; rewrite (app_comm_cons l1 _ B) ; rewrite (app_comm_cons _ _ A0) ;
-        intros pi2 IHsize.
-      refine (IHsize _ _ _ _ pi1 pi2 _ _) ; simpl; lia.
+      revert pi2 IHsize ; simpl ; rewrite (app_comm_cons l1 _ B), (app_comm_cons _ _ A0) ; intros pi2 IHsize.
+      refine (IHsize _ _ _ _ pi1 pi2 _ _); simpl; lia.
 Qed.
 
 Lemma cut_elim : forall l, mll_cut l -> mll l.

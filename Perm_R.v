@@ -16,7 +16,7 @@ Require Import Perm.
 
 Set Implicit Arguments.
 
-Definition Perm_R {A} (l1 : list A) l2 : Type :=
+Definition Perm_R {A} (l1 l2 : list A) : Type :=
   { p : _ & is_perm p = true & prod (length p = length l1) (l2 = app_nat_fun p l1) }.
 
 (* Some facts about Perm_R *)
@@ -28,25 +28,19 @@ Lemma Perm_R_nil_cons {A} : forall l (x : A), Perm_R nil (x :: l) -> False.
 Proof. intros l x Hp; apply Perm_R_nil in Hp; inversion Hp. Qed.
 
 Lemma Perm_R_skip {A} : forall l l' (x : A),
-    Perm_R l l' ->
-    Perm_R (x :: l) (x :: l').
-Proof with try reflexivity; try assumption.
+  Perm_R l l' -> Perm_R (x :: l) (x :: l').
+Proof.
   intros l l' x [p Hperm [Hlen Heq]].
-  split with (0 :: incr_all p 1); repeat split.
+  split with (0 :: incr_all p 1); repeat split; subst.
   - change (0 :: shift p 0 1) with ((0 :: nil) ++ (shift p 0 (length (0 :: nil)))).
-    apply append_perm_is_perm...
-  - simpl.
-    rewrite shift_length.
-    rewrite <- Hlen...
-  - rewrite Heq.
-    simpl.
-    change (app_nat_fun_dflt (shift p 0 1) (x :: l) x)
-      with (app_nat_fun (shift p 0 (length (x :: nil))) ((x :: nil) ++ l)).
-    rewrite app_nat_fun_right...
-    simpl in Hlen.
-    clear Heq.
+    now apply append_perm_is_perm.
+  - simpl; rewrite shift_length; lia.
+  - change (app_nat_fun (0 :: shift p 0 1) (x :: l))
+      with (app_nat_fun ((0 :: nil) ++ shift p 0 (length (x :: nil))) ((x :: nil) ++ l)).
+    rewrite app_nat_fun_app.
+    rewrite app_nat_fun_right; try reflexivity.
     apply andb_prop in Hperm as (Hal & _).
-    rewrite <- Hlen...
+    now rewrite <- Hlen.
 Defined.
 
 Lemma Perm_R_swap {A} : forall l (x y : A),
@@ -69,52 +63,36 @@ Defined.
 (* Permutation over lists is an equivalence relation *)
 
 Lemma Perm_R_refl {A} : forall (l : list A), Perm_R l l.
-Proof with try reflexivity.
-  intro l.
-  split with (Id (length l)); repeat split.
+Proof.
+  intro l; split with (Id (length l)); repeat split.
   - apply Id_is_perm.
-  - rewrite seq_length...
-  - rewrite app_Id...
+  - now rewrite seq_length.
+  - now rewrite app_Id.
 Defined.
 
 Lemma Perm_R_trans {A} : forall (l1 l2 l3 : list A),
-    Perm_R l1 l2 ->
-    Perm_R l2 l3 ->
-    Perm_R l1 l3.
-Proof with try reflexivity; try assumption.
-  intros l1 l2 l3 IHHp1 IHHp2.
-  destruct IHHp1 as [p1 Hperm1 [Hlen1 IHHp1]].
-  destruct IHHp2 as [p2 Hperm2 [Hlen2 IHHp2]].
-  assert (length p2 = length p1).
-  { rewrite Hlen2.
-    rewrite IHHp1.
-    destruct l1; [destruct p1 ; [ | inversion Hlen1] | ]...
-    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length... }
+  Perm_R l1 l2 -> Perm_R l2 l3 -> Perm_R l1 l3.
+Proof.
+  intros l1 l2 l3 [p1 Hperm1 [Hlen1 IHHp1]] [p2 Hperm2 [Hlen2 IHHp2]].
+  assert (length p2 = length p1) by (now rewrite Hlen2, IHHp1; apply app_nat_fun_length).
   split with (app_nat_fun p2 p1); repeat split.
-  - apply compo_perm_is_perm...
+  - now apply compo_perm_is_perm.
   - destruct p1.
-    + destruct l1...
-    + unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length.
-      rewrite H...
+    + now destruct l1.
+    + unfold app_nat_fun, app_nat_fun_dflt; rewrite map_length; lia.
   - rewrite asso_app_nat_fun.
-    rewrite<- IHHp1...
+    now rewrite<- IHHp1.
 Defined.
 
-Lemma Perm_R_sym {A} : forall (l1 l2 : list A),
-  Perm_R l1 l2 -> Perm_R l2 l1.
-Proof with try reflexivity; try assumption.
+Lemma Perm_R_sym {A} : forall (l1 l2 : list A), Perm_R l1 l2 -> Perm_R l2 l1.
+Proof.
   intros l1 l2 [p Hperm [Hlen Heq]].
-  destruct (perm_inv p Hperm) as (p_inv & ((Heq_inv & _ )& (Hperm_inv & Hlen_eq))).
-  split with p_inv; repeat split...
-  - rewrite Heq.
-    rewrite <- Hlen_eq.
-    destruct l1; unfold app_nat_fun; try now rewrite Hlen.
-    unfold app_nat_fun_dflt; rewrite map_length...
-  - rewrite<- (app_Id l1).
-    rewrite <- Hlen.
-    rewrite<- Heq_inv.
-    rewrite Heq.
-    rewrite asso_app_nat_fun...
+  destruct (perm_inv p Hperm) as [p_inv [Heq_inv _ ] [Hperm_inv Hlen_eq]].
+  split with p_inv; repeat split; [ assumption | | ].
+  - rewrite Heq, <- Hlen_eq.
+    now symmetry; apply app_nat_fun_length.
+  - rewrite <- (app_Id l1), <- Hlen, <- Heq_inv, Heq.
+    apply asso_app_nat_fun.
 Defined.
 
 Instance Perm_R_Equivalence A : Equivalence (@Perm_R A) | 10 := {
@@ -122,15 +100,13 @@ Instance Perm_R_Equivalence A : Equivalence (@Perm_R A) | 10 := {
   Equivalence_Symmetric := @Perm_R_sym A ;
   Equivalence_Transitive := @Perm_R_trans A }.
 
-Instance Perm_R_cons A :
- Proper (Logic.eq ==> @Perm_R A ==> @Perm_R A) (@cons A) | 10.
-Proof with try reflexivity; try assumption.
-  unfold Proper.
-  repeat intro.
+Instance Perm_R_cons A : Proper (Logic.eq ==> @Perm_R A ==> @Perm_R A) (@cons A) | 10.
+Proof.
+  unfold Proper; repeat intro.
   destruct X as [p Hperm [Hlen Heq]].
   rewrite H.
   apply Perm_R_skip.
-  split with p; repeat split...
+  now split with p; repeat split.
 Defined.
 
 Hint Resolve Perm_R_refl Perm_R_skip.
@@ -491,12 +467,12 @@ Proof with try reflexivity; try assumption.
   rewrite <- Heq', Heq; clear Heq'.
   destruct l; try now inversion Hlen'.
   replace (nth n (a::l) x) with (nth n (a::l) a) by (apply nth_indep; assumption).
-  destruct (perm_surj _ 0 n Hperm) as (i & (Hlen'' & Heq'')).
+  destruct (perm_surj _ 0 n Hperm) as [i Hlen'' Heq''].
   { rewrite Hlen; simpl in Hlen'; simpl; lia. }
   rewrite <- Heq''.
   rewrite nth_nth...
   apply nth_In.
-  rewrite app_nat_fun_length...
+  rewrite app_nat_fun_length_cons...
   intros H; inversion H.
 Qed.
 
@@ -512,12 +488,12 @@ Proof with try reflexivity; try assumption.
   rewrite <- Heq', Heq; clear Heq'.
   destruct l; try now (exfalso; inversion Hlen').
   replace (nth n (a::l) x) with (nth n (a::l) a) by (apply nth_indep; assumption).
-  destruct (perm_surj _ 0 n Hperm) as (i & (Hlen'' & Heq'')).
+  destruct (perm_surj _ 0 n Hperm) as [i Hlen'' Heq''].
   { rewrite Hlen; simpl in Hlen'; simpl; lia. }
   rewrite <- Heq''.
   rewrite nth_nth...
   apply nth_In_Type.
-  rewrite app_nat_fun_length...
+  rewrite app_nat_fun_length_cons...
   intros H; inversion H.
 Qed.
 
@@ -631,7 +607,7 @@ Proof with try assumption; try reflexivity.
     + split with f2; repeat split...
       * rewrite Hlen2.
         destruct l; [destruct f1; try now inversion Hlen1 | ]...
-        rewrite app_nat_fun_length...
+        rewrite app_nat_fun_length_cons...
         intro H; inversion H.
       * rewrite asso_app_nat_fun...
     + rewrite asso_app_nat_fun...    

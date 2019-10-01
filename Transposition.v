@@ -99,9 +99,7 @@ Lemma compo_transpo_length : forall m l, length (compo_transpo m l) = S m.
 Proof.
   intros m; induction l.
   - apply seq_length.
-  - simpl; rewrite app_nat_fun_length.
-    + apply transpo_length.
-    + intros Hnil; rewrite Hnil in IHl; inversion IHl.
+  - simpl; rewrite app_nat_fun_length; rewrite transpo_length; now try rewrite IHl.
 Qed.
 
 Lemma all_lt_compo_transpo : forall m l, all_lt (compo_transpo m l) (S m) = true.
@@ -352,8 +350,6 @@ Lemma compo_nc_transpo_length : forall m l,
 Proof.
   intros m; induction l.
   - apply seq_length.
-  - simpl; rewrite app_nat_fun_length.
-    + apply nc_transpo_length.
-    + intros Hnil; rewrite Hnil in IHl; inversion IHl.
+  - simpl; rewrite app_nat_fun_length; rewrite nc_transpo_length; now try rewrite IHl.
 Qed.
 

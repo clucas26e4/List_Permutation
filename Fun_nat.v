@@ -75,8 +75,16 @@ Proof.
     f_equal; apply nth_middle.
 Qed.
 
-Lemma app_nat_fun_length {A} : forall f (l : list A), l <> nil -> length (app_nat_fun f l) = length f.
+Lemma app_nat_fun_length_cons {A} : forall f (l : list A), l <> nil -> length (app_nat_fun f l) = length f.
 Proof. intros f l Hnnil; destruct l; [ exfalso; apply Hnnil; reflexivity | apply map_length ]. Qed.
+
+Lemma app_nat_fun_length {A} : forall f (l : list A), length f = length l ->
+  length (app_nat_fun f l) = length f.
+Proof.
+intros f l Heq; destruct l.
+- rewrite Heq; reflexivity.
+- apply app_nat_fun_length_cons; intros Heq2; inversion Heq2.
+Qed.
 
 Lemma all_lt_app_nat_fun : forall p l n, all_lt p (length l) = true ->
   all_lt l n = true -> all_lt (app_nat_fun p l) n = true.

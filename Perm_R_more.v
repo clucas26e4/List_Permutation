@@ -65,8 +65,8 @@ Proof with try assumption ; try reflexivity.
   intros a l l1 l2 HP.
   remember (l1 ++ a :: l2) as l0.
   revert l1 l2 Heql0.
-  rect_transpo (fun la lb => forall l1 l2 : list A,
-                    lb = l1 ++ a :: l2 -> {pl : list A * list A | la = fst pl ++ a :: snd pl}) HP; intros l1 l2 Heql.
+  rect_transpo (fun la lb => forall l1 l2, lb = l1 ++ a :: l2 ->
+                    {pl | la = fst pl ++ a :: snd pl}) HP; intros l1 l2 Heql.
   - destruct l1 ; inversion Heql.
   - destruct l1 ; inversion Heql.
     + exists (@nil A, la)...
@@ -321,7 +321,7 @@ Lemma Perm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
 Proof with try reflexivity; try assumption.
   intros f l1 l2 [p Hperm [Hlen Heq]].
   simpl in Hlen.
-  destruct (perm_inv _ Hperm) as (p_inv & ((Heq' & _) & Hperm_inv & Heq_len)).
+  destruct (perm_inv _ Hperm) as [p_inv [Heq' _] [Hperm_inv Heq_len]].
   split with (app_nat_fun p_inv l2).
   - rewrite<- app_nat_fun_map.
     rewrite Heq.
