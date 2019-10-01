@@ -78,13 +78,13 @@ Proof with try assumption; try reflexivity.
     rewrite <- (app_nil_l _) in pi2.
     replace (l2 ++ l1) with (app_nat_fun (cfun (length l1) (length l2)) (nil ++ l1 ++ l2))
       by (simpl; apply app_cfun_eq).
-    apply ex_r; [ | apply cfun_is_perm | length_lia].
+    apply ex_r; [ | apply cfun_is_perm | length_lia ].
     refine (IH _ _ A _ _ _ pi1 pi2 _ _)... }
   induction c as [c IHcut0] using lt_wf_rect.
   assert (forall A, fsize A < c -> forall l0 l1 l2,
                mll (dual A :: l0) -> mll (l1 ++ A :: l2) -> mll (l1 ++ l0 ++ l2)) as IHcut
-    by (now intros A Hs l0 l1 l2 pi1 pi2 ; refine (IHcut0 _ _ _ _ _ _ _ pi1 pi2 _ _); try eassumption).
-  clear IHcut0.
+    by (now intros A Hs l0 l1 l2 pi1 pi2 ; refine (IHcut0 _ _ _ _ _ _ _ pi1 pi2 _ _); try eassumption);
+    clear IHcut0.
   induction s as [s IHsize0] using lt_wf_rect.
   assert (forall A l0 l1 l2 (pi1 : mll (dual A :: l0)) (pi2 : mll (l1 ++ A :: l2)),
             psize pi1 + psize pi2 < s -> fsize A <= c -> mll (l1 ++ l0 ++ l2))
@@ -109,7 +109,7 @@ Proof with try assumption; try reflexivity.
     + rewrite app_antecedent with _ A _ _ _ l2 in Heq ;
         [ | rewrite<- e0; apply andb_prop in e as [Hal _] | ]...
       revert pi2 IHsize; rewrite Heq; intros pi2 IHsize.
-      enough (Perm_R (la ++ l0 ++ lb) (l1 ++ l0 ++ l2)) as [p [Hperm [Hlen' Heq']]].
+      enough (Perm_R (la ++ l0 ++ lb) (l1 ++ l0 ++ l2)) as [p Hperm [Hlen' Heq']].
       { rewrite Heq'; apply ex_r...
         apply IHsize with A pi1 pi2...
         lia. }
@@ -119,8 +119,7 @@ Proof with try assumption; try reflexivity.
       transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
       transitivity (l1 ++ l2) ; [ | apply Perm_R_app_comm ].
       apply Perm_R_app_inv with A.
-      split with f.
-      rewrite<- Heq; repeat split; [ | | symmetry]...
+      split with f; [ | rewrite<- Heq; split ]; [ | | symmetry ]...
   - (* tens_r *)
     destruct l1 ; inversion Heql ; subst ; list_simpl.
     + (* main case *)
@@ -138,7 +137,7 @@ Proof with try assumption; try reflexivity.
         revert pi1 pi2 IHsize;
           rewrite Heq; replace (tens A0 B) with (dual (parr (dual B) (dual A0)))
             by (simpl; now rewrite 2 bidual) ; intros pi1 pi2 IHsize.
-        enough (Perm_R (la ++ (l4 ++ l3) ++ lb) (l0  ++ (l4 ++ l3))) as [p [Hperm [Hlen' Heq']]].
+        enough (Perm_R (la ++ (l4 ++ l3) ++ lb) (l0  ++ (l4 ++ l3))) as [p Hperm [Hlen' Heq']].
         { rewrite Heq'; apply ex_r...
           apply IHsize with  (parr (dual B) (dual A0)) pi2 pi1; [ lia | ].
           simpl in *; rewrite 2 fsize_dual; lia. }
@@ -148,8 +147,7 @@ Proof with try assumption; try reflexivity.
         transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
         change l0 with (nil ++ l0).
         apply Perm_R_app_inv with (parr (dual B) (dual A0)).
-        split with (n :: f).
-        rewrite<- Heq; repeat split ; [ | | symmetry]...
+        split with (n :: f); [ | rewrite<- Heq; split ]; [ | | symmetry ]...
       * (* parr_r *)
         clear IHsize ; subst.
         rewrite <- (app_nil_l (A0 :: _)) in pi2_1 ; simpl in Hc ; list_simpl.
@@ -188,7 +186,7 @@ Proof with try assumption; try reflexivity.
               now inversion H0).
         revert pi1 pi2 IHsize; rewrite Heq; replace (parr A0 B) with (dual (tens (dual B) (dual A0)))
           by (simpl; now rewrite 2 bidual) ; intros pi1 pi2 IHsize.
-        enough (Perm_R (la ++ l2 ++ lb) (l0  ++ l2)) as [p [Hperm [Hlen' Heq']]].
+        enough (Perm_R (la ++ l2 ++ lb) (l0  ++ l2)) as [p Hperm [Hlen' Heq']].
         { rewrite Heq'; apply ex_r...
           apply IHsize with  (tens (dual B) (dual A0)) pi2 pi1; [ lia | ].
           simpl in *; rewrite 2 fsize_dual; lia. }
@@ -197,7 +195,7 @@ Proof with try assumption; try reflexivity.
         apply Perm_R_app_head.
         transitivity (la ++ lb) ; [ apply Perm_R_app_comm | ].
         change l0 with (nil ++ l0); apply Perm_R_app_inv with (tens (dual B) (dual A0)).
-        split with (n :: f);rewrite<- Heq; repeat split ; [ | | symmetry]...
+        split with (n :: f); [ | rewrite<- Heq; split ]; [ | | symmetry ]...
       * (* tens_r *)
         clear IHsize ; subst.
         rewrite <- (app_nil_l (dual B :: _)) in pi1_1 ; simpl in Hc ; list_simpl.
