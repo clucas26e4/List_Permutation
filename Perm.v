@@ -308,7 +308,7 @@ lia.
 Qed.
 
 Lemma is_perm_length_2_inv : forall n m,
-  is_perm (n :: m :: nil) = true -> { n = 0 /\ m = 1} + { n = 1 /\ m = 0 }.
+  is_perm (n :: m :: nil) = true -> { n = 0 /\ m = 1 } + { n = 1 /\ m = 0 }.
 Proof.
 intros n m Hperm.
 apply andb_prop in Hperm as [Hal Had].

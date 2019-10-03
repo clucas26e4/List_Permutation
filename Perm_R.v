@@ -84,18 +84,18 @@ split with (p ++ incr_all p' (length p)); repeat split.
 - apply andb_prop in Hperm as [Hal _].
   apply andb_prop in Hperm' as [Hal' _].
   now rewrite Hlen, append_fun_eq; rewrite <- ? Hlen, <- ? Hlen'; f_equal.
-Qed.
+Defined.
 
 Global Instance Perm_R_app' : Proper (@Perm_R A ==> @Perm_R A ==> @Perm_R A) (@app A) | 10.
 Proof. repeat intro; now apply Perm_R_app. Defined.
 
 Lemma Perm_R_app_tail : forall l l' tl,
   Perm_R l l' -> Perm_R (l ++ tl) (l' ++ tl).
-Proof. intros; now apply Perm_R_app. Qed.
+Proof. intros; now apply Perm_R_app. Defined.
 
 Lemma Perm_R_app_head : forall l tl tl',
  Perm_R tl tl' -> Perm_R (l ++ tl) (l ++ tl').
-Proof. intros; now apply Perm_R_app. Qed.
+Proof. intros; now apply Perm_R_app. Defined.
 
 Lemma Perm_R_skip : forall l l' a,
   Perm_R l l' -> Perm_R (a :: l) (a :: l').
@@ -117,14 +117,8 @@ change (a :: b :: l) with ((a :: b :: nil) ++ l).
 change (b :: a :: l) with ((b :: a :: nil) ++ l).
 apply Perm_R_app_tail.
 now exists (1 :: 0 :: nil); repeat split.
-Qed.
+Defined.
 
-Hint Resolve Perm_R_refl Perm_R_skip.
-
-(* These hints do not reduce the size of the problem to solve and they
-   must be used with care to avoid combinatoric explosions *)
-Local Hint Resolve Perm_R_swap Perm_R_trans.
-Local Hint Resolve Perm_R_sym.
 
 (* Compatibility with others operations on lists *)
 
@@ -149,22 +143,18 @@ split with (cfun (length l) (length l')); repeat split.
 - length_lia.
 - now rewrite app_cfun_eq.
 Defined.
-Local Hint Resolve Perm_R_app_comm.
 
 Lemma Perm_R_cons_append : forall l a,
   Perm_R (a :: l) (l ++ a :: nil).
 Proof. intros l a; change (a :: l) with ((a :: nil) ++ l); apply Perm_R_app_comm. Defined.
-Local Hint Resolve Perm_R_cons_append.
 
 Theorem Perm_R_middle : forall l1 l2 a,
   Perm_R (a :: l1 ++ l2) (l1 ++ a :: l2).
 Proof. intros; now rewrite Perm_R_app_comm, app_comm_cons, Perm_R_app_comm. Defined.
-Local Hint Resolve Perm_R_middle.
 
 Theorem Perm_R_cons_app : forall l l1 l2 a,
   Perm_R l (l1 ++ l2) -> Perm_R (a :: l) (l1 ++ a :: l2).
 Proof. intros l l1 l2 a Hperm; rewrite Hperm; apply Perm_R_middle. Defined.
-Local Hint Resolve Perm_R_cons_app.
 
 Lemma Perm_R_Add_Type a l l' : Add_Type a l l' -> Perm_R (a :: l) l'.
 Proof. intros Hadd; induction Hadd; [ reflexivity | rewrite <- IHHadd; apply Perm_R_swap ]. Defined.
@@ -263,14 +253,14 @@ Proof.
 intros a1 a2 l [p Hperm [Hlen Heq]].
 do 3 (destruct p; try now inversion Hlen).
 now apply is_perm_length_2_inv in Hperm as [[Hp1 Hp2] | [Hp1 Hp2]]; subst; simpl; [left | right].
-Qed.
+Defined.
 
 Lemma Perm_R_length_2 : forall a1 a2 b1 b2,
   Perm_R (a1 :: a2 :: nil) (b1 :: b2 :: nil) -> { a1 = b1 /\ a2 = b2 } + { a1 = b2 /\ a2 = b1 }.
 Proof.
 intros a1 a2 b1 b2 Hperm.
 now destruct (Perm_R_length_2_inv Hperm) as [Heq | Heq]; inversion Heq; subst; [left | right].
-Qed.
+Defined.
 
 Theorem Perm_R_in : forall l m a, Perm_R l m -> In a l -> In a m.
 Proof.
@@ -301,7 +291,6 @@ apply nth_In_Type.
 now  rewrite app_nat_fun_length_cons.
 Qed.
 
-
 Global Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_Type A) | 10.
 Proof. repeat intro; subst; eapply Perm_R_in_Type; eassumption. Qed.
 
@@ -318,10 +307,10 @@ Proof.
   split with p; repeat split; [ assumption | | ].
   - now rewrite map_length.
   - now rewrite app_nat_fun_map, Heq.
-Qed.
+Defined.
 
 Global Instance Perm_R_map' : Proper (@Perm_R A ==> @Perm_R B) (map f) | 10.
-Proof. exact Perm_R_map. Qed.
+Proof. exact Perm_R_map. Defined.
 
 End Perm_R_map.
 
