@@ -341,6 +341,17 @@ Proof with try reflexivity; try assumption.
   apply Nat.ltb_lt in Hlt; lia.
 Qed.
 
+Lemma all_lt_max : forall l,
+    all_lt l (S (fold_left max l 0)) = true.
+Proof.
+  induction l; [reflexivity | ].
+  simpl; apply andb_true_intro; split.
+  - apply Nat.ltb_lt.
+    apply le_n_S; apply fold_left_max_r.
+  - apply all_lt_leq with (S (fold_left Init.Nat.max l 0)); [ assumption | ].
+    apply le_n_S.
+    apply fold_left_max_le_r; lia.
+Qed.
 
 (** ** all_distinct *)
 
@@ -1228,4 +1239,47 @@ Proof.
         try lia.
 Qed.
 
-   
+(* UIP, eq_dec, ...*)
+Lemma list_nat_eq_dec : forall (l1 l2 : list nat),
+    {l1 = l2} + {l1 <> l2}.
+Proof.
+  intros l1 l2.
+  apply list_eq_dec; apply Nat.eq_dec.
+Qed.
+
+Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2),
+    p1 = p2.
+Proof with try reflexivity; try assumption.
+  intros l1 l2 p1 p2.
+  apply Eqdep_dec.UIP_dec.
+  apply list_nat_eq_dec.
+Qed.
+
+Fixpoint list_nat_eqb (l1 l2 : list nat) :=
+  match l1, l2 with
+  | nil , nil => true
+  | (n1 :: l1) , (n2 :: l2) => (n1 =? n2) && list_nat_eqb l1 l2
+  | _ , _ => false
+  end.
+
+Lemma list_nat_eqb_eq : forall l1 l2,
+    list_nat_eqb l1 l2 = true <-> l1 = l2.
+Proof.
+  induction l1; intros l2; split; destruct l2; intros Heq; try now inversion Heq.
+  - simpl in Heq; apply andb_prop in Heq as [Heqn Heq].
+    apply Nat.eqb_eq in Heqn.
+    specialize (IHl1 l2) as [IHl1 _]; rewrite IHl1; now subst...
+  - inversion Heq; subst.
+    specialize (IHl1 l2) as [_ IHl1]; simpl; rewrite Nat.eqb_refl; now rewrite IHl1.
+Qed.
+
+Lemma list_nat_eqb_neq : forall l1 l2,
+    list_nat_eqb l1 l2 = false <-> l1 <> l2.
+Proof.
+  intros l1 l2.
+  case_eq (list_nat_eqb l1 l2); intros H; split.
+  - intros H'; inversion H'.
+  - intros Hneq; exfalso; apply Hneq; now apply list_nat_eqb_eq.
+  - intros _ Heq; replace (list_nat_eqb l1 l2) with true in H by (symmetry; now apply list_nat_eqb_eq); inversion H.
+  - trivial.
+Qed.

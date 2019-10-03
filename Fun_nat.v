@@ -35,7 +35,7 @@ Definition app_nat_fun {A} (p : list nat) (l : list A) :=
 
 Ltac app_nat_fun_dflt_unfold l1 l2 n a d :=
   change (app_nat_fun_dflt (n :: l1) (a :: l2) d)
-    with (nth n (a :: l2) a :: app_nat_fun_dflt l1 (a :: l2) d) in *.
+  with (nth n (a :: l2) a :: app_nat_fun_dflt l1 (a :: l2) d) in *.
 Ltac app_nat_fun_unfold l1 l2 n a :=
   change (app_nat_fun (n :: l1) (a :: l2)) with (nth n (a :: l2) a :: app_nat_fun l1 (a :: l2)) in *.
 
@@ -668,3 +668,13 @@ split.
   simpl in Heq; rewrite ? app_length in Heq; simpl in Heq; rewrite ? seq_length in Heq; lia.
 Qed.
 
+(* Extensionality *)
+
+Lemma app_nat_fun_ext : forall f1 f2,
+    (forall {A} (l : list A), app_nat_fun f1 l = app_nat_fun f2 l) ->
+    f1 = f2.
+Proof.
+  intros f1 f2 H.
+  specialize (H nat (Id (max (S (fold_left max f1 0)) (S (fold_left max f2 0))))).
+  rewrite 2 app_nat_fun_Id_r in H; [apply H | | ]; try eapply all_lt_leq; try apply all_lt_max; try lia.
+Qed.

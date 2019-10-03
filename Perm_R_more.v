@@ -409,8 +409,10 @@ Lemma Perm_R_ext : forall l1 l2 (p1 p2 : Perm_R l1 l2),
     all_distinct l1 = true ->
     projT1 (sigT_of_sigT2 p1) = projT1 (sigT_of_sigT2 p2).
 Proof.
-  intros l1 l2; revert l1; induction l2; intros l1 [p1 Hperm1 [Hlen1 Heq1]] [p2 Hperm2 [Hlen2 Heq2]] Had; simpl ;
-    [ destruct l1; destruct p1; destruct p2; inversion Hlen1; inversion Hlen2; inversion Heq1; reflexivity | ].
+  intros l1 l2; revert l1; induction l2;
+    intros l1 [p1 Hperm1 [Hlen1 Heq1]] [p2 Hperm2 [Hlen2 Heq2]] Had; simpl ;
+      [ destruct l1; destruct p1; destruct p2;
+        inversion Hlen1; inversion Hlen2; inversion Heq1; reflexivity | ].
   destruct p1 ; destruct p2; destruct l1;
     try now inversion Heq1; try now inversion Heq2.
   app_nat_fun_unfold p1 l1 n n1; app_nat_fun_unfold p2 l1 n0 n1.
@@ -421,7 +423,10 @@ Proof.
       simpl in Hal.
       apply andb_prop in Hal as [Hlt _].
       apply Nat.ltb_lt in Hlt; rewrite<- Hlen1; assumption. }
-    assert (prod (length (downshift p1 n0) = length (la ++ lb)) ((is_perm (downshift p1 n0) = true) * (l2 = app_nat_fun (downshift p1 n0) (la ++ lb)))) as [Hlen1' [Hperm1' Heq1']].
+    assert (prod (length (downshift p1 n0) = length (la ++ lb))
+                 ((is_perm (downshift p1 n0) = true) *
+                  (l2 = app_nat_fun (downshift p1 n0) (la ++ lb))))
+      as [Hlen1' [Hperm1' Heq1']].
     { repeat split.
       - rewrite Heq in Hlen1.
         rewrite downshift_length; [length_lia | ].
@@ -432,8 +437,7 @@ Proof.
       - rewrite<- Hlen.
         apply andb_prop in Hperm1 as [Hal Had1].
         rewrite<- app_nat_fun_downshift with _ _ (nth n0 (n1 :: l1) n1) _.
-        + rewrite<- Heq.
-          inversion Heq1; reflexivity.
+        + rewrite<- Heq; inversion Heq1; reflexivity.
         + simpl in Had1; apply andb_prop in Had1 as [nHin _].
           apply negb_true_iff; rewrite Hlen; assumption.
         + rewrite Heq in Hlen1.
@@ -443,7 +447,10 @@ Proof.
           rewrite app_length in Hal; simpl in Hal; rewrite Nat.add_succ_r in Hal;
             rewrite<- app_length in Hal; apply Hal. }
     specialize (IHl2 (la ++ lb) (existT2 _ _ (downshift p1 n0) Hperm1' (Hlen1', Heq1'))); simpl in IHl2.
-    assert (prod (length (downshift p2 n0) = length (la ++ lb)) ((is_perm (downshift p2 n0) = true) * (l2 = app_nat_fun (downshift p2 n0) (la ++ lb)))) as [Hlen2' [Hperm2' Heq2']].
+    assert (prod (length (downshift p2 n0) = length (la ++ lb))
+                 ((is_perm (downshift p2 n0) = true) *
+                  (l2 = app_nat_fun (downshift p2 n0) (la ++ lb))))
+      as [Hlen2' [Hperm2' Heq2']].
     { repeat split.
       - rewrite Heq in Hlen2.
         rewrite downshift_length; [length_lia | ].
@@ -454,8 +461,7 @@ Proof.
       - rewrite<- Hlen.
         apply andb_prop in Hperm2 as [Hal Had2].
         rewrite<- app_nat_fun_downshift with _ _ (nth n0 (n1 :: l1) n1) _.
-        + rewrite<- Heq.
-          inversion Heq2; reflexivity.
+        + rewrite<- Heq; inversion Heq2; reflexivity.
         + simpl in Had2; apply andb_prop in Had2 as [nHin _].
           apply negb_true_iff; rewrite Hlen; assumption.
         + rewrite Heq in Hlen2.
@@ -487,4 +493,14 @@ Proof.
     + inversion Heq1; inversion Heq2.
       simpl.
       rewrite<- H1; rewrite<- H3; reflexivity.
+Qed.
+
+Lemma Perm_R_no_ext_if_copy {A} : forall (a : A),
+    {' (p1,p2) : prod (Perm_R (a :: a :: nil) (a :: a :: nil))
+                    (Perm_R (a :: a :: nil) (a :: a :: nil)) &
+                 projT1 (sigT_of_sigT2 p1) <> projT1 (sigT_of_sigT2 p2)}.
+Proof.
+  intros a.
+  split with (Perm_R_refl (a :: a :: nil) , Perm_R_app_comm (a :: nil) (a :: nil)); simpl.
+  intros H; inversion H.
 Qed.

@@ -186,14 +186,3 @@ rewrite <- seq_plus.
 f_equal; lia.
 Qed.
 
-
-(* Properties on list nat *)
-Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2),
-    p1 = p2.
-Proof with try reflexivity; try assumption.
-  intros l1 l2 p1 p2.
-  apply Eqdep_dec.UIP_dec.
-  apply list_eq_dec.
-  apply Nat.eq_dec.
-Qed.
-
