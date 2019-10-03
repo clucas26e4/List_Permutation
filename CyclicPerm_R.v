@@ -27,7 +27,7 @@ Proof with try reflexivity.
   - destruct s as [[n m] Heqf].
     symmetry in Heqf; destruct Heqf.
     split with (app_nat_fun (Id (S n)) l1, app_nat_fun (incr_all (Id (S m)) (S n)) l1).
-    + rewrite<- app_nat_fun_app.
+    + rewrite <- app_nat_fun_app.
       rewrite incr_all_seq.
       rewrite <- seq_plus.
       simpl in Hlen.

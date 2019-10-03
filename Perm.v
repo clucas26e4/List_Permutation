@@ -299,6 +299,30 @@ Proof with try reflexivity; try assumption.
     + rewrite nc_transpo_length; rewrite compo_nc_transpo_length...
 Qed.
 
+Lemma is_perm_length_1_inv : forall n, is_perm (n :: nil) = true -> n = 0.
+Proof.
+intros n Hperm.
+apply andb_prop in Hperm as [Hal Had].
+simpl in Hal; rewrite andb_true_r in Hal; apply Nat.ltb_lt in Hal.
+lia.
+Qed.
+
+Lemma is_perm_length_2_inv : forall n m,
+  is_perm (n :: m :: nil) = true -> { n = 0 /\ m = 1 } + { n = 1 /\ m = 0 }.
+Proof.
+intros n m Hperm.
+apply andb_prop in Hperm as [Hal Had].
+simpl in Hal; rewrite andb_true_r in Hal; apply andb_prop in Hal as [Hn Hm].
+apply Nat.ltb_lt in Hn; apply Nat.ltb_lt in Hm.
+destruct n; destruct m; try now inversion Had.
+- destruct m; try (exfalso; lia).
+  now left.
+- destruct n; try (exfalso; lia).
+  now right.
+- destruct n; destruct m; try (exfalso; lia).
+  inversion Had.
+Qed.
+
 Lemma app_nat_fun_vs_cons {A} : forall l1 l2 (a : A) n p,
   length (n :: p) = length l2 -> is_perm (n :: p) = true ->
   a :: l1 = app_nat_fun (n :: p) l2 ->
@@ -316,46 +340,6 @@ Proof with try reflexivity; try assumption.
   apply Nat.ltb_lt in Hlt; lia.
 Qed.
 
-(* TODO NEED MOVING *)
-Lemma not_In_nat_bool_shift : forall l k i,
-  In_nat_bool k (shift l k (S i)) = false.
-Proof.
-  induction l; intros k i; [ reflexivity | simpl ].
-  case_eq (a <? k); intros Hlt; simpl.
-  - replace (k =? a) with false; [apply IHl | ].
-    symmetry.
-    apply Nat.eqb_neq.
-    apply Nat.ltb_lt in Hlt; lia.
-  - replace (k =? (S (i + a))) with false; [apply IHl | ].
-    symmetry.
-    apply Nat.eqb_neq.
-    apply Nat.ltb_nlt in Hlt; lia.
-Qed.
-
-Lemma all_distinct_app_shift : forall l1 l2 k i,
-    all_distinct l1 = true ->
-    all_distinct l2 = true ->
-    all_lt l2 i = true ->
-    all_distinct (shift l1 k i ++ incr_all l2 k) = true.
-Proof with try assumption.
-  induction l1; intros l2 k i Had1 Had2 Hal2...
-  - simpl; rewrite all_distinct_shift...
-  - simpl in Had1; apply andb_prop in Had1 as [nHin Had1].
-    specialize (IHl1 l2 k i Had1 Had2 Hal2).
-    simpl; splitb...
-    case_eq (a <? k); intros Hcase; apply negb_true_iff; rewrite In_nat_bool_app; apply orb_false_intro.
-    + rewrite shift_In_nat_bool_lt...
-      apply negb_true_iff...
-    + apply negb_In_incr_all.
-      apply Nat.ltb_lt in Hcase...
-    + rewrite shift_In_nat_bool_ge; [ | apply Nat.ltb_nlt in Hcase; apply Nat.leb_le; lia ].
-      apply negb_true_iff...
-    + apply Nat.ltb_nlt in Hcase.
-      replace (i + a) with (k + (i + (a - k))) by lia.
-      rewrite In_nat_bool_incr_all.
-      apply all_lt_In_nat_bool_false.
-      now apply all_lt_leq with i; [ | lia ].
-Qed.
 
 (* PERMUTATION BY BLOCK *)
 Lemma concat_perm {A} : forall p1 (L1 L2 : list (list A)) lp,
