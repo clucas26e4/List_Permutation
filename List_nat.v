@@ -2,7 +2,6 @@ Require Import Lia.
 Require Import PeanoNat.
 Require Import Injective.
 
-
 Require Import Bool_more.
 Require Import List_more.
 Require Import List_more2.
@@ -385,49 +384,43 @@ Lemma cond_all_distinct : forall l,
         (nth n1 l k) = (nth n2 l k) ->
         n1 = n2) ->
     all_distinct l = true.
-Proof with try assumption; try reflexivity.
-  induction l; intros H...
+Proof.
+  induction l; intros H; [ reflexivity | ].
   simpl; apply andb_true_intro; split.
-  + apply negb_true_iff.
+  - apply negb_true_iff.
     apply cond_negb_In_nat_bool.
     intros k k0 Hlt Heq.
     refine (Nat.neq_succ_0 k _).
-    refine (H (S k) 0 k0 _ _ _); try simpl; lia...
-  + apply IHl.
+    apply H with k0; simpl; lia.
+  - apply IHl.
     intros n1 n2 k Hlt1 Hlt2 Heq.
     apply Nat.succ_inj.
-    refine (H (S n1) (S n2) k _ _ _); try now (simpl; lia)...
+    apply H with k; simpl; lia.
 Qed.
 
-Lemma cond_all_distinct_inv : forall l,
-    all_distinct l = true -> (forall n1 n2 k,
-                                  n1 < length l ->
-                                  n2 < length l ->
-                                  (nth n1 l k) = (nth n2 l k) ->
-                                  n1 = n2).
+Lemma cond_all_distinct_inv : forall l, all_distinct l = true ->
+  forall n1 n2 k, n1 < length l -> n2 < length l -> nth n1 l k = nth n2 l k -> n1 = n2.
 Proof with try assumption; try reflexivity.
   induction l; intros Hal n1 n2 k Hlt1 Hlt2 Heq.
-  + destruct n1; inversion Hlt1.
-  + destruct n1; destruct n2...
-    * simpl in Heq.
+  - destruct n1; inversion Hlt1.
+  - destruct n1; destruct n2...
+    + simpl in Heq.
       simpl in Hlt2; apply Lt.lt_S_n in Hlt2.
       exfalso.
       refine (proj2 (cond_negb_In_nat_bool l a) _ n2 k _ _)...
-      -- apply andb_prop in Hal as (H1 & _).
-         apply negb_true_iff in H1...
-      -- symmetry...
-    * simpl in Heq.
+      * apply andb_prop in Hal as (H1 & _).
+        apply negb_true_iff in H1...
+      * symmetry...
+    + simpl in Heq.
       simpl in Hlt1; apply Lt.lt_S_n in Hlt1.
       exfalso.
       refine (proj2 (cond_negb_In_nat_bool l a) _ n1 k _ _)...
       apply andb_prop in Hal as (H1 & _).
       apply negb_true_iff in H1...
-    * simpl in *.
-      apply Lt.lt_S_n in Hlt1.
-      apply Lt.lt_S_n in Hlt2.
+    + simpl in *.
       apply eq_S.
-      apply andb_prop in Hal as (_ & H2).
-      refine (IHl _ _ _ k _ _ _)...
+      refine (IHl _ _ _ k _ _ _); try lia.
+      apply (andb_prop _ _ Hal).
 Qed.
 
 Lemma all_distinct_no_head : forall l n,
@@ -868,6 +861,12 @@ Qed.
 
 Notation incr_all := (fun l i => shift l 0 i).
 
+Lemma incr_all_S : forall l, incr_all l 1 = map S l.
+Proof.
+intros l; apply map_ext; intros x.
+assert (x <? 0 = false) as Hz by (apply Nat.ltb_ge; lia); rewrite Hz; lia.
+Qed.
+
 Lemma nth_incr_all : forall l n n0 k,
   nth k (incr_all l n) (n + n0) = n + (nth k l n0).
 Proof. intros; apply nth_shift_ge; lia. Qed.
@@ -1257,9 +1256,9 @@ Qed.
 
 Fixpoint list_nat_eqb (l1 l2 : list nat) :=
   match l1, l2 with
-  | nil , nil => true
-  | (n1 :: l1) , (n2 :: l2) => (n1 =? n2) && list_nat_eqb l1 l2
-  | _ , _ => false
+  | nil, nil => true
+  | n1 :: l1, n2 :: l2 => (n1 =? n2) && list_nat_eqb l1 l2
+  | _, _ => false
   end.
 
 Lemma list_nat_eqb_eq : forall l1 l2,
@@ -1280,6 +1279,7 @@ Proof.
   case_eq (list_nat_eqb l1 l2); intros H; split.
   - intros H'; inversion H'.
   - intros Hneq; exfalso; apply Hneq; now apply list_nat_eqb_eq.
-  - intros _ Heq; replace (list_nat_eqb l1 l2) with true in H by (symmetry; now apply list_nat_eqb_eq); inversion H.
+  - intros _ Heq; rewrite (proj2 (list_nat_eqb_eq _ _) Heq) in H; inversion H.
   - trivial.
 Qed.
+

@@ -169,15 +169,6 @@ Theorem Perm_R_nil_app_cons : forall l m a,
   Perm_R nil (l ++ a :: m) -> False.
 Proof. intros l l' a Hperm; rewrite <- Perm_R_middle in Hperm; apply (Perm_R_nil_cons Hperm). Qed.
 
-Ltac InvAdd_Type := repeat (match goal with
- | H: Add_Type ?x _ (_ :: _) |- _ => inversion H; clear H; subst
- end).
-
-Ltac finish_basic_perms_Type H :=
-  try constructor; try rewrite Perm_R_swap; try constructor; trivial;
-  (rewrite <- H; now apply Perm_R_Add_Type) ||
-  (rewrite H; symmetry; now apply Perm_R_Add_Type).
-
 Theorem Perm_R_cons_inv l l' a :
   Perm_R (a :: l) (a :: l') -> Perm_R l l'.
 Proof with try assumption; try reflexivity.

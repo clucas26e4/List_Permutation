@@ -54,7 +54,7 @@ Proof with try reflexivity.
     refine (H (S n) a1).
 Qed.
 
-Lemma nth_split_Type {A:Type} n l (d:A) : n < length l ->
+Lemma nth_split_Type {A} n l (d:A) : n < length l ->
     {' (l1,l2) : _ & l = l1 ++ nth n l d :: l2 & length l1 = n }.
   Proof.
     revert l.
