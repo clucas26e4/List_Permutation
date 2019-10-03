@@ -1,6 +1,8 @@
 Require Import Plus.
 Require Import CMorphisms.
 Require Import PeanoNat.
+Require Import Bool.
+Require Import Lia.
 
 Require Import Injective.
 Require Import List_more.
@@ -14,7 +16,7 @@ Require Import misc.
 
 
 Instance Perm_R_refl' {A} : Proper (Logic.eq ==> @Perm_R A) (fun a => a).
-Proof. intros x y Heq; now rewrite Heq. Qed.
+Proof. intros x y Heq; now rewrite Heq. Defined.
 
 Lemma Perm_R_morph_transp {A} : forall P : list A -> Prop,
   (forall a b l1 l2, P (l1 ++ a :: b :: l2) -> P (l1 ++ b :: a :: l2)) ->
@@ -422,3 +424,86 @@ intros l1 ; induction l1 ; intros l2 HP.
   rewrite plus_assoc...
 Qed.
 
+Lemma Perm_R_ext : forall l1 l2 (p1 p2 : Perm_R l1 l2),
+    all_distinct l1 = true ->
+    projT1 (sigT_of_sigT2 p1) = projT1 (sigT_of_sigT2 p2).
+Proof.
+  intros l1 l2; revert l1; induction l2; intros l1 [p1 Hperm1 [Hlen1 Heq1]] [p2 Hperm2 [Hlen2 Heq2]] Had; simpl ;
+    [ destruct l1; destruct p1; destruct p2; inversion Hlen1; inversion Hlen2; inversion Heq1; reflexivity | ].
+  destruct p1 ; destruct p2; destruct l1;
+    try now inversion Heq1; try now inversion Heq2.
+  app_nat_fun_unfold p1 l1 n n1; app_nat_fun_unfold p2 l1 n0 n1.
+  case_eq (n =? n0); intros H ; [ apply Nat.eqb_eq in H | apply Nat.eqb_neq in H].
+  - subst.
+    destruct (nth_split_Type n0 (n1 :: l1) n1) as [[la lb] Heq Hlen].
+    { apply andb_prop in Hperm1 as [Hal _].
+      simpl in Hal.
+      apply andb_prop in Hal as [Hlt _].
+      apply Nat.ltb_lt in Hlt; rewrite<- Hlen1; assumption. }
+    assert (prod (length (downshift p1 n0) = length (la ++ lb)) ((is_perm (downshift p1 n0) = true) * (l2 = app_nat_fun (downshift p1 n0) (la ++ lb)))) as [Hlen1' [Hperm1' Heq1']].
+    { repeat split.
+      - rewrite Heq in Hlen1.
+        rewrite downshift_length; [length_lia | ].
+        apply andb_prop in Hperm1 as [_ Had1].
+        apply andb_prop in Had1 as [nHin _].
+        apply negb_true_iff; assumption.
+      - rewrite<- downshift_eq; apply downshift_perm; assumption.
+      - rewrite<- Hlen.
+        apply andb_prop in Hperm1 as [Hal Had1].
+        rewrite<- app_nat_fun_downshift with _ _ (nth n0 (n1 :: l1) n1) _.
+        + rewrite<- Heq.
+          inversion Heq1; reflexivity.
+        + simpl in Had1; apply andb_prop in Had1 as [nHin _].
+          apply negb_true_iff; rewrite Hlen; assumption.
+        + rewrite Heq in Hlen1.
+          simpl in Hal, Hlen1.
+          apply andb_prop in Hal as [_ Hal].
+          rewrite Hlen1 in Hal.
+          rewrite app_length in Hal; simpl in Hal; rewrite Nat.add_succ_r in Hal;
+            rewrite<- app_length in Hal; apply Hal. }
+    specialize (IHl2 (la ++ lb) (existT2 _ _ (downshift p1 n0) Hperm1' (Hlen1', Heq1'))); simpl in IHl2.
+    assert (prod (length (downshift p2 n0) = length (la ++ lb)) ((is_perm (downshift p2 n0) = true) * (l2 = app_nat_fun (downshift p2 n0) (la ++ lb)))) as [Hlen2' [Hperm2' Heq2']].
+    { repeat split.
+      - rewrite Heq in Hlen2.
+        rewrite downshift_length; [length_lia | ].
+        apply andb_prop in Hperm2 as [_ Had2].
+        apply andb_prop in Had2 as [nHin _].
+        apply negb_true_iff; assumption.
+      - rewrite<- downshift_eq; apply downshift_perm; assumption.
+      - rewrite<- Hlen.
+        apply andb_prop in Hperm2 as [Hal Had2].
+        rewrite<- app_nat_fun_downshift with _ _ (nth n0 (n1 :: l1) n1) _.
+        + rewrite<- Heq.
+          inversion Heq2; reflexivity.
+        + simpl in Had2; apply andb_prop in Had2 as [nHin _].
+          apply negb_true_iff; rewrite Hlen; assumption.
+        + rewrite Heq in Hlen2.
+          simpl in Hal, Hlen2.
+          apply andb_prop in Hal as [_ Hal].
+          rewrite Hlen2 in Hal.
+          rewrite app_length in Hal; simpl in Hal; rewrite Nat.add_succ_r in Hal;
+            rewrite<- app_length in Hal; apply Hal. }
+    specialize (IHl2 (existT2 _ _ (downshift p2 n0) Hperm2' (Hlen2', Heq2'))); simpl in IHl2.
+    apply andb_prop in Hperm1 as [_ Had1]; simpl in Had1;
+      apply andb_prop in Had1 as [nHin1 _]; apply negb_true_iff in nHin1.
+    apply andb_prop in Hperm2 as [_ Had2]; simpl in Had2;
+      apply andb_prop in Had2 as [nHin2 _]; apply negb_true_iff in nHin2.
+    rewrite Heq in Had; clear - IHl2 Had nHin1 nHin2.
+    specialize (IHl2 (all_distinct_elt_inv _ _ _ Had)).  
+    apply downshift_inj in IHl2; try assumption.
+    rewrite IHl2; reflexivity.
+  - exfalso.
+    apply H.
+    apply cond_all_distinct_inv with (n1 :: l1) n1; try assumption.
+    + apply andb_prop in Hperm1 as [Hal _].
+      simpl in Hal.
+      apply andb_prop in Hal as [Hlt _].
+      apply Nat.ltb_lt in Hlt; rewrite<- Hlen1; assumption.
+    + apply andb_prop in Hperm2 as [Hal _].
+      simpl in Hal.
+      apply andb_prop in Hal as [Hlt _].
+      apply Nat.ltb_lt in Hlt; rewrite<- Hlen2; assumption.
+    + inversion Heq1; inversion Heq2.
+      simpl.
+      rewrite<- H1; rewrite<- H3; reflexivity.
+Qed.

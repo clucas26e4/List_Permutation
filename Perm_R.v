@@ -210,7 +210,7 @@ Proof with try reflexivity; try assumption.
   - apply cfun_is_perm.
   - length_lia.
   - rewrite app_cfun_eq...
-Qed.
+Defined.
 Local Hint Resolve Perm_R_app_comm.
 
 Theorem Perm_R_cons_app : forall (l l1 l2:list A) a,
@@ -519,7 +519,7 @@ Proof with try reflexivity; try assumption.
   - rewrite map_length...
   - rewrite app_nat_fun_map.
     rewrite Heq...
-Qed.
+Defined.
 
 Global Instance Perm_R_map' :
   Proper (@Perm_R A ==> @Perm_R B) (map f) | 10.

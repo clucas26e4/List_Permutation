@@ -573,7 +573,20 @@ Proof with try reflexivity; try assumption.
     apply IHla...
 Qed.
 
-
+Lemma all_distinct_elt_inv : forall k l1 l2,
+    all_distinct (l1 ++ k :: l2) = true ->
+    all_distinct (l1 ++ l2) = true.
+Proof.
+  intros k l1; induction l1; intros l2 Had.
+  - apply andb_prop in Had as [ _ Had]; assumption.
+  - simpl in Had |- *.
+    apply andb_prop in Had as [nHin Had].
+    apply andb_true_intro; split.
+    + apply negb_true_iff in nHin.
+      apply In_nat_bool_middle_false in nHin as [_ nHin].
+      apply negb_true_iff; assumption.
+    + apply IHl1; assumption.
+Qed.
 
 (** ** shift *)
 Lemma incr_inj n i : injective (fun x => if x <? n then x else i + x).
@@ -1169,3 +1182,34 @@ Proof.
     now simpl in Hlen; apply IHl1; try lia.
 Qed.
 
+Lemma downshift_inj : forall k l1 l2,
+    In_nat_bool k l1 = false ->
+    In_nat_bool k l2 = false ->
+    downshift l1 k = downshift l2 k ->
+    l1 = l2.
+Proof.
+  intros k; induction l1; intros l2 nHin1 nHin2 Heq.
+  - destruct l2; [reflexivity | ].
+    simpl in Heq; simpl in nHin2; apply orb_false_iff in nHin2 as [nHeq _].
+    rewrite Nat.eqb_sym in nHeq; rewrite nHeq in Heq; inversion Heq.
+  - destruct l2.
+    + simpl in Heq; simpl in nHin1; apply orb_false_iff in nHin1 as [nHeq _].
+      rewrite Nat.eqb_sym in nHeq; rewrite nHeq in Heq; inversion Heq.
+    + simpl in *.
+      apply orb_false_iff in nHin1 as [nHeq1 nHin1].
+      apply orb_false_iff in nHin2 as [nHeq2 nHin2].
+      rewrite Nat.eqb_sym in nHeq1, nHeq2; rewrite nHeq1 in Heq; rewrite nHeq2 in Heq.
+      inversion Heq.
+      rewrite (IHl1 l2 nHin1 nHin2 H1).
+      replace a with n; [reflexivity | ].
+      apply Nat.eqb_neq in nHeq1;  apply Nat.eqb_neq in nHeq2.
+      revert H0.
+      case_eq (a <? k); intro Hc1; case_eq (n <? k); intro Hc2;
+        [ apply Nat.ltb_lt in Hc1; apply Nat.ltb_lt in Hc2
+        | apply Nat.ltb_lt in Hc1; apply Nat.ltb_nlt in Hc2
+        | apply Nat.ltb_nlt in Hc1; apply Nat.ltb_lt in Hc2
+        | apply Nat.ltb_nlt in Hc1; apply Nat.ltb_nlt in Hc2];
+        try lia.
+Qed.
+
+   

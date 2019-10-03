@@ -576,6 +576,36 @@ induction f; intros k Hlen.
   rewrite seq_nth; lia.
 Qed.
 
+Lemma Id_S :forall n,
+    Id (S n) = Id n ++ n :: nil.
+Proof with try reflexivity.
+  induction n...
+  - simpl.
+    change (1 :: (seq 2 n)) with (seq 1 (S n)).
+    change 1 with (0 + 1).
+    rewrite<- incr_all_seq.
+    rewrite IHn.
+    rewrite shift_app.
+    replace (shift (Id n) 0 1) with (seq 1 n)...
+    rewrite incr_all_seq...
+Qed.
+
+Lemma Id_plus : forall n m,
+    Id (n + m) = Id n ++ incr_all (Id m) n.
+Proof with try reflexivity.
+  intros n; induction m.
+  - rewrite Nat.add_0_r; rewrite app_nil_r...
+  - rewrite Nat.add_succ_r.
+    simpl; rewrite Nat.add_0_r.
+    change 1 with (0 + 1).
+    rewrite<- incr_all_seq.
+    rewrite IHm.
+    rewrite shift_app.
+    rewrite ? incr_all_seq.
+    simpl; replace (n + 1) with (1 + n) by lia.
+    change (0 :: seq 1 n ++ seq (1 + n) m) with (Id (S n) ++ seq (1 + n) m).
+    rewrite Id_S; rewrite<- app_assoc...
+Qed.
 
 (* CFUN *)
 Definition cfun n m := seq n m ++ seq 0 n.

@@ -460,3 +460,101 @@ eapply Perm_R_image.
 apply CyclicPerm_Perm_R ; eassumption.
 Qed.
 
+Definition app_cperm_nat {A} n (l : list A) :=
+  skipn n l ++ firstn n l.
+
+Lemma app_cperm_cfun {A} : forall n (l : list A),
+    n <= length l ->
+    app_cperm_nat n l = app_nat_fun (cfun n (length l - n)) l.
+Proof with try reflexivity.
+  intros n l Hle.
+  rewrite<- (firstn_skipn n l) at 3.
+  rewrite<- (firstn_length_le l) at 2; try assumption.
+  replace (length l - n) with (length (skipn n l)).
+  2:{ rewrite<- (firstn_skipn n l) at 2.
+      rewrite app_length.
+      rewrite firstn_length_le; try assumption.
+      lia. }
+  rewrite app_cfun_eq...
+Qed.
+
+(* TODO : NEED MOVING *)
+Lemma skipn_none2 {A} : forall n (l : list A),
+    length l <= n ->
+    skipn n l = nil.
+Proof with try reflexivity.
+  induction n; intros l Hle.
+  - destruct l; inversion Hle...
+  - destruct l; simpl in Hle...
+    apply IHn.
+    lia.
+Qed.
+
+Lemma skipn_length {A} : forall n (l : list A),
+    length (skipn n l) = length l - n.
+Proof with try reflexivity.
+  induction n; intros l.
+  - simpl; lia.
+  - destruct l...
+    simpl; rewrite IHn...
+Qed.
+(* END TODO *)
+
+Lemma cond_cyclicPerm_to_app_cperm : forall p,
+    cond_cyclicPerm p ->
+    { n & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l}.
+Proof with try reflexivity.
+  intros p Hperm.
+  destruct Hperm as [[[n m] Heq]| Heq].
+  - split with (S n).
+    intros A l Hlen.
+    rewrite Heq in Hlen |- *.
+    rewrite cfun_length in Hlen.
+    replace (S m) with (length l - S n) by lia.
+    rewrite app_cperm_cfun...
+    lia.
+  - split with (length p).
+    intros A l Hlen.
+    rewrite Heq at 1; rewrite Hlen.
+    rewrite app_Id.
+    unfold app_cperm_nat.
+    rewrite skipn_none2 by lia.
+    rewrite firstn_all2 by lia...
+Qed.
+
+Lemma app_cperm_to_cond_cyclicPerm : forall n len,
+    {p : _ & cond_cyclicPerm p & prod (length p = len) (forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l)}.
+Proof with try reflexivity.
+  intros n len.
+  destruct n; [ | case_eq ((S n) <? len); intros H ; [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H] ].
+  - split with (Id len); [ | split].
+    + right; rewrite seq_length...
+    + apply seq_length.
+    + intros A l Hlen.
+      rewrite seq_length in Hlen.
+      rewrite Hlen.
+      rewrite app_Id.
+      unfold app_cperm_nat; simpl.
+      rewrite app_nil_r...
+  - split with (cfun (S n) (S (pred (pred len) - n))); [ | split ].
+    + left; split with (n , pred (pred len) - n)...
+    + rewrite cfun_length.
+      lia.
+    + intros A l Hlen.
+      rewrite cfun_length in Hlen.
+      replace (S (Init.Nat.pred (Init.Nat.pred len) - n)) with (len - S n) by lia.
+      unfold app_cperm_nat.
+      rewrite <- (firstn_skipn (S n) l) at 1.
+      rewrite<- (firstn_length_le l) at 1 by lia.
+      replace (len - S n) with (length (skipn (S n) l)); [apply app_cfun_eq | ].
+      rewrite skipn_length; lia.
+  - split with (Id len);  [ | split].
+    + right; rewrite seq_length...
+    + apply seq_length.
+    + intros A l Hlen.
+      rewrite seq_length in Hlen; rewrite Hlen.
+      rewrite app_Id.
+      unfold app_cperm_nat.
+      rewrite skipn_none2 by lia.
+      rewrite firstn_all2 by lia...
+Qed.
