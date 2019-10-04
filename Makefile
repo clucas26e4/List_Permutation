@@ -47,7 +47,7 @@ misc.vo: misc.v $(OLLIBSDIR)/List_more.vo List_nat.vo Fun_nat.vo Transposition.v
 List_more2.vo: List_more2.v
 List_Type_more2.vo: List_Type_more2.v $(OLLIBSDIR)/List_Type_more.vo
 List_nat.vo: List_nat.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_more2.vo
-Fun_nat.vo: Fun_nat.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_more2.vo List_nat.vo
+Fun_nat.vo: Fun_nat.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_more2.vo List_nat.vo
 Transposition.vo: Transposition.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_more2.vo List_nat.vo Fun_nat.vo
 Perm.vo: Perm.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo misc.vo Fun_nat.vo Transposition.vo
 Perm_R.vo : Perm_R.v $(OLLIBSDIR)/Permutation_Type.vo $(OLLIBSDIR)/Permutation_Type_solve.vo $(OLLIBSDIR)/Bool_more.vo List_nat.vo List_more2.vo List_Type_more2.vo Fun_nat.vo Perm.vo misc.vo
@@ -58,7 +58,6 @@ CyclicPerm_R_solve.vo : CyclicPerm_R_solve.v $(OLLIBSDIR)/List_more.vo CyclicPer
 genperm_R.vo : genperm_R.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_Type.vo Perm.vo Perm_R_more.vo Perm_R_solve.vo CyclicPerm_R.vo CyclicPerm_R_solve.vo List_nat.vo List_more2.vo Fun_nat.vo
 Perm_solve.vo : Perm_solve.v misc.vo Perm.vo List_nat.vo List_more2.vo Fun_nat.vo all_lt_solve.vo $(OLLIBSDIR)/List_more.vo
 all_lt_solve.vo : all_lt_solve.v List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo $(OLLIBSDIR)/List_more.vo
-app_nat_fun_more.vo : app_nat_fun_more.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_nat.vo misc.vo List_more2.vo Fun_nat.vo
 Perm_more.vo : Perm_more.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo
 
-mll.vo : mll.v $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo Fun_nat.vo Perm.vo Perm_R.vo misc.vo
+mall.vo : mall.v $(OLLIBSDIR)/wf_nat_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_more2.vo List_nat.vo Fun_nat.vo Perm.vo Perm_R_more.vo misc.vo

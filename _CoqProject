@@ -8,8 +8,6 @@ Fun_nat.v
 Transposition.v
 misc.v
 
-app_nat_fun_more.v
-
 Perm.v
 Perm_R.v
 Perm_R_more.v
@@ -22,7 +20,7 @@ CyclicPerm_R_solve.v
 
 genperm_R.v
 
-
+mall.v
 
 
 Perm_more.v

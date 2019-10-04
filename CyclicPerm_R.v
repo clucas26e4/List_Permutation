@@ -1,9 +1,9 @@
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
-Require Import EqNat.
 
 Require Import List_Type_more.
+
 Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
@@ -29,7 +29,7 @@ Proof with try reflexivity.
     split with (app_nat_fun (Id (S n)) l1, app_nat_fun (incr_all (Id (S m)) (S n)) l1).
     + rewrite <- app_nat_fun_app.
       rewrite incr_all_seq.
-      rewrite <- seq_plus.
+      rewrite <- seq_app.
       simpl in Hlen.
       rewrite app_length in Hlen; simpl in Hlen; rewrite 2 seq_length in Hlen.
       replace (S n + S m) with (length l1) by lia.
@@ -478,28 +478,6 @@ Proof with try reflexivity.
   rewrite app_cfun_eq...
 Qed.
 
-(* TODO : NEED MOVING *)
-Lemma skipn_none2 {A} : forall n (l : list A),
-    length l <= n ->
-    skipn n l = nil.
-Proof with try reflexivity.
-  induction n; intros l Hle.
-  - destruct l; inversion Hle...
-  - destruct l; simpl in Hle...
-    apply IHn.
-    lia.
-Qed.
-
-Lemma skipn_length {A} : forall n (l : list A),
-    length (skipn n l) = length l - n.
-Proof with try reflexivity.
-  induction n; intros l.
-  - simpl; lia.
-  - destruct l...
-    simpl; rewrite IHn...
-Qed.
-(* END TODO *)
-
 Lemma cond_cyclicPerm_to_app_cperm : forall p,
     cond_cyclicPerm p ->
     { n & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l}.
@@ -518,12 +496,14 @@ Proof with try reflexivity.
     rewrite Heq at 1; rewrite Hlen.
     rewrite app_Id.
     unfold app_cperm_nat.
-    rewrite skipn_none2 by lia.
+    rewrite skipn_all2 by lia.
     rewrite firstn_all2 by lia...
 Qed.
 
 Lemma app_cperm_to_cond_cyclicPerm : forall n len,
-    {p : _ & cond_cyclicPerm p & prod (length p = len) (forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l)}.
+  {p : _ & cond_cyclicPerm p
+         & prod (length p = len)
+                (forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l)}.
 Proof with try reflexivity.
   intros n len.
   destruct n; [ | case_eq ((S n) <? len); intros H ; [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H] ].
@@ -555,6 +535,7 @@ Proof with try reflexivity.
       rewrite seq_length in Hlen; rewrite Hlen.
       rewrite app_Id.
       unfold app_cperm_nat.
-      rewrite skipn_none2 by lia.
+      rewrite skipn_all2 by lia.
       rewrite firstn_all2 by lia...
 Qed.
+

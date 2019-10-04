@@ -217,7 +217,7 @@ case_eq (i <? j); intros Hij; [ case_eq (j <=? m); intros Hjm | ]; unfold andb.
 - apply Nat.ltb_lt in Hij; apply Nat.leb_le in Hjm.
   rewrite app_nc_transpo; try length_lia.
   replace (S m) with (i + (S ((j - S i) + S (m - j)))) by lia.
-  repeat (rewrite ? seq_plus; f_equal; simpl); lia.
+  repeat (rewrite ? seq_app; f_equal; simpl); lia.
 - unfold nc_transpo; rewrite Hij, Hjm; unfold andb.
   rewrite <- (app_nil_r (Id (S m))) at 2.
   apply app_Id_ext with (l2 := nil); length_lia.
@@ -250,7 +250,7 @@ rewrite asso_app_nat_fun.
 unfold transpo at 2.
 replace (i <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
 replace (S m - (2 + i)) with ((j - (2 + i)) + (S (m - j))) by lia.
-rewrite seq_plus.
+rewrite seq_app.
 replace (2 + i + (j - (2 + i))) with j by lia.
 simpl seq at 3.
 rewrite <- (app_nil_l (i :: _)).
@@ -274,7 +274,7 @@ rewrite asso_app_nat_fun.
 unfold transpo at 2.
 replace (j <? m) with true by (symmetry; apply Nat.ltb_lt; lia).
 replace j with (i + (S (j - S i))) at 4 by lia.
-rewrite seq_plus; simpl seq.
+rewrite seq_app; simpl seq.
 rewrite <- app_assoc, <- app_comm_cons.
 rewrite app_nc_transpo; try length_lia.
 rewrite app_comm_cons, app_assoc.
