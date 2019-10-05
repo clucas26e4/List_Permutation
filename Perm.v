@@ -1,5 +1,3 @@
-(* ll library for yalla *)
-
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
@@ -770,32 +768,24 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 (* UIP, eq_dec, ...*)
-Lemma perm_eq_dec : forall (p1 p2 : perm),
-    {p1 = p2} + {p1 <> p2}.
+Lemma perm_eq_dec : forall (p1 p2 : perm), {p1 = p2} + {p1 <> p2}.
 Proof.
   intros [p1 Hperm1] [p2 Hperm2].
   destruct (list_nat_eq_dec p1 p2).
   - left; subst; replace Hperm1 with Hperm2; try reflexivity.
     apply UIP_bool.
-  - right.
-    intros H; inversion H; now apply n.
+  - right; intros H; inversion H; now apply n.
 Qed.
 
-Lemma UIP_perm : forall (p1 p2 : perm) (Heq1 Heq2 : p1 = p2),
-    Heq1 = Heq2.
-Proof with try reflexivity; try assumption.
-  intros p1 p2 Heq1 Heq2.
-  apply Eqdep_dec.UIP_dec.
-  apply perm_eq_dec.
-Qed.
+Lemma UIP_perm : forall (p1 p2 : perm) (Heq1 Heq2 : p1 = p2), Heq1 = Heq2.
+Proof. intros; apply Eqdep_dec.UIP_dec, perm_eq_dec. Qed.
 
 Fixpoint perm_eqb (p1 p2 : perm) :=
   match p1, p2 with
   | existT _ p1 _, existT _ p2 _ => list_nat_eqb p1 p2
   end.
 
-Lemma perm_eqb_eq : forall p1 p2,
-    perm_eqb p1 p2 = true <-> p1 = p2.
+Lemma perm_eqb_eq : forall p1 p2, perm_eqb p1 p2 = true <-> p1 = p2.
 Proof.
   intros [p1 Hperm1] [p2 Hperm2]; split; intros Heq.
   - simpl in Heq; apply list_nat_eqb_eq in Heq; subst; replace Hperm1 with Hperm2; try reflexivity.
@@ -803,8 +793,7 @@ Proof.
   - simpl; inversion Heq; now apply list_nat_eqb_eq.
 Qed.
 
-Lemma list_nat_eqb_neq : forall p1 p2,
-    perm_eqb p1 p2 = false <-> p1 <> p2.
+Lemma list_nat_eqb_neq : forall p1 p2, perm_eqb p1 p2 = false <-> p1 <> p2.
 Proof.
   intros p1 p2.
   case_eq (perm_eqb p1 p2); intros H; split.
@@ -813,3 +802,4 @@ Proof.
   - intros _ Heq; replace (perm_eqb p1 p2) with true in H by (symmetry; now apply perm_eqb_eq); inversion H.
   - trivial.
 Qed.
+

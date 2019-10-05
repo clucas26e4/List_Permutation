@@ -51,19 +51,11 @@ Proof with try eassumption.
 Qed.
 
 Lemma Perm_R_elt {A} : forall (a : A) l1 l2 l1' l2',
-  Perm_R (l1 ++ l2) (l1' ++ l2') ->
-    Perm_R (l1 ++ a :: l2) (l1' ++ a :: l2').
-Proof.
-  intros a l1 l2 l1' l2' HP.
-  eapply Perm_R_trans.
-  - apply Perm_R_sym.
-    apply Perm_R_middle.
-  - apply Perm_R_cons_app.
-    assumption.
-Defined.
+  l1 ++ l2 ~~ l1' ++ l2' -> l1 ++ a :: l2 ~~ l1' ++ a :: l2'.
+Proof. now intros; rewrite <- 2 Perm_R_middle; apply Perm_R_cons. Defined.
 
 Lemma Perm_R_vs_elt_inv {A} : forall (a : A) l l1 l2,
-  Perm_R l (l1 ++ a :: l2) -> {'(l3,l4) | l = l3 ++ a :: l4 }.
+  l ~~ l1 ++ a :: l2 -> {'(l3,l4) | l = l3 ++ a :: l4 }.
 Proof with try assumption ; try reflexivity.
   intros a l l1 l2 HP.
   remember (l1 ++ a :: l2) as l0.
@@ -87,26 +79,16 @@ Proof with try assumption ; try reflexivity.
 Qed.
 
 Lemma Perm_R_vs_cons_inv {A} : forall (a : A) l l1,
-  Perm_R l (a :: l1) -> {'(l3,l4) | l = l3 ++ a :: l4 }.
-Proof.
-intros a l l1 HP.
-rewrite <- (app_nil_l (a :: l1)) in HP.
-eapply Perm_R_vs_elt_inv ; eassumption.
-Qed.
+  l ~~ a :: l1 -> {'(l3,l4) | l = l3 ++ a :: l4 }.
+Proof. intros a l l1 HP; rewrite <- (app_nil_l (a :: l1)) in HP; now apply Perm_R_vs_elt_inv with nil l1. Qed.
 
-Lemma Perm_R_vs_2elts {A} : forall (s : A) t l1 l2 l3,
-  Perm_R (l1 ++ s :: l2 ++ t :: l3) (s :: t :: l1 ++ l2 ++ l3).
+Lemma Perm_R_vs_2elts {A} : forall (s : A) t l1 l2 l3, l1 ++ s :: l2 ++ t :: l3 ~~ s :: t :: l1 ++ l2 ++ l3.
 Proof.
-intros.
-apply Perm_R_sym.
-apply Perm_R_cons_app.
-rewrite 2 app_assoc.
-apply Perm_R_cons_app.
-apply Perm_R_refl.
+now intros; rewrite <- Perm_R_middle, app_comm_cons, app_assoc, <- Perm_R_middle, Perm_R_swap; list_simpl.
 Defined.
 
 Lemma Perm_R_vs_2elts_inv : forall A D (s : A) t G,
-  Perm_R D (s :: t :: G) ->
+  D ~~ s :: t :: G ->
     {'(l1,l2,l3) | D = l1 ++ s :: l2 ++ t :: l3 \/ D = l1 ++ t :: l2 ++ s :: l3 }.
 Proof.
 intros A D s t G HP.
@@ -124,55 +106,25 @@ dichot_Type_elt_app_exec HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_com
 - now exists (pl1, l0, pl2'); left.
 Qed.
 
-Lemma Perm_R_app_rot {A} : forall (l1 : list A) l2 l3,
-  Perm_R (l1 ++ l2 ++ l3) (l2 ++ l3 ++ l1).
-Proof.
-intros l1 l2 l3.
-rewrite (app_assoc l2).
-apply Perm_R_app_comm.
-Defined.
+Lemma Perm_R_app_rot {A} : forall (l1 : list A) l2 l3, l1 ++ l2 ++ l3 ~~ l2 ++ l3 ++ l1.
+Proof. now intros; rewrite Perm_R_app_comm, app_assoc. Defined.
 
-Lemma Perm_R_app_swap_app {A} : forall (l1 : list A) l2 l3,
-  Perm_R (l1 ++ l2 ++ l3) (l2 ++ l1 ++ l3).
-Proof.
-intros.
-repeat rewrite app_assoc.
-apply Perm_R_app_tail.
-apply Perm_R_app_comm.
-Defined.
+Lemma Perm_R_app_swap_app {A} : forall (l1 : list A) l2 l3, l1 ++ l2 ++ l3 ~~ l2 ++ l1 ++ l3.
+Proof. now intros; rewrite 2 app_assoc; rewrite (Perm_R_app_comm l1). Defined.
 
 Lemma Perm_R_app_middle {A} : forall (l : list A) l1 l2 l3 l4,
-  Perm_R (l1 ++ l2) (l3 ++ l4) ->
-    Perm_R (l1 ++ l ++ l2) (l3 ++ l ++ l4).
-Proof.
-intros.
-eapply Perm_R_trans.
-apply Perm_R_app_swap_app.
-eapply Perm_R_trans.
-apply Perm_R_app_head.
-- eassumption.
-- apply Perm_R_app_swap_app.
-Defined.
+  l1 ++ l2 ~~ l3 ++ l4 -> l1 ++ l ++ l2 ~~ l3 ++ l ++ l4.
+Proof. now intros l l1 l2 l3 l4 Hp; rewrite 2 (Perm_R_app_swap_app _ l), Hp. Defined.
 
 Lemma Perm_R_app_middle_inv {A} : forall (l : list A) l1 l2 l3 l4,
-  Perm_R (l1 ++ l ++ l2) (l3 ++ l ++ l4) ->
-    Perm_R (l1 ++ l2) (l3 ++ l4).
+  l1 ++ l ++ l2 ~~ l3 ++ l ++ l4 -> l1 ++ l2 ~~ l3 ++ l4.
 Proof.
-  intros.
-  apply Perm_R_app_inv_l with l.
-  eapply Perm_R_trans.
-  apply Perm_R_app_swap_app.
-  eapply Perm_R_trans.
-  - eassumption.
-  - apply Perm_R_app_swap_app.
+intros l l1 l2 l3 l4 Hp; rewrite 2 (Perm_R_app_swap_app _ l) in Hp; apply (Perm_R_app_inv_l _ _ _ Hp).
 Defined.
 
-Lemma Perm_R_app_app_inv {A} : forall (l1 l2 l3 l4 : list A),
-  Perm_R (l1 ++ l2) (l3 ++ l4) -> {'(l1',l2',l3',l4') : _ & prod (prod
-       (Perm_R l1 (l1' ++ l3'))
-       (Perm_R l2 (l2' ++ l4')))
- (prod (Perm_R l3 (l1' ++ l2'))
-       (Perm_R l4 (l3' ++ l4'))) }.
+Lemma Perm_R_app_app_inv {A} : forall (l1 l2 l3 l4 : list A), l1 ++ l2 ~~ l3 ++ l4 ->
+  {'(l1',l2',l3',l4') : _ & prod (prod (l1 ~~ l1' ++ l3') (l2 ~~ l2' ++ l4'))
+                                 (prod (l3 ~~ l1' ++ l2') (l4 ~~ l3' ++ l4')) }.
 Proof with try assumption.
 induction l1 ; intros l2 l3 l4 HP.
 - now exists (@nil A, l3, @nil A, l4); repeat split.
@@ -258,8 +210,8 @@ induction H ; intro H1...
 Qed.
 
 Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
-  forall l1 l1' l2, Perm_R l1 l1' -> Forall2_Type P l1 l2 ->
-    { l2' : _ & Perm_R l2 l2' & Forall2_Type P l1' l2' }.
+  forall l1 l1' l2, l1 ~~ l1' -> Forall2_Type P l1 l2 ->
+    { l2' : _ & l2 ~~ l2' & Forall2_Type P l1' l2' }.
 Proof with try reflexivity; try assumption.
   intros l1 l1' l2 [p Hperm [Hlen Heq]] H.
   assert (length l1 = length l2) as Hlen'.
@@ -300,7 +252,7 @@ Proof with try reflexivity; try assumption.
 Defined.
 
 Lemma Perm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
-  Perm_R l1 (map f l2) -> { l : _ & l1 = map f l & Perm_R l2 l }.
+  l1 ~~ map f l2 -> { l : _ & l1 = map f l & l2 ~~ l }.
 Proof with try reflexivity; try assumption.
   intros f l1 l2 [p Hperm [Hlen Heq]].
   simpl in Hlen.
@@ -322,7 +274,7 @@ Proof with try reflexivity; try assumption.
 Defined.
 
 Lemma Perm_R_map_inv_inj {A B} : forall f : A -> B, injective f ->
-  forall l1 l2, Perm_R (map f l1) (map f l2) -> Perm_R l1 l2.
+  forall l1 l2, map f l1 ~~ map f l2 -> l1 ~~ l2.
 Proof with try reflexivity; try assumption.
   intros f Hi l1 l2 [p Hperm [Hlen Heq]].
   split with p; repeat split...
@@ -334,7 +286,7 @@ Proof with try reflexivity; try assumption.
 Defined.
 
 Lemma Perm_R_image {A B} : forall (f : A -> B) a l l',
-  Perm_R (a :: l) (map f l') -> { a' | a = f a' }.
+  a :: l ~~ map f l' -> { a' | a = f a' }.
 Proof.
 intros f a l l' HP.
 apply Perm_R_map_inv in HP.
@@ -344,7 +296,7 @@ eexists ; reflexivity.
 Qed.
 
 Lemma Perm_R_elt_map_inv {A B} : forall (f : A -> B) a l1 l2 l3 l4,
-  Perm_R (l1 ++ a :: l2) (l3 ++ map f l4) ->
+  l1 ++ a :: l2 ~~ l3 ++ map f l4 ->
   (forall b, a <> f b) -> {'(l5,l6) | l3 = l5 ++ a :: l6 }.
 Proof.
 intros a l1 l2 l3 l4 f HP Hf.
@@ -446,8 +398,8 @@ apply Perm_R_id; try assumption.
 Qed.
 
 Lemma Perm_R_no_ext_double {A} : forall (a : A),
-    {' (p1,p2) : prod (Perm_R (a :: a :: nil) (a :: a :: nil))
-                      (Perm_R (a :: a :: nil) (a :: a :: nil)) &
+    {' (p1,p2) : prod (a :: a :: nil ~~ a :: a :: nil)
+                      (a :: a :: nil ~~ a :: a :: nil) &
                  projT1 (sigT_of_sigT2 p1) <> projT1 (sigT_of_sigT2 p2)}.
 Proof.
   intros a; split with (Perm_R_refl (a :: a :: nil), Perm_R_swap nil a a); simpl.
@@ -455,6 +407,6 @@ Proof.
 Qed.
 
 Lemma Perm_R_no_ext {A} (a : A) :
- ~ forall (l1 l2 : list A) (p1 p2 : Perm_R l1 l2), projT1 (sigT_of_sigT2 p1) = projT1 (sigT_of_sigT2 p2).
+ ~ forall (l1 l2 : list A) (p1 p2 : l1 ~~ l2), projT1 (sigT_of_sigT2 p1) = projT1 (sigT_of_sigT2 p2).
 Proof. intros Hext; destruct (Perm_R_no_ext_double a) as [(p1,p2) Heq]; apply Heq, Hext. Qed.
 

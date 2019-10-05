@@ -507,18 +507,10 @@ intros x Hin.
 apply in_seq in Hin; lia.
 Qed.
 
-Lemma all_distinct_seq : forall s l,
-  all_distinct (seq s l) = true.
+Lemma all_distinct_seq : forall s l, all_distinct (seq s l) = true.
 Proof. intros; apply all_distinct_NoDup, seq_NoDup. Qed.
 
-Lemma nth_Id : forall i n a0, i < n -> nth i (Id n) a0 = i.
-Proof. intros; now apply seq_nth. Qed.
-
-Lemma In_Id_lt : forall n x, In x (Id n) -> x < n.
-Proof. intros. apply in_seq in H; lia. Qed.
-
-Lemma app_Id {A} : forall (l : list A),
-  app_nat_fun (Id (length l)) l = l.
+Lemma app_Id {A} : forall (l : list A), app_nat_fun (Id (length l)) l = l.
 Proof.
   induction l; [ reflexivity | ].
   simpl; unfold app_nat_fun_dflt; f_equal.
@@ -528,7 +520,7 @@ Proof.
   unfold app_nat_fun; destruct l; [ reflexivity | ].
   apply map_ext_in; intros x Hin.
   simpl; destruct x; [reflexivity | apply nth_indep].
-  apply In_Id_lt in Hin; simpl in Hin; lia.
+  apply in_seq in Hin; simpl in Hin; lia.
 Qed.
 
 Lemma app_Id_ext {A} : forall k (l1 l2 : list A), length l1 = k ->
@@ -550,36 +542,6 @@ induction f; intros k Hlen.
   rewrite seq_nth; lia.
 Qed.
 
-Lemma Id_S :forall n,
-    Id (S n) = Id n ++ n :: nil.
-Proof with try reflexivity.
-  induction n...
-  - simpl.
-    change (1 :: (seq 2 n)) with (seq 1 (S n)).
-    change 1 with (0 + 1).
-    rewrite<- incr_all_seq.
-    rewrite IHn.
-    rewrite shift_app.
-    replace (shift (Id n) 0 1) with (seq 1 n)...
-    rewrite incr_all_seq...
-Qed.
-
-Lemma Id_plus : forall n m,
-    Id (n + m) = Id n ++ incr_all (Id m) n.
-Proof with try reflexivity.
-  intros n; induction m.
-  - rewrite Nat.add_0_r; rewrite app_nil_r...
-  - rewrite Nat.add_succ_r.
-    simpl; rewrite Nat.add_0_r.
-    change 1 with (0 + 1).
-    rewrite<- incr_all_seq.
-    rewrite IHm.
-    rewrite shift_app.
-    rewrite ? incr_all_seq.
-    simpl; replace (n + 1) with (1 + n) by lia.
-    change (0 :: seq 1 n ++ seq (1 + n) m) with (Id (S n) ++ seq (1 + n) m).
-    rewrite Id_S; rewrite<- app_assoc...
-Qed.
 
 (* CFUN *)
 Definition cfun n m := seq n m ++ seq 0 n.
@@ -656,6 +618,7 @@ Qed.
 
 
 (* Additional properties of app_nat_fun *)
+
 Lemma app_antecedent_dflt {A} : forall (d a : A) f l l1 l2,
     app_nat_fun_dflt f l d = l1 ++ a :: l2 ->
     nth (nth (length l1) f 0) l d = a.
@@ -681,9 +644,8 @@ Proof.
   apply Heq.
 Qed.
 
-Lemma app_nat_fun_vs_elt_inv {A} :
-  forall (a : A) f l l1 l2,
-    app_nat_fun f l = l1 ++ a :: l2 ->
+Lemma app_nat_fun_vs_elt_inv {A} : forall (a : A) f l l1 l2,
+  app_nat_fun f l = l1 ++ a :: l2 ->
     {' (la, lb) : _ & l = la ++ a :: lb }.
 Proof with try reflexivity; try assumption.
   intros a f l l1 l2 Heq.
@@ -700,9 +662,8 @@ Proof with try reflexivity; try assumption.
     lia.
 Qed.
 
-Lemma app_nat_fun_vs_cons_inv {A} :
-  forall (a : A) f l l1,
-    app_nat_fun f l = a :: l1 ->
+Lemma app_nat_fun_vs_cons_inv {A} : forall (a : A) f l l1,
+  app_nat_fun f l = a :: l1 ->
     {' (la, lb) : _ & l = la ++ a :: lb }.
 Proof with try assumption.
   intros a f l l1 Heq.
@@ -710,12 +671,8 @@ Proof with try assumption.
   apply app_nat_fun_vs_elt_inv with f nil l1...
 Qed.
 
-Lemma app_nat_fun_map_inv_inj {A B} :
-  forall (f : A -> B),
-    injective f ->
-    forall g l1 l2,
-      app_nat_fun g (map f l1) = map f l2 ->
-      app_nat_fun g l1 = l2.
+Lemma app_nat_fun_map_inv_inj {A B} : forall (f : A -> B), injective f -> forall g l1 l2,
+  app_nat_fun g (map f l1) = map f l2 -> app_nat_fun g l1 = l2.
 Proof with try reflexivity; try assumption.
   intros f Hinj g l1 l2 Heq.
   assert (forall A B (f : A -> B) g l, app_nat_fun g (map f l) = map f (app_nat_fun g l))
@@ -736,14 +693,13 @@ Qed.
 
 Lemma app_nat_fun_elt_map_inv {A B} : forall (f : A -> B) g a l1 l2 l3 l4,
   app_nat_fun g (l3 ++ map f l4) = l1 ++ a :: l2 ->
-  (forall b, a <> f b) -> { pl | l3 = fst pl ++ a :: snd pl }.
+  (forall b, a <> f b) -> { '(l5,l6) | l3 = l5 ++ a :: l6 }.
 Proof.
 intros f g a l1 l2 l3 l4 HP Hf.
 apply app_nat_fun_vs_elt_inv in HP.
-destruct HP as ((l' & l'') & Heq).
+destruct HP as [(l',l'') Heq].
 dichot_Type_elt_app_exec Heq.
-- subst.
-  exists (l', l) ; reflexivity.
+- subst; exists (l', l) ; reflexivity.
 - exfalso.
   decomp_map_Type Heq1.
   apply Hf in Heq1.

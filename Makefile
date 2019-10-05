@@ -58,6 +58,5 @@ CyclicPerm_R_solve.vo : CyclicPerm_R_solve.v $(OLLIBSDIR)/List_more.vo CyclicPer
 genperm_R.vo : genperm_R.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_Type.vo Perm.vo Perm_R_more.vo Perm_R_solve.vo CyclicPerm_R.vo CyclicPerm_R_solve.vo List_nat.vo List_more2.vo Fun_nat.vo
 Perm_solve.vo : Perm_solve.v misc.vo Perm.vo List_nat.vo List_more2.vo Fun_nat.vo all_lt_solve.vo $(OLLIBSDIR)/List_more.vo
 all_lt_solve.vo : all_lt_solve.v List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo $(OLLIBSDIR)/List_more.vo
-Perm_more.vo : Perm_more.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo
 
 mall.vo : mall.v $(OLLIBSDIR)/wf_nat_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_more2.vo List_nat.vo Fun_nat.vo Perm.vo Perm_R_more.vo misc.vo

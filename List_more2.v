@@ -103,7 +103,8 @@ Proof with try reflexivity; try assumption.
   lia.
 Qed.
 
-Lemma fold_left_max_indep : forall i l, i < fold_left max l i -> forall j, fold_left max l i <= fold_left max l j.
+Lemma fold_left_max_indep : forall i l, i < fold_left max l i ->
+  forall j, fold_left max l i <= fold_left max l j.
 Proof with try assumption; try reflexivity.
   intros i l; revert i; induction l; intros i Hlt j.
   - simpl in Hlt.
