@@ -22,6 +22,10 @@ Definition Perm_R {A} (l1 l2 : list A) : Type :=
 Infix "~~" := Perm_R (at level 70).
 
 Definition Perm_R_to_perm {A} {l1 l2 : list A} : Perm_R l1 l2 -> perm := @sigT_of_sigT2 _ _ _.
+Definition Perm_R_to_perm_of {A} {l1 l2 : list A} : Perm_R l1 l2 -> perm_of (length l1) := fun P =>
+  existT2 _ _ (projT1 (sigT_of_sigT2 P)) (projT2 (sigT_of_sigT2 P)) (fst (projT3 P)).
+Definition Perm_R_of_perm_of {A} {l : list A} (p : perm_of (length l)) : l ~~ projT1 (sigT_of_sigT2 p) ∘ l :=
+  let (p0,Hp,Hl) as s return (l ~~ projT1 (sigT_of_sigT2 s) ∘ l) := p in existT2 _ _ p0 Hp (Hl, eq_refl).
 
 (* Permutation over lists is an equivalence relation *)
 
@@ -80,7 +84,7 @@ Proof. intros l a Hp; apply Perm_R_nil in Hp; inversion Hp. Qed.
 Theorem Perm_R_app : forall l m l' m', l ~~ l' -> m ~~ m' -> l ++ m ~~ l' ++ m'.
 Proof.
 intros l m l' m' [p Hperm [Hlen Heq]] [p' Hperm' [Hlen' Heq']].
-split with (p ++ incr_all p' (length p)); repeat split.
+split with (p +++ p'); repeat split.
 - now apply append_perm_is_perm.
 - length_lia.
 - apply andb_prop in Hperm as [Hal _].

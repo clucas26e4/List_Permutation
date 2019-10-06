@@ -1,4 +1,4 @@
-Require Import Setoid CMorphisms.
+Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
 
