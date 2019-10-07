@@ -273,8 +273,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma all_lt_middle_true : forall l1 l2 a k,
-    all_lt (l1 ++ a :: l2) k = true ->
-    all_lt (l1 ++ l2) k = true.
+  all_lt (l1 ++ a :: l2) k = true -> all_lt (l1 ++ l2) k = true.
 Proof with try reflexivity; try assumption.
   induction l1; intros l2 b k H.
   - apply andb_prop in H as (_ & H)...
@@ -285,10 +284,8 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma cond_all_lt : forall l n,
-    (forall k0 k,
-        k < length l ->
-        nth k l k0 < n) ->
-    all_lt l n = true.
+  (forall k0 k, k < length l -> nth k l k0 < n) ->
+  all_lt l n = true.
 Proof with try reflexivity; try assumption.
   intros l n.
   induction l; intros H...
@@ -340,8 +337,7 @@ Proof with try reflexivity; try assumption.
   apply Nat.ltb_lt in Hlt; lia.
 Qed.
 
-Lemma all_lt_max : forall l,
-    all_lt l (S (fold_left max l 0)) = true.
+Lemma all_lt_max : forall l, all_lt l (S (fold_left max l 0)) = true.
 Proof.
   induction l; [reflexivity | ].
   simpl; apply andb_true_intro; split.
@@ -378,12 +374,8 @@ split; intros H; induction l; simpl.
 Qed.
 
 Lemma cond_all_distinct : forall l,
-    (forall n1 n2 k,
-        n1 < length l ->
-        n2 < length l ->
-        (nth n1 l k) = (nth n2 l k) ->
-        n1 = n2) ->
-    all_distinct l = true.
+  (forall n1 n2 k, n1 < length l -> n2 < length l -> (nth n1 l k) = (nth n2 l k) -> n1 = n2) ->
+  all_distinct l = true.
 Proof.
   induction l; intros H; [ reflexivity | ].
   simpl; apply andb_true_intro; split.
@@ -424,10 +416,8 @@ Proof with try assumption; try reflexivity.
 Qed.
 
 Lemma all_distinct_no_head : forall l n,
-    all_distinct (n :: l) = true ->
-    forall k k0,
-      k < length l ->
-      nth k l k0 <> n.
+  all_distinct (n :: l) = true ->
+  forall k k0, k < length l -> nth k l k0 <> n.
 Proof with try reflexivity; try assumption.
   intros l n Hal k k0 Hlt.
   apply andb_prop in Hal as (nHin & Hal).
@@ -440,12 +430,8 @@ Proof with try reflexivity; try assumption.
   apply negb_true_iff...
 Qed.
 
-Lemma cond_all_distinct_false : forall l k0 k1 k2,
-    k1 < length l ->
-    k2 < length l ->
-    k1 <> k2 ->
-    nth k1 l k0 = nth k2 l k0 ->
-    all_distinct l = false.
+Lemma cond_all_distinct_false : forall l k0 k1 k2, k1 < length l ->  k2 < length l ->  k1 <> k2 ->
+  nth k1 l k0 = nth k2 l k0 -> all_distinct l = false.
 Proof with try reflexivity; try assumption.
   induction l; intros k0 k1 k2 Hlt1 Hlt2 nHeq Heq; try now inversion Hlt1.
   destruct k1; destruct k2.
@@ -476,9 +462,9 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma cond_all_distinct_false_inv : forall l k0,
-    all_distinct l = false ->
-    {' (k1 , k2) : _ & prod (k1 < length l) (prod (k2 < length l)
-                      (prod (k1 <> k2) (nth k1 l k0 = nth k2 l k0)))}.
+  all_distinct l = false ->
+  {' (k1 , k2) : _ & prod (k1 < length l) (prod (k2 < length l)
+                    (prod (k1 <> k2) (nth k1 l k0 = nth k2 l k0)))}.
 Proof with try reflexivity; try assumption.
   induction l; intros k0 nHalt; try now inversion nHalt.
   apply andb_false_elim in nHalt as [Hin | nHalt].
@@ -500,7 +486,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma all_distinct_app_commu : forall l1 l2,
-    all_distinct (l1 ++ l2) = all_distinct (l2 ++ l1).
+  all_distinct (l1 ++ l2) = all_distinct (l2 ++ l1).
 Proof with try reflexivity; try assumption.
   induction l1; intros l2.
   - rewrite app_nil_r...
@@ -553,8 +539,7 @@ remember (In_nat_bool a p) as b; symmetry in Heqb; destruct b; simpl.
 Qed.
 
 Lemma all_distinct_left : forall la lb k,
-    all_distinct (la ++ k :: lb) = true ->
-    In_nat_bool k la = false.
+  all_distinct (la ++ k :: lb) = true -> In_nat_bool k la = false.
 Proof with try reflexivity; try assumption.
   induction la; intros lb k Had...
   apply andb_prop in Had as (nHin & Had).  
@@ -567,8 +552,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma all_distinct_right : forall la lb k,
-    all_distinct (la ++ k :: lb) = true ->
-    In_nat_bool k lb = false.
+  all_distinct (la ++ k :: lb) = true -> In_nat_bool k lb = false.
 Proof with try reflexivity; try assumption.
   induction la; intros lb k Had.
   - apply andb_prop in Had as (nHin & Had).
@@ -578,8 +562,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma all_distinct_elt_inv : forall k l1 l2,
-    all_distinct (l1 ++ k :: l2) = true ->
-    all_distinct (l1 ++ l2) = true.
+  all_distinct (l1 ++ k :: l2) = true -> all_distinct (l1 ++ l2) = true.
 Proof.
   intros k l1; induction l1; intros l2 Had.
   - apply andb_prop in Had as [ _ Had]; assumption.
@@ -683,8 +666,7 @@ Proof.
     apply Nat.ltb_nlt in Hlt2; lia.
 Qed.
 
-Lemma shift_In_nat_bool_lt : forall l n k i,
-  n <? k = true ->
+Lemma shift_In_nat_bool_lt : forall l n k i, n <? k = true ->
   In_nat_bool n (shift l k i) = In_nat_bool n l.
 Proof with try reflexivity; try assumption.
   intros l; induction l; intros n k i Hlt...
@@ -700,8 +682,7 @@ Proof with try reflexivity; try assumption.
     symmetry; apply Nat.eqb_neq; lia.
 Qed.
 
-Lemma shift_In_nat_bool_ge : forall l n k i,
-  k <=? n = true ->
+Lemma shift_In_nat_bool_ge : forall l n k i, k <=? n = true ->
   In_nat_bool (i + n) (shift l k i) = In_nat_bool n l.
 Proof with try reflexivity; try assumption.
   intros l; induction l; intros n k i Hge...
@@ -717,8 +698,7 @@ Proof with try reflexivity; try assumption.
     induction i...
 Qed.
 
-Lemma nth_shift_ge : forall l n k0 k i,
-  n <= nth k l k0 ->
+Lemma nth_shift_ge : forall l n k0 k i, n <= nth k l k0 ->
   nth k (shift l n i) (i + k0) = i + (nth k l k0).
 Proof with try reflexivity; try assumption.
   induction l; intros n k0 k i Hge.
@@ -731,8 +711,7 @@ Proof with try reflexivity; try assumption.
     + now apply IHl.
 Qed.
 
-Lemma nth_shift_lt : forall l n k0 k i,
-  nth k l k0 < n ->
+Lemma nth_shift_lt : forall l n k0 k i, nth k l k0 < n ->
   nth k (shift l n i) k0 = nth k l k0.
 Proof with try reflexivity; try assumption.
   induction l; intros n k0 k i Hlt; [ reflexivity | ].
@@ -753,8 +732,7 @@ Proof with try reflexivity; try assumption.
   - apply IHl.
 Qed.
 
-Lemma nth_ge_shift : forall l n k0 k i,
-  n <= nth k (shift l n i) k0 ->
+Lemma nth_ge_shift : forall l n k0 k i, n <= nth k (shift l n i) k0 ->
   nth k (shift l n i) (i + k0) = i + (nth k l k0).
 Proof.
   induction l; intros n k0 k i Hgt; simpl; destruct k; try lia.
@@ -765,8 +743,7 @@ Proof.
   - now apply IHl.
 Qed.
 
-Lemma nth_lt_shift : forall l n k0 k i,
-  nth k (shift l n i) k0 < n ->
+Lemma nth_lt_shift : forall l n k0 k i, nth k (shift l n i) k0 < n ->
   nth k (shift l n i) k0 = nth k l k0.
 Proof with try reflexivity; try assumption.
   induction l; intros n k0 k i Hlt; [ reflexivity | ].
@@ -818,9 +795,8 @@ Lemma all_distinct_shift : forall l k i,
 Proof. intros l n i; apply all_distinct_map, incr_inj. Qed.
 
 Lemma append_fun_all_lt : forall l1 l2 k n1 n2,
-    all_lt l1 n1 = true ->
-    all_lt l2 n2 = true ->
-    all_lt (l1 ++ (shift l2 k n1)) (n1 + n2) = true.
+  all_lt l1 n1 = true -> all_lt l2 n2 = true ->
+  all_lt (l1 ++ (shift l2 k n1)) (n1 + n2) = true.
 Proof with try reflexivity; try assumption.
   intros l1 l2 k n1 n2 Hal1 Hal2.
   rewrite all_lt_app.
@@ -832,10 +808,9 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma all_distinct_app_shift : forall l1 l2 k i,
-    all_distinct l1 = true ->
-    all_distinct l2 = true ->
-    all_lt l2 i = true ->
-    all_distinct (shift l1 k i ++ shift l2 0 k) = true.
+  all_distinct l1 = true -> all_distinct l2 = true ->
+  all_lt l2 i = true ->
+  all_distinct (shift l1 k i ++ shift l2 0 k) = true.
 Proof with try assumption.
   induction l1; intros l2 k i Had1 Had2 Hal2...
   - simpl; rewrite all_distinct_shift...
@@ -872,7 +847,7 @@ Lemma nth_incr_all : forall l n n0 k,
 Proof. intros; apply nth_shift_ge; lia. Qed.
 
 Lemma In_nat_bool_incr_all : forall l k n,
-   In_nat_bool (n + k) (incr_all l n) = In_nat_bool k l.
+ In_nat_bool (n + k) (incr_all l n) = In_nat_bool k l.
 Proof. intros; apply shift_In_nat_bool_ge, Nat.leb_le; lia. Qed.
 
 Lemma all_distinct_app : forall la lb k,
@@ -916,9 +891,8 @@ Proof.
   symmetry; apply Nat.eqb_eq; reflexivity.
 Qed.
 
-Lemma downshift_gt : forall l k n,
-    k <? n = true ->
-    downshift (n :: l) k = (pred n) :: (downshift l k).
+Lemma downshift_gt : forall l k n, k <? n = true ->
+  downshift (n :: l) k = (pred n) :: (downshift l k).
 Proof.
   intros l k n Hlt.
   simpl.
@@ -951,9 +925,8 @@ Proof with try reflexivity; try assumption.
     replace (n =? pred a) with false by (symmetry; apply Nat.eqb_neq; lia)...
 Qed.
 
-Lemma downshift_In_nat_bool_gt : forall l n k,
-    k <? n = true ->
-    In_nat_bool (pred n) (downshift l k) = In_nat_bool n l.
+Lemma downshift_In_nat_bool_gt : forall l n k,  k <? n = true ->
+  In_nat_bool (pred n) (downshift l k) = In_nat_bool n l.
 Proof with try reflexivity; try assumption.
   intros l; induction l; intros n k Hlt...
   destruct (Compare_dec.lt_eq_lt_dec a k) as [[H1 | H2] | H3].
@@ -1136,8 +1109,7 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 Lemma downshift_if_all_lt : forall l n,
-  all_lt l n = true ->
-  downshift l n = l.
+  all_lt l n = true -> downshift l n = l.
 Proof with try reflexivity; try assumption.
   induction l; intros n Hal...
   simpl in Hal; apply andb_prop in Hal as (Hlt & Hal).
@@ -1173,8 +1145,7 @@ Proof with try reflexivity; try assumption.
   - apply Nat.ltb_ge in Hlt; symmetry; apply Nat.eqb_neq; lia.
 Qed.
 
-Lemma shift_downshift : forall l n,
-  In_nat_bool n l = false ->
+Lemma shift_downshift : forall l n, In_nat_bool n l = false ->
   shift (downshift l n) n 1 = l.
 Proof with try reflexivity; try assumption.
   induction l; intros n nHin...
@@ -1209,10 +1180,8 @@ Proof.
 Qed.
 
 Lemma downshift_inj : forall k l1 l2,
-    In_nat_bool k l1 = false ->
-    In_nat_bool k l2 = false ->
-    downshift l1 k = downshift l2 k ->
-    l1 = l2.
+  In_nat_bool k l1 = false -> In_nat_bool k l2 = false ->
+  downshift l1 k = downshift l2 k -> l1 = l2.
 Proof.
   intros k; induction l1; intros l2 nHin1 nHin2 Heq.
   - destruct l2; [reflexivity | ].
@@ -1239,15 +1208,13 @@ Proof.
 Qed.
 
 (* UIP, eq_dec, ...*)
-Lemma list_nat_eq_dec : forall (l1 l2 : list nat),
-    {l1 = l2} + {l1 <> l2}.
+Lemma list_nat_eq_dec : forall (l1 l2 : list nat), {l1 = l2} + {l1 <> l2}.
 Proof.
   intros l1 l2.
   apply list_eq_dec; apply Nat.eq_dec.
 Qed.
 
-Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2),
-    p1 = p2.
+Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2), p1 = p2.
 Proof with try reflexivity; try assumption.
   intros l1 l2 p1 p2.
   apply Eqdep_dec.UIP_dec.
@@ -1261,8 +1228,7 @@ Fixpoint list_nat_eqb (l1 l2 : list nat) :=
   | _, _ => false
   end.
 
-Lemma list_nat_eqb_eq : forall l1 l2,
-    list_nat_eqb l1 l2 = true <-> l1 = l2.
+Lemma list_nat_eqb_eq : forall l1 l2, list_nat_eqb l1 l2 = true <-> l1 = l2.
 Proof.
   induction l1; intros l2; split; destruct l2; intros Heq; try now inversion Heq.
   - simpl in Heq; apply andb_prop in Heq as [Heqn Heq].
@@ -1272,8 +1238,7 @@ Proof.
     specialize (IHl1 l2) as [_ IHl1]; simpl; rewrite Nat.eqb_refl; now rewrite IHl1.
 Qed.
 
-Lemma list_nat_eqb_neq : forall l1 l2,
-    list_nat_eqb l1 l2 = false <-> l1 <> l2.
+Lemma list_nat_eqb_neq : forall l1 l2, list_nat_eqb l1 l2 = false <-> l1 <> l2.
 Proof.
   intros l1 l2.
   case_eq (list_nat_eqb l1 l2); intros H; split.

@@ -212,10 +212,10 @@ Proof.
     now rewrite all_distinct_app_perm.
 Qed.
 
-Lemma p_compo n (p2 : perm_of n) (p1 : perm_of (length (projT1 (sigT_of_sigT2 p2)))) : perm_of n.
+Lemma p_compo n (p2 : perm_of n) (p1 : perm_of n) : perm_of n.
 Proof.
-destruct p1 as [p1 Hp1 Hlen1]; destruct p2 as [p2 Hp2 Hlen2]; simpl in Hlen1.
-now exists (p1 ∘ p2); [ apply compo_perm_is_perm | rewrite app_nat_fun_length; simpl; subst ].
+destruct p1 as [p1 Hp1 Hlen1]; destruct p2 as [p2 Hp2 Hlen2]; simpl in Hlen1; symmetry in Hlen2; subst.
+now exists (p1 ∘ p2); [ apply compo_perm_is_perm | rewrite app_nat_fun_length; simpl ].
 Defined.
 
 Lemma Id_is_perm : forall n, is_perm (Id n) = true.
