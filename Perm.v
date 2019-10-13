@@ -788,6 +788,9 @@ Proof with try reflexivity; try assumption.
 Qed.
 
 (* UIP, eq_dec, ... *)
+Lemma perm_eq_as_list : forall (p1 p2 : perm), projT1 p1 = projT1 p2 -> p1 = p2.
+Proof. intros [l1 H1] [l2 H2]; simpl; intros Heq; subst; f_equal; apply UIP_bool. Qed.
+
 Lemma perm_eq_dec : forall (p1 p2 : perm), {p1 = p2} + {p1 <> p2}.
 Proof.
   intros [p1 Hperm1] [p2 Hperm2].
