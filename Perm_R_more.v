@@ -25,10 +25,8 @@ Lemma Perm_R_morph_transp {A} : forall P : list A -> Prop,
     Proper ((@Perm_R A) ==> iff) P.
 Proof with try eassumption.
   assert (forall P : list A -> Prop,
-             (forall a b l1 l2, P (l1 ++ a :: b :: l2) ->
-                                P (l1 ++ b :: a :: l2)) ->
-             forall l1 l2, Perm_R l1 l2 ->
-                           forall l0, P (l0 ++ l1) -> P (l0 ++ l2))
+             (forall a b l1 l2, P (l1 ++ a :: b :: l2) -> P (l1 ++ b :: a :: l2)) ->
+             forall l1 l2, Perm_R l1 l2 -> forall l0, P (l0 ++ l1) -> P (l0 ++ l2))
     as Himp.
   { intros P HP l1 l2 H.
     refine (Perm_R_rect_transpo (fun l1' l2' => forall l0, P (l0 ++ l1') -> P (l0 ++ l2')) _ _ _ _ H); intros...

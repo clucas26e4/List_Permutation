@@ -142,7 +142,7 @@ intros l l'.
 split with (cfun (length l) (length l')); repeat split.
 - apply cfun_is_perm.
 - length_lia.
-- now rewrite app_cfun_eq.
+- symmetry; apply app_cfun_eq.
 Defined.
 
 Lemma Perm_R_cons_append : forall l a, a :: l ~~ l ++ a :: nil.
@@ -265,6 +265,15 @@ Qed.
 
 Global Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_Type A) | 10.
 Proof. repeat intro; subst; eapply Perm_R_in_Type; eassumption. Qed.
+
+Lemma Perm_R_concat : forall p (L : list (list A)), length p = length L -> is_perm p = true ->
+  Perm_R (concat L) (concat (p ∘ L)).
+Proof.
+intros p L Hlen Hperm.
+destruct (perm_block p L (p ∘ L) Hlen Hperm eq_refl) as [q Hpermq [Hlenq Hcomp]].
+rewrite <- Hcomp.
+now exists q.
+Defined.
 
 End Perm_R_properties.
 
