@@ -6,6 +6,7 @@ Require Import Lia.
 Require Import Injective.
 Require Import List_more.
 Require Import List_Type_more.
+Require Import Permutation_Type_more.
 
 Require Import List_more2.
 
@@ -156,58 +157,19 @@ Defined.
 
 Instance Perm_R_Forall {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Forall P).
-Proof.
-  intros l1 l2 H.
-  apply Perm_R_to_Permutation_Type in H.
-  apply Permutation_Type.Permutation_Type_Permutation in H.
-  rewrite H ; reflexivity.
-Qed.
+Proof. intros ? ? ?; now apply Permutation_Type_Forall, Perm_R_to_Permutation_Type. Defined.
 
 Instance Perm_R_Exists {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Exists P).
-Proof.
-  intros l1 l2 H.
-  apply Perm_R_to_Permutation_Type in H.
-  apply Permutation_Type.Permutation_Type_Permutation in H.
-  rewrite H ; reflexivity.
-Qed.
+Proof. intros ? ? ?; now apply Permutation_Type_Exists, Perm_R_to_Permutation_Type. Defined.
 
 Instance Perm_R_Forall_Type {A} (P : A -> Type) :
   Proper ((@Perm_R A) ==> Basics.arrow) (Forall_Type P).
-Proof with try assumption.
-  intros l1 l2 H.
-  apply Perm_R_to_Permutation_Type in H.
-  induction H ; intro H1...
-  - inversion H1 ; subst.
-    apply IHPermutation_Type in X0.
-    constructor...
-  - inversion H1.
-    inversion X0.
-    constructor...
-    constructor...
-  - apply IHPermutation_Type2.
-    apply IHPermutation_Type1...
-Qed.
+Proof. intros ? ? ?; now apply Permutation_Type_Forall_Type, Perm_R_to_Permutation_Type. Defined.
 
 Instance Perm_R_Exists_Type {A} (P : A -> Type) :
   Proper ((@Perm_R A) ==> Basics.arrow) (Exists_Type P).
-Proof with try assumption.
-intros l1 l2 H.
-apply Perm_R_to_Permutation_Type in H.
-induction H ; intro H1...
-- inversion H1 ; subst.
-  + apply Exists_Type_cons_hd...
-  + apply IHPermutation_Type in X.
-    apply Exists_Type_cons_tl...
-- inversion H1 ; [ | inversion X ] ; subst.
-  + apply Exists_Type_cons_tl.
-    apply Exists_Type_cons_hd...
-  + apply Exists_Type_cons_hd...
-  + apply Exists_Type_cons_tl.
-    apply Exists_Type_cons_tl...
-- apply IHPermutation_Type2.
-  apply IHPermutation_Type1...
-Qed.
+Proof. intros ? ? ?; now apply Permutation_Type_Exists_Type, Perm_R_to_Permutation_Type. Defined.
 
 Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
   forall l1 l1' l2, l1 ~~ l1' -> Forall2_Type P l1 l2 ->

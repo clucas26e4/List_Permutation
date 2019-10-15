@@ -50,8 +50,8 @@ List_nat.vo: List_nat.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List
 Fun_nat.vo: Fun_nat.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo List_more2.vo List_nat.vo
 Transposition.vo: Transposition.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_more.vo List_more2.vo List_nat.vo Fun_nat.vo
 Perm.vo: Perm.v $(OLLIBSDIR)/Bool_more.vo $(OLLIBSDIR)/List_Type_more.vo List_nat.vo misc.vo Fun_nat.vo Transposition.vo
-Perm_R.vo : Perm_R.v $(OLLIBSDIR)/Permutation_Type.vo $(OLLIBSDIR)/Permutation_Type_solve.vo $(OLLIBSDIR)/Bool_more.vo List_nat.vo List_more2.vo List_Type_more2.vo Fun_nat.vo Perm.vo misc.vo
-Perm_R_more.vo : Perm_R_more.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo Fun_nat.vo Perm.vo Perm_R.vo
+Perm_R.vo : Perm_R.v $(OLLIBSDIR)/Permutation_Type.vo $(OLLIBSDIR)/Bool_more.vo List_nat.vo List_more2.vo List_Type_more2.vo Fun_nat.vo Perm.vo misc.vo
+Perm_R_more.vo : Perm_R_more.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo $(OLLIBSDIR)/Permutation_Type_more.vo Fun_nat.vo Perm.vo Perm_R.vo
 Perm_R_solve.vo : Perm_R_solve.v $(OLLIBSDIR)/List_more.vo Perm_R_more.vo
 CyclicPerm_R.vo : CyclicPerm_R.v $(OLLIBSDIR)/List_Type_more.vo List_nat.vo Perm.vo Perm_R_more.vo List_more2.vo Fun_nat.vo
 CyclicPerm_R_solve.vo : CyclicPerm_R_solve.v $(OLLIBSDIR)/List_more.vo CyclicPerm_R.vo

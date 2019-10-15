@@ -16,6 +16,8 @@ Require Import Perm.
 
 Set Implicit Arguments.
 
+
+
 Definition Perm_R {A} (l1 l2 : list A) : Type :=
   { p : _ & is_perm p = true & prod (length p = length l1) (l2 = app_nat_fun p l1) }.
 
@@ -65,6 +67,7 @@ Instance Perm_R_Equivalence A : Equivalence (@Perm_R A) | 10 := {
   Equivalence_Reflexive := @Perm_R_refl A ;
   Equivalence_Symmetric := @Perm_R_sym A ;
   Equivalence_Transitive := @Perm_R_trans A }.
+
 
 (* Some facts about Perm_R *)
 
@@ -367,7 +370,7 @@ Proof with try assumption; try reflexivity.
         rewrite app_nat_fun_length_cons...
         intro H; inversion H.
       * rewrite asso_app_nat_fun...
-    + rewrite asso_app_nat_fun...    
+    + rewrite asso_app_nat_fun...
 Qed.
 
 Ltac rect_transpo P Hperm :=
@@ -382,7 +385,6 @@ Ltac rect_transpo P Hperm :=
   let IHHperm2 := fresh "IHHperm2" in
   refine (Perm_R_rect_transpo P  _ _ _ _ Hperm); clear Hperm;
     [ | intros x la lb Hperm1 IHHperm1 | intros x y la | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
-
 
 Theorem Perm_R_ind_transpo {A} :
  forall P : list A -> list A -> Prop,
@@ -419,7 +421,6 @@ Proof.
   apply Perm_R_rect_transpo; try assumption.
   now intros x y l; apply Hswap.
 Qed.
-
 
 Theorem Perm_R_ind_transpo_bis {A} :
  forall P : list A -> list A -> Prop,
@@ -460,10 +461,9 @@ Ltac rect_transpo_bis P Hperm :=
     | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
 
 
-(* PERMUTATION_TYPE = PERM_R *)
-Require Import Permutation_Type_solve.
+(* Permutation_Type = Perm_R *)
 
-Lemma Permutation_Type_to_Perm_R {A} : forall l1 (l2 : list A),
+Lemma Permutation_Type_to_Perm_R {A} : forall (l1 l2 : list A),
   Permutation_Type l1 l2 -> l1 ~~ l2.
 Proof.
 intros l1 l2 Hp; induction Hp.
@@ -473,12 +473,25 @@ intros l1 l2 Hp; induction Hp.
 - now apply Perm_R_trans with l'.
 Defined.
 
-Lemma Perm_R_to_Permutation_Type {A} : forall (l1 : list A) l2,
+Lemma Perm_R_to_Permutation_Type {A} : forall (l1 l2 : list A),
   l1 ~~ l2 -> Permutation_Type l1 l2.
 Proof.
 intros l1 l2 Hperm.
 apply Perm_R_rect_transpo; (try now (intros; constructor)); [ | assumption ].
 clear; intros l l' l'' _ Hperm1 _ Hperm2.
 now transitivity l'.
+Qed.
+
+
+(* Canonicity *)
+
+Lemma Perm_R_eq_as_perm {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :
+  forall (l1 l2 : list A) (HP1 : Perm_R l1 l2) (HP2 : Perm_R l1 l2),
+    projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
+Proof.
+intros l1 l2 [p1 Hp1 [Heql1 Heqp1]] [p2 Hp2 [Heql2 Heqp2]] Heq; simpl in Heq; subst; repeat f_equal.
+- apply UIP_bool.
+- apply UIP_nat.
+- now apply Eqdep_dec.UIP_dec, list_eq_dec.
 Qed.
 

@@ -1208,18 +1208,14 @@ Proof.
 Qed.
 
 (* UIP, eq_dec, ...*)
+Lemma UIP_nat : forall (n1 n2 : nat) (p1 p2 : n1 = n2), p1 = p2.
+Proof. intros; apply Eqdep_dec.UIP_dec, Nat.eq_dec. Qed.
+
 Lemma list_nat_eq_dec : forall (l1 l2 : list nat), {l1 = l2} + {l1 <> l2}.
-Proof.
-  intros l1 l2.
-  apply list_eq_dec; apply Nat.eq_dec.
-Qed.
+Proof. intros; apply list_eq_dec, Nat.eq_dec. Qed.
 
 Lemma UIP_list_nat : forall (l1 l2 : list nat) (p1 p2 : l1 = l2), p1 = p2.
-Proof with try reflexivity; try assumption.
-  intros l1 l2 p1 p2.
-  apply Eqdep_dec.UIP_dec.
-  apply list_nat_eq_dec.
-Qed.
+Proof. intros; apply Eqdep_dec.UIP_dec, list_nat_eq_dec. Qed.
 
 Fixpoint list_nat_eqb (l1 l2 : list nat) :=
   match l1, l2 with
