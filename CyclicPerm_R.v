@@ -109,18 +109,18 @@ Defined.
 
 Instance CyclicPerm_R_trans : Transitive (@CyclicPerm_R A).
 Proof.
-(* TODO direct proof with cfun ∘ cfun = cfun *)
-  intros l1 l2 l3 HC1 HC2.
-  apply decomp_CyclicPerm_R in HC1 as [[la lb] Heq1 Heq2].
-  apply decomp_CyclicPerm_R in HC2 as [[la' lb'] Heq3 Heq4].
-  rewrite<- Heq2 in Heq3.
-  symmetry in Heq3.
-  apply dichot_Type_app in Heq3.
-  destruct Heq3 as [[l2' [Hl1 Hl2]] | [l4' [Hr1 Hr2]]] ; subst.
-  - rewrite <- app_assoc, (app_assoc lb').
-    apply CyclicPerm_R_commu.
-  - rewrite <- app_assoc, app_assoc.
-    apply CyclicPerm_R_commu.
+intros l1 l2 l3 [c1 HC1 [Hlen1 Heq1]] [c2 HC2 [Hlen2 Heq2]]; subst.
+destruct (cond_cyclic_cfun _ HC1) as [(i,j) Heq]; subst.
+destruct (cond_cyclic_cfun _ HC2) as [(k,l) Heq]; subst.
+rewrite app_nat_fun_length in Hlen2 by assumption.
+rewrite_all cfun_length.
+destruct (cfun_cfun i j k l) as [(n,m) Heq]; [ lia | ].
+rewrite <- asso_app_nat_fun, Heq.
+exists (cfun n m); [ | split ].
+- apply cfun_cond_cyclic.
+- rewrite <- Heq.
+  rewrite app_nat_fun_length; rewrite ? cfun_length; lia.
+- reflexivity.
 Defined.
 
 Global Instance CyclicPerm_R_equiv : Equivalence (@CyclicPerm_R A).
@@ -203,67 +203,44 @@ Proof.
   now exists (l', l'').
 Qed.
 
-(* TODO use '(l1,l2,l3,l4) rather than ql *)
 Lemma CyclicPerm_R_app_app_inv : forall la lb lc ld,
   la ++ lb ~°~ lc ++ ld ->
-     { ql : _ & prod (prod 
-        (CyclicPerm_R la (fst (fst ql) ++ fst (snd ql)))
-        (CyclicPerm_R lb (snd (fst ql) ++ snd (snd ql))))
-        (prod
-        (CyclicPerm_R lc (fst (fst ql) ++ snd (fst ql)))
-        (CyclicPerm_R ld (fst (snd ql) ++ snd (snd ql)))) }
-   + { pl : _ & prod (prod
-        (CyclicPerm_R la (ld ++ fst pl))
-        (CyclicPerm_R lc (lb ++ snd pl)))
-        (CyclicPerm_R (fst pl) (snd pl)) }
-   + { pl : _ & prod (prod
-        (CyclicPerm_R lb (ld ++ fst pl))
-        (CyclicPerm_R lc (la ++ snd pl)))
-        (CyclicPerm_R (fst pl) (snd pl)) }
-   + { pl : _ & prod (prod
-        (CyclicPerm_R la (lc ++ fst pl))
-        (CyclicPerm_R ld (lb ++ snd pl)))
-        (CyclicPerm_R (fst pl) (snd pl)) }
-   + { pl : _ & prod (prod
-        (CyclicPerm_R lb (lc ++ fst pl))
-        (CyclicPerm_R ld (la ++ snd pl)))
-        (CyclicPerm_R (fst pl) (snd pl)) }.
-Proof with try assumption.
+     {'(l1',l2',l3',l4') : _ & prod (la ~°~ l1' ++ l3') (lb ~°~ l2' ++ l4')
+                             & prod (lc ~°~ l1' ++ l2') (ld ~°~ l3' ++ l4') }
+   + {'(l1',l2') : _ & prod (la ~°~ ld ++ l1') (lc ~°~ lb ++ l2')
+                     & l1' ~°~ l2' }
+   + {'(l1',l2') : _ & prod (lb ~°~ ld ++ l1') (lc ~°~ la ++ l2')
+                     & l1' ~°~ l2' }
+   + {'(l1',l2') : _ & prod (la ~°~ lc ++ l1') (ld ~°~ lb ++ l2')
+                     & l1' ~°~ l2' }
+   + {'(l1',l2') : _ & prod (lb ~°~ lc ++ l1') (ld ~°~ la ++ l2')
+                     & l1' ~°~ l2' }.
+Proof.
 intros l1 l2 l3 l4 HC.
 apply decomp_CyclicPerm_R in HC as [[lx ly] Hx Hy].
 dichot_Type_app_exec Hx ; dichot_Type_app_exec Hy ; subst.
 - left ; left ; left ; right.
   exists (l ++ l0 , l0 ++ l).
-  simpl ; split ; [ split | ] ; 
-    try (rewrite <- ? app_assoc ; apply CyclicPerm_R_app_rot).
-  apply CyclicPerm_R_commu.
+  + split; rewrite <- ? app_assoc; apply CyclicPerm_R_app_rot.
+  + apply CyclicPerm_R_commu.
 - dichot_Type_app_exec Hy0 ; subst.
   + left ; left ; left ; left.
-    exists (l, l0, (lx, l5)).
-    simpl ; split ; [ split | split ] ; try apply CyclicPerm_R_commu...
-    * apply CyclicPerm_R_refl.
-    * apply CyclicPerm_R_refl.
+    exists (l, l0, lx, l5); split; try apply CyclicPerm_R_commu; reflexivity.
   + left ; right.
     exists (l1 ++ lx , lx ++ l1).
-    split ; [ split | ] ; 
-      try (rewrite <- ? app_assoc ; apply CyclicPerm_R_app_rot)...
-    apply CyclicPerm_R_commu.
+    * split; rewrite <- ? app_assoc; apply CyclicPerm_R_app_rot.
+    * apply CyclicPerm_R_commu.
 - dichot_Type_app_exec Hy1 ; subst.
   + left ; left ; right.
     exists (ly ++ l2, l2 ++ ly).
-    split ; [ split | ] ; 
-      try (rewrite <- ? app_assoc ; apply CyclicPerm_R_app_rot)...
-    apply CyclicPerm_R_commu.
+    * split; rewrite <- ? app_assoc; apply CyclicPerm_R_app_rot.
+    * apply CyclicPerm_R_commu.
   + left ; left ; left ; left.
-    exists (l, ly, (l3, l0)).
-    simpl ; split ; [ split | split ] ; try apply CyclicPerm_R_commu...
-    * apply CyclicPerm_R_refl.
-    * apply CyclicPerm_R_refl.
+    exists (l, ly, l3, l0); split; try apply CyclicPerm_R_commu; reflexivity.
 - right.
   exists (l5 ++ l0, l0 ++ l5).
-  split ; [ split | ] ; 
-    try (rewrite <- ? app_assoc ; apply CyclicPerm_R_app_rot)...
-  apply CyclicPerm_R_commu.
+  + split; rewrite <- ? app_assoc; apply CyclicPerm_R_app_rot.
+  + apply CyclicPerm_R_commu.
 Defined.
 
 (** [rev], [in], [map], [Forall], [Exists], etc. *)

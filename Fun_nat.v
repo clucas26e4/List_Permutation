@@ -489,6 +489,19 @@ Qed.
 Lemma all_distinct_seq : forall s l, all_distinct (seq s l) = true.
 Proof. intros; apply all_distinct_NoDup, seq_NoDup. Qed.
 
+Lemma app_nat_fun_seq_seq : forall i j k n, k + n <= j -> seq k n ∘ seq i j = seq (i + k) n.
+Proof.
+intros i j k n; revert i k; induction n; intros i k Hlt; simpl.
+- apply app_nat_fun_nil.
+- replace j with (S (j - 1)) by lia.
+  simpl seq.
+  rewrite app_nat_fun_cons; f_equal.
+  + rewrite seq_cons, seq_nth; lia.
+  + replace (S (i + k)) with (i + S k) by lia.
+    rewrite <- IHn; [ | lia ].
+    f_equal; rewrite seq_cons; f_equal; lia.
+Qed.
+
 Lemma app_Id {A} : forall (l : list A), Id (length l) ∘ l = l.
 Proof.
   induction l; [ reflexivity | ].
@@ -567,6 +580,45 @@ replace (cfun n m) with (cfun (length (seq m n)) (length (Id m))).
   symmetry; apply seq_app.
 - rewrite 2 seq_length; reflexivity.
 Qed.
+
+Lemma cfun_cfun_le : forall i j k l, i + j = k + l -> k <= j ->
+  cfun k l ∘ cfun i j = cfun (i + k) (j - k).
+Proof.
+intros i j k l Hlen Hlt; unfold cfun.
+rewrite app_nat_fun_app.
+replace j with (k + (j - k)) at 2 by lia.
+rewrite 2 seq_app; rewrite <- app_assoc.
+rewrite app_Id_ext by apply seq_length.
+rewrite app_assoc; f_equal.
+replace l with (j - k + i) by lia; rewrite seq_app.
+replace (k + (j - k)) with (j - k + k) by lia; rewrite app_nat_fun_app; f_equal.
+- rewrite app_nat_fun_left by (apply all_lt_seq; rewrite seq_length; lia).
+  apply app_nat_fun_seq_seq; lia.
+- replace (j - k + k) with j by lia.
+  change j with (0 + j) at 1; rewrite <- incr_all_seq.
+  rewrite app_nat_fun_right; rewrite ? seq_length; try lia.
+  + replace i with (length (Id i)) at 1 by apply seq_length.
+    now rewrite app_Id.
+  + apply all_lt_seq; lia.
+Defined.
+
+Lemma cfun_cfun_ge : forall i j k l, i + j = k + l -> k >= j ->
+  cfun k l ∘ cfun i j = cfun (k - j) (j + l).
+Proof.
+intros i j k l Hlen Hgt.
+rewrite <- (app_Id (cfun (k - j) (j + l))), cfun_length.
+replace (k - j + (j + l)) with (l + k) by lia.
+rewrite <- cfun_inv, asso_app_nat_fun; f_equal.
+rewrite cfun_cfun_le; [ f_equal | | ]; lia.
+Defined.
+
+Lemma cfun_cfun : forall i j k l, i + j = k + l -> {'(n, m) : _ & cfun k l ∘ cfun i j = cfun n m}.
+Proof.
+intros i j k l Hlen.
+destruct (Compare_dec.le_lt_dec j k) as [Hle | Hgt].
+- exists (k - j, j + l); now apply cfun_cfun_ge.
+- exists (i + k, j - k); now apply cfun_cfun_le; try lia.
+Defined.
 
 Lemma cfun_arg_inj : forall n1 n2 m1 m2, cfun (S n1) (S m1) = cfun (S n2) (S m2) -> n1 = n2 /\ m1 = m2.
 Proof.
