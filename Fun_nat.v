@@ -579,6 +579,7 @@ split.
   simpl in Heq; rewrite ? app_length in Heq; simpl in Heq; rewrite ? seq_length in Heq; lia.
 Qed.
 
+
 (* Extensionality *)
 
 Lemma app_nat_fun_ext : forall f1 f2,

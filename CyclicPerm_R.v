@@ -11,111 +11,105 @@ Require Import Perm.
 Require Import Perm_R_more.
 Require Import misc.
 
+
+
 (** Definition *)
 
-Definition cond_cyclicPerm l := {' (n , m) : _ & l = cfun (S n) (S m) } + { l = Id (length l) }.
+Definition cond_cyclicPerm l := {' (n, m) : _ & l = cfun (S n) (S m) } + { l = Id (length l) }.
+
+Lemma Id_cond_cyclic : forall n, cond_cyclicPerm (Id n).
+Proof. intros; right; now rewrite seq_length. Qed.
+
+Lemma cfun_S_cond_cyclic : forall n m, cond_cyclicPerm (cfun (S n) (S m)).
+Proof. intros; left; now split with (n, m). Qed.
+
+Lemma cfun_cond_cyclic : forall n m, cond_cyclicPerm (cfun n m).
+Proof.
+intros n m; destruct n ; [ | destruct m ].
+- unfold cfun; simpl; rewrite app_nil_r.
+  apply Id_cond_cyclic.
+- unfold cfun; simpl; rewrite seq_cons.
+  apply Id_cond_cyclic.
+- apply cfun_S_cond_cyclic.
+Qed.
+
+Lemma cond_cyclic_cfun_lt : forall l, cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m & m = 0 -> n = 0}.
+Proof.
+intros l [[[n m] Heqcp] | Heqcp]; subst.
+- now exists (S n, S m).
+- exists (0, length l).
+  + now unfold cfun; rewrite app_nil_r.
+  + now intros _.
+Qed.
+
+Lemma cond_cyclic_cfun : forall l, cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m }.
+Proof. intros l Hc; destruct (cond_cyclic_cfun_lt l Hc) as [(n,m) Heq Hlt]; now exists (n,m). Qed.
+
 
 Definition CyclicPerm_R {A} (l1 l2 : list A) :=
-  { f : _ & cond_cyclicPerm f & prod (length f = length l1) (l2 = app_nat_fun f l1) }.
+  { f : _ & cond_cyclicPerm f & prod (length f = length l1) (l2 = f ∘ l1) }.
 
-Lemma decomp_CyclicPerm_R {A} : forall (l1 l2 : list A),
-  CyclicPerm_R l1 l2 ->
-    {' (la , lb) : _ & la ++ lb = l1 & lb ++ la = l2 }.
-Proof with try reflexivity.
-  intros l1 l2 [f cp [Hlen Heq]].
-  destruct cp.
-  - destruct s as [[n m] Heqf].
-    symmetry in Heqf; destruct Heqf.
-    split with (app_nat_fun (Id (S n)) l1, app_nat_fun (incr_all (Id (S m)) (S n)) l1).
-    + rewrite <- app_nat_fun_app.
-      rewrite incr_all_seq.
-      rewrite <- seq_app.
-      simpl in Hlen.
-      rewrite app_length in Hlen; simpl in Hlen; rewrite 2 seq_length in Hlen.
-      replace (S n + S m) with (length l1) by lia.
-      rewrite app_Id...
-    + rewrite Heq.
-      unfold cfun.
-      rewrite app_nat_fun_app...
-      rewrite incr_all_seq...
-  - rewrite e in Heq.
-    rewrite Hlen in Heq.
-    rewrite app_Id in Heq.
-    subst.
-    split with (l1 , nil)...
-    apply app_nil_r.
-Qed.
+Infix "~°~" := CyclicPerm_R (at level 70).
 
-Lemma CyclicPerm_R_commu {A} : forall (l1 l2 : list A),
-  CyclicPerm_R (l1 ++ l2) (l2 ++ l1).
-Proof with try reflexivity.
-  intros l1 l2.
-  destruct l1 ; [ | destruct l2].
-  - split with (Id (length l2)); repeat split.
-    + right; rewrite seq_length...
-    + rewrite seq_length...
-    + rewrite app_Id, app_nil_r...
-  - split with (Id (length (a :: l1))); repeat split.
-    + right; rewrite seq_length...
-    + rewrite seq_length, app_nil_r...
-    + rewrite app_nil_r, app_Id...
-  - split with (cfun (length (a :: l1)) (length (a0 :: l2))); repeat split.
-    + left; split with (length l1, length l2)...
-    + length_lia.
-    + rewrite app_cfun_eq...
-Qed.
 
-Instance CyclicPerm_Perm_R {A} : Proper (CyclicPerm_R ==> (@Perm_R A)) (fun a => a).
+Section Properties.
+
+Context {A : Type}.
+Implicit Types la lb lc : list A.
+
+Lemma CyclicPerm_R_commu : forall la lb, la ++ lb ~°~ lb ++ la.
 Proof.
-intros l1 l2 [cp [[[n m] Heqcp] | Heqcp] [Hlen Heq]].
-- symmetry in Heqcp; destruct Heqcp.
-  split with (cfun (S n) (S m)); repeat split; try assumption.
-  apply cfun_is_perm.
-- simpl in *.
-  rewrite Heqcp in Heq.
-  rewrite Hlen in Heq.
-  rewrite app_Id in Heq.
-  now subst.
+intros l1 l2.
+split with (cfun (length l1) (length l2)); [ | split ].
+- apply cfun_cond_cyclic.
+- length_lia.
+- symmetry; apply app_cfun_eq.
+Defined.
+
+Lemma decomp_CyclicPerm_R : forall la lb,
+  la ~°~ lb -> {' (la', lb') : _ & la' ++ lb' = la & lb' ++ la' = lb }.
+Proof.
+intros l1 l2 [f Hc [Hlen Heq]]; subst.
+destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
+exists (Id n ∘ l1, seq n m ∘ l1).
+- rewrite <- app_nat_fun_app, <- seq_app.
+  rewrite cfun_length in Hlen; rewrite Hlen.
+  apply app_Id.
+- symmetry; apply app_nat_fun_app.
 Qed.
 
-Instance CyclicPerm_R_refl {A} : Reflexive (@CyclicPerm_R A).
+Instance CyclicPerm_Perm_R : Proper (CyclicPerm_R ==> (@Perm_R A)) (fun a => a).
+Proof.
+intros l1 l2 [f Hc [Hlen Heq]]; subst.
+destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
+now exists (cfun n m); [ apply cfun_is_perm | ].
+Defined.
+
+Instance CyclicPerm_R_refl : Reflexive (@CyclicPerm_R A).
 Proof.
   intros l.
   split with (Id (length l)); repeat split.
-  - now right; rewrite seq_length.
+  - apply Id_cond_cyclic.
   - length_lia.
   - symmetry; apply app_Id.
 Defined.
 
-Instance CyclicPerm_R_sym {A} : Symmetric (@CyclicPerm_R A).
-Proof with try reflexivity.
-  intros l1 l2 [f [((n & m) & Heq) | Heq] [Hlen Heqf]].
-  simpl in *; subst.
-  - split with (cfun (S m) (S n)); repeat split.
-    + left; split with (m, n)...
-    + destruct l1.
-      * destruct n; destruct m; try now inversion Hlen...
-      * unfold app_nat_fun; unfold app_nat_fun_dflt.
-        rewrite map_length; rewrite 2 cfun_length; lia.
-    + rewrite<- asso_app_nat_fun.
-      rewrite cfun_inv.
-      replace (S n + S m) with (length l1).
-      2:{ rewrite<- Hlen.
-          unfold cfun.
-          rewrite app_length; rewrite 2 seq_length; lia. }
-      rewrite app_Id...
-  - rewrite Hlen in Heq.
-    split with (Id (length l2)); repeat split.
-    + right.
-      rewrite seq_length...
-    + length_lia.
-    + rewrite app_Id...
-      rewrite Heqf, Heq.
-      symmetry; apply app_Id.
+Instance CyclicPerm_R_sym : Symmetric (@CyclicPerm_R A).
+Proof.
+intros l l' [f Hc [Hlen Heq]]; subst.
+destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
+exists (cfun m n); [ | split ].
+- apply cfun_cond_cyclic.
+- rewrite app_nat_fun_length by assumption.
+  length_lia.
+- rewrite <- asso_app_nat_fun, cfun_inv.
+  rewrite cfun_length in Hlen; rewrite Hlen.
+  symmetry; apply app_Id.
 Defined.
 
-Instance CyclicPerm_R_trans {A} : Transitive (@CyclicPerm_R A).
+Instance CyclicPerm_R_trans : Transitive (@CyclicPerm_R A).
 Proof.
+(* TODO direct proof with cfun ∘ cfun = cfun *)
   intros l1 l2 l3 HC1 HC2.
   apply decomp_CyclicPerm_R in HC1 as [[la lb] Heq1 Heq2].
   apply decomp_CyclicPerm_R in HC2 as [[la' lb'] Heq3 Heq4].
@@ -123,15 +117,13 @@ Proof.
   symmetry in Heq3.
   apply dichot_Type_app in Heq3.
   destruct Heq3 as [[l2' [Hl1 Hl2]] | [l4' [Hr1 Hr2]]] ; subst.
-  - rewrite <- app_assoc.
-    rewrite (app_assoc lb').
-    eapply CyclicPerm_R_commu.
-  - rewrite <- app_assoc.
-    rewrite app_assoc.
-    eapply CyclicPerm_R_commu.
+  - rewrite <- app_assoc, (app_assoc lb').
+    apply CyclicPerm_R_commu.
+  - rewrite <- app_assoc, app_assoc.
+    apply CyclicPerm_R_commu.
 Defined.
 
-Instance CyclicPerm_R_equiv {A} : Equivalence (@CyclicPerm_R A).
+Global Instance CyclicPerm_R_equiv : Equivalence (@CyclicPerm_R A).
 Proof.
 split.
 - apply CyclicPerm_R_refl.
@@ -139,130 +131,59 @@ split.
 - apply CyclicPerm_R_trans.
 Qed.
 
-Lemma CyclicPerm_R_app {A} : forall l1 l2 l3 : list A,
-  CyclicPerm_R (l1 ++ l2) l3 -> CyclicPerm_R (l2 ++ l1) l3.
-Proof.
-intros l1 l2 l3 HC.
-apply (CyclicPerm_R_trans _ (l1 ++ l2)) ; try assumption.
-eapply CyclicPerm_R_commu.
-Defined.
+Lemma CyclicPerm_R_app : forall la lb lc, la ++ lb ~°~ lc -> lb ++ la ~°~ lc.
+Proof. intros l1 l2 l3 HC; now transitivity (l1 ++ l2); [ apply CyclicPerm_R_commu | ]. Defined.
 
-Lemma CyclicPerm_R_app_rot {A} : forall (l1 : list A) l2 l3,
-   CyclicPerm_R (l1 ++ l2 ++ l3) (l2 ++ l3 ++ l1).
-Proof.
-intros l1 l2 l3.
-rewrite (app_assoc l2).
-apply CyclicPerm_R_commu.
-Defined.
+Lemma CyclicPerm_R_app_rot : forall la lb lc, la ++ lb ++ lc ~°~ lb ++ lc ++ la.
+Proof. intros l1 l2 l3; rewrite (app_assoc l2); apply CyclicPerm_R_commu. Defined.
 
-Lemma CyclicPerm_R_last {A} : forall (a : A) l,
-  CyclicPerm_R (a :: l) (l ++ a :: nil).
-Proof.
-intros.
-rewrite <- (app_nil_l l).
-rewrite app_comm_cons.
-apply CyclicPerm_R_commu.
-Defined.
+Lemma CyclicPerm_R_last : forall a la, a :: la ~°~ la ++ a :: nil.
+Proof. intros a la; change (a :: la) with ((a :: nil) ++ la); apply CyclicPerm_R_commu. Defined.
 
-Lemma CyclicPerm_R_swap {A} : forall a b : A,
-  CyclicPerm_R (a :: b :: nil) (b :: a :: nil).
-Proof.
-intros.
-change (a :: b :: nil) with ((a :: nil) ++ (b :: nil)).
-change (b :: a :: nil) with ((b :: nil) ++ (a :: nil)).
-apply CyclicPerm_R_commu.
-Defined.
+Lemma CyclicPerm_R_swap : forall a b : A, a :: b :: nil ~°~ b :: a :: nil.
+Proof. intros a b; change (b :: a :: nil) with ((b :: nil) ++ (a :: nil)); apply CyclicPerm_R_last. Defined.
 
-Lemma CyclicPerm_R_cons {A} : forall l1 (a : A) l2,
-  CyclicPerm_R (l1 ++ (a :: nil)) l2 -> CyclicPerm_R (a :: l1) l2.
-Proof.
-intros l1 a l2 HC.
-apply (CyclicPerm_R_app l1 (a :: nil)) ; assumption.
-Defined.
+Lemma CyclicPerm_R_cons : forall la a lb, la ++ a :: nil ~°~ lb -> a :: la ~°~ lb.
+Proof. intros l1 a l2 HC; now apply (CyclicPerm_R_app l1 (a :: nil)). Defined.
 
-Lemma CyclicPerm_R_morph_cons {A} : forall P : list A -> Prop,
-  (forall a l, P (l ++ a :: nil) -> P (a :: l)) ->
-  Proper (CyclicPerm_R ==> Basics.impl) P.
-Proof with try eassumption.
-assert (forall P : list A -> Prop,
-         (forall a l, P (l ++ a :: nil) -> P (a :: l)) ->
-         forall l1 l2, CyclicPerm_R l1 l2 -> P l1 -> P l2)
-  as Himp.
-{
-  intros P HP l1 l2 HC.
-  apply decomp_CyclicPerm_R in HC as [[l0 l3] Heql1 Heql2].
-  subst.
-  revert l0 ; induction l3 using rev_ind ; intros l0 HPl.
-  - rewrite app_nil_r in HPl...
-  - rewrite app_assoc in HPl.
-    apply HP in HPl.
-    rewrite <- app_assoc.
-    rewrite <- app_comm_cons.
-    rewrite app_nil_l...
-    apply IHl3...
-}
-intros P HP l1 l2 HC H.
-eapply Himp...
+Lemma CyclicPerm_R_morph_cons : forall P : list A -> Prop,
+  (forall a l, P (l ++ a :: nil) -> P (a :: l)) ->  Proper (CyclicPerm_R ==> Basics.impl) P.
+Proof.
+enough (forall P : list A -> Prop,
+         (forall a l, P (l ++ a :: nil) -> P (a :: l)) -> forall l1 l2, CyclicPerm_R l1 l2 -> P l1 -> P l2)
+  as Himp by now intros P HP l1 l2 HC H; apply Himp with l1.
+intros P HP l1 l2 HC.
+apply decomp_CyclicPerm_R in HC as [[l0 l3] Heql1 Heql2]; subst.
+revert l0 ; induction l3 using rev_ind ; intros l0 HPl.
+- now rewrite app_nil_r in HPl.
+- rewrite app_assoc in HPl.
+  apply HP in HPl.
+  rewrite <- app_assoc, <- app_comm_cons.
+  now apply IHl3.
 Qed.
 
-Lemma CyclicPerm_R_nil {A} : forall l : list A,
-  CyclicPerm_R nil l -> l = nil.
-Proof.
-  intros.
-  apply Perm_R_nil.
-  apply CyclicPerm_Perm_R.
-  assumption.
-Qed.
+Lemma CyclicPerm_R_nil : forall la, nil ~°~ la -> la = nil.
+Proof. intros; now apply Perm_R_nil, CyclicPerm_Perm_R. Qed.
 
-Lemma CyclicPerm_R_nil_cons {A} : forall l (a : A),
-  CyclicPerm_R nil (a :: l) -> False.
-Proof.
-  intros l a HC.
-  apply CyclicPerm_R_nil in HC.
-  inversion HC.
-Qed.
+Lemma CyclicPerm_R_nil_cons : forall la a, nil ~°~ a :: la -> False.
+Proof. intros l a HC; apply CyclicPerm_R_nil in HC; inversion HC. Qed.
 
-Lemma CyclicPerm_R_one {A} : forall a b : A,
-    CyclicPerm_R (a :: nil) (b :: nil) -> a = b.
-Proof.
-  intros.
-  apply Perm_R_length_1.
-  apply CyclicPerm_Perm_R.
-  assumption.
-Qed.
+Lemma CyclicPerm_R_one : forall a b : A, a :: nil ~°~ b :: nil -> a = b.
+Proof. intros; now apply Perm_R_length_1, CyclicPerm_Perm_R. Qed.
 
-Lemma CyclicPerm_R_two {A} : forall a1 a2 b1 b2 : A,
-  CyclicPerm_R (a1 :: a2 :: nil) (b1 :: b2 :: nil) ->
-    { a1 = b1 /\ a2 = b2 } +  { a1 = b2 /\ a2 = b1 }.
-Proof.
-  intros.
-  apply Perm_R_length_2.
-  apply CyclicPerm_Perm_R.
-  assumption.
-Qed.
+Lemma CyclicPerm_R_two : forall a1 a2 b1 b2 : A,
+  a1 :: a2 :: nil ~°~ b1 :: b2 :: nil -> { a1 = b1 /\ a2 = b2 } +  { a1 = b2 /\ a2 = b1 }.
+Proof. intros; now apply Perm_R_length_2, CyclicPerm_Perm_R. Qed.
 
-Lemma CyclicPerm_R_one_inv {A} : forall l (a : A),
-  CyclicPerm_R (a :: nil) l -> l = a :: nil.
-Proof.
-  intros.
-  apply Perm_R_length_1_inv.
-  apply CyclicPerm_Perm_R.
-  assumption.
-Qed.
+Lemma CyclicPerm_R_one_inv : forall la a, a :: nil ~°~ la -> la = a :: nil.
+Proof. intros; now apply Perm_R_length_1_inv, CyclicPerm_Perm_R. Qed.
 
-Lemma CyclicPerm_R_two_inv {A} : forall (a : A) b l,
-  CyclicPerm_R (a :: b :: nil) l ->
-  { l = a :: b :: nil } + { l = b :: a :: nil }.
-Proof.
-  intros.
-  apply Perm_R_length_2_inv.
-  apply CyclicPerm_Perm_R.
-  assumption.
-Qed.
+Lemma CyclicPerm_R_two_inv : forall a b la,
+  a :: b :: nil ~°~ la -> { la = a :: b :: nil } + { la = b :: a :: nil }.
+Proof. intros; now apply Perm_R_length_2_inv, CyclicPerm_Perm_R. Qed.
 
-Lemma CyclicPerm_R_vs_elt_inv {A} : forall (a : A) l l1 l2,
-  CyclicPerm_R l (l1 ++ a :: l2) ->
-    { pl | l2 ++ l1 = snd pl ++ fst pl & l = fst pl ++ a :: snd pl }.
+Lemma CyclicPerm_R_vs_elt_inv : forall a la lb lc,
+  la ~°~ lb ++ a :: lc -> {'(l1', l2') | lc ++ lb = l2' ++ l1' & la = l1' ++ a :: l2' }.
 Proof.
   intros a l l1 l2 HC.
   apply decomp_CyclicPerm_R in HC as [[l0 l3] H1 H2]; subst.
@@ -272,41 +193,40 @@ Proof.
   - exists (l4, l2 ++ l3) ; simpl ; now rewrite <- app_assoc.
 Qed.
 
-Lemma CyclicPerm_R_vs_cons_inv {A} : forall (a : A) l l1,
-  CyclicPerm_R l (a :: l1) ->
-    { pl | l1 = snd pl ++ fst pl & l = fst pl ++ a :: snd pl }.
+Lemma CyclicPerm_R_vs_cons_inv : forall a la lb,
+  la ~°~ a :: lb -> {'(l1', l2') | lb = l2' ++ l1' & la = l1' ++ a :: l2' }.
 Proof.
   intros a l l1 HC.
   rewrite <- (app_nil_l (a::_)) in HC.
-  apply CyclicPerm_R_vs_elt_inv in HC.
-  destruct HC as [(l' & l'') H1 H2].
+  apply CyclicPerm_R_vs_elt_inv in HC; destruct HC as [(l' & l'') H1 H2].
   rewrite app_nil_r in H1 ; subst.
-  exists (l', l'') ; split ; reflexivity.
+  now exists (l', l'').
 Qed.
 
-Lemma CyclicPerm_R_app_app_inv {A} : forall l1 l2 l3 l4 : list A,
-  CyclicPerm_R (l1 ++ l2) (l3 ++ l4) ->
+(* TODO use '(l1,l2,l3,l4) rather than ql *)
+Lemma CyclicPerm_R_app_app_inv : forall la lb lc ld,
+  la ++ lb ~°~ lc ++ ld ->
      { ql : _ & prod (prod 
-        (CyclicPerm_R l1 (fst (fst ql) ++ fst (snd ql)))
-        (CyclicPerm_R l2 (snd (fst ql) ++ snd (snd ql))))
+        (CyclicPerm_R la (fst (fst ql) ++ fst (snd ql)))
+        (CyclicPerm_R lb (snd (fst ql) ++ snd (snd ql))))
         (prod
-        (CyclicPerm_R l3 (fst (fst ql) ++ snd (fst ql)))
-        (CyclicPerm_R l4 (fst (snd ql) ++ snd (snd ql)))) }
+        (CyclicPerm_R lc (fst (fst ql) ++ snd (fst ql)))
+        (CyclicPerm_R ld (fst (snd ql) ++ snd (snd ql)))) }
    + { pl : _ & prod (prod
-        (CyclicPerm_R l1 (l4 ++ fst pl))
-        (CyclicPerm_R l3 (l2 ++ snd pl)))
+        (CyclicPerm_R la (ld ++ fst pl))
+        (CyclicPerm_R lc (lb ++ snd pl)))
         (CyclicPerm_R (fst pl) (snd pl)) }
    + { pl : _ & prod (prod
-        (CyclicPerm_R l2 (l4 ++ fst pl))
-        (CyclicPerm_R l3 (l1 ++ snd pl)))
+        (CyclicPerm_R lb (ld ++ fst pl))
+        (CyclicPerm_R lc (la ++ snd pl)))
         (CyclicPerm_R (fst pl) (snd pl)) }
    + { pl : _ & prod (prod
-        (CyclicPerm_R l1 (l3 ++ fst pl))
-        (CyclicPerm_R l4 (l2 ++ snd pl)))
+        (CyclicPerm_R la (lc ++ fst pl))
+        (CyclicPerm_R ld (lb ++ snd pl)))
         (CyclicPerm_R (fst pl) (snd pl)) }
    + { pl : _ & prod (prod
-        (CyclicPerm_R l2 (l3 ++ fst pl))
-        (CyclicPerm_R l4 (l1 ++ snd pl)))
+        (CyclicPerm_R lb (lc ++ fst pl))
+        (CyclicPerm_R ld (la ++ snd pl)))
         (CyclicPerm_R (fst pl) (snd pl)) }.
 Proof with try assumption.
 intros l1 l2 l3 l4 HC.
@@ -347,7 +267,7 @@ dichot_Type_app_exec Hx ; dichot_Type_app_exec Hy ; subst.
 Defined.
 
 (** [rev], [in], [map], [Forall], [Exists], etc. *)
-Instance CyclicPerm_R_rev {A} : Proper (CyclicPerm_R ==> CyclicPerm_R) (@rev A).
+Instance CyclicPerm_R_rev : Proper (CyclicPerm_R ==> CyclicPerm_R) (@rev A).
 Proof.
 intro l ; induction l ; intros l' HC.
 - apply CyclicPerm_R_nil in HC ; subst ; apply CyclicPerm_R_refl.
@@ -359,15 +279,17 @@ intro l ; induction l ; intros l' HC.
   apply CyclicPerm_R_commu.
 Defined.
 
-Instance CyclicPerm_R_in {A} (a : A) : Proper (CyclicPerm_R ==> Basics.impl) (In a).
+Instance CyclicPerm_R_in (a : A) : Proper (CyclicPerm_R ==> Basics.impl) (In a).
 Proof with try eassumption.
 intros l l' HC Hin.
 eapply Perm_R_in...
 apply CyclicPerm_Perm_R...
 Qed.
 
-Instance CyclicPerm_R_map {A B} (f : A -> B) :
-   Proper (CyclicPerm_R ==> CyclicPerm_R) (map f).
+End Properties.
+
+
+Instance CyclicPerm_R_map {A B} (f : A -> B) : Proper (CyclicPerm_R ==> CyclicPerm_R) (map f).
 Proof.
 intros l l' HC.
 apply decomp_CyclicPerm_R in HC as [[lx ly] Hx Hy]; subst ; rewrite ? map_app.
@@ -375,8 +297,7 @@ apply CyclicPerm_R_commu.
 Defined.
 
 Lemma CyclicPerm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
-  CyclicPerm_R l1 (map f l2) ->
-    { l : _ & l1 = map f l & (CyclicPerm_R l2 l) }.
+  l1 ~°~ map f l2 -> { l : _ & l1 = map f l & l2 ~°~ l }.
 Proof with try assumption.
 induction l1 ; intros l2 HP.
 - exists nil ; try reflexivity.
@@ -394,6 +315,14 @@ induction l1 ; intros l2 HP.
   + simpl ; rewrite ? map_app ; reflexivity.
   + apply (CyclicPerm_R_commu l0).
 Defined.
+
+Lemma CyclicPerm_R_image {A B} : forall (f : A -> B) a l l',
+  a :: l ~°~ map f l' -> { a' | a = f a' }.
+Proof.
+intros f a l l' HP.
+eapply Perm_R_image.
+apply CyclicPerm_Perm_R ; eassumption.
+Qed.
 
 Instance CyclicPerm_R_Forall {A} (P : A -> Prop) :
   Proper (CyclicPerm_R ==> Basics.impl) (Forall P).
@@ -427,12 +356,10 @@ eapply Perm_R_Exists_Type...
 apply CyclicPerm_Perm_R...
 Qed.
 
-Lemma CyclicPerm_R_Forall2 {A B} (P : A -> B -> Type) :
-  forall l1 l1' l2, CyclicPerm_R l1 l1' -> Forall2_Type P l1 l2 ->
-    { l2' : _ & CyclicPerm_R l2 l2' & Forall2_Type P l1' l2' }.
+Lemma CyclicPerm_R_Forall2 {A B} (P : A -> B -> Type) : forall l1 l1' l2,
+  l1 ~°~ l1' -> Forall2_Type P l1 l2 -> { l2' : _ & l2 ~°~ l2' & Forall2_Type P l1' l2' }.
 Proof.
-intros l1 l1' l2 HP.
-revert l2.
+intros l1 l1' l2 HP; revert l2.
 apply decomp_CyclicPerm_R in HP as [[lx ly] Hx Hy]; subst.
 intros l2' HF ; inversion HF ; subst.
 - exists nil ; auto.
@@ -452,35 +379,25 @@ intros l2' HF ; inversion HF ; subst.
       constructor ; auto.
 Defined.
 
-Lemma CyclicPerm_R_image {A B} : forall (f : A -> B) a l l',
-  CyclicPerm_R (a :: l) (map f l') -> { a' | a = f a' }.
-Proof.
-intros f a l l' HP.
-eapply Perm_R_image.
-apply CyclicPerm_Perm_R ; eassumption.
-Qed.
 
+(* Cyclic Permutations as Nat *)
 Definition app_cperm_nat {A} n (l : list A) :=
   skipn n l ++ firstn n l.
 
-Lemma app_cperm_cfun {A} : forall n (l : list A),
-    n <= length l ->
-    app_cperm_nat n l = app_nat_fun (cfun n (length l - n)) l.
-Proof with try reflexivity.
+Lemma app_cperm_cfun {A} : forall n (l : list A), n <= length l ->
+  app_cperm_nat n l = app_nat_fun (cfun n (length l - n)) l.
+Proof.
   intros n l Hle.
   rewrite<- (firstn_skipn n l) at 3.
   rewrite<- (firstn_length_le l) at 2; try assumption.
-  replace (length l - n) with (length (skipn n l)).
-  2:{ rewrite<- (firstn_skipn n l) at 2.
-      rewrite app_length.
-      rewrite firstn_length_le; try assumption.
-      lia. }
-  rewrite app_cfun_eq...
+  replace (length l - n) with (length (skipn n l)); [ symmetry; apply app_cfun_eq | ].
+  rewrite<- (firstn_skipn n l) at 2.
+  rewrite app_length.
+  rewrite firstn_length_le; try assumption; lia.
 Qed.
 
-Lemma cond_cyclicPerm_to_app_cperm : forall p,
-    cond_cyclicPerm p ->
-    { n & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l}.
+Lemma cond_cyclicPerm_to_app_cperm : forall p, cond_cyclicPerm p ->
+  { n & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cperm_nat n l}.
 Proof with try reflexivity.
   intros p Hperm.
   destruct Hperm as [[[n m] Heq]| Heq].

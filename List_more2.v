@@ -3,6 +3,7 @@ Require Import PeanoNat.
 
 Require Export List.
 
+
 (* Properties on nth *)
 Lemma nth_nth {A} : forall (l1 : list nat) (l2 : list A) a0 k0 k,
     k < length l1 ->
@@ -181,6 +182,9 @@ induction len1; intros start len2.
 - simpl; rewrite IHlen1.
   f_equal; f_equal; f_equal; lia.
 Qed.
+
+Lemma seq_cons : forall s l, s :: seq (S s) l = seq s (S l).
+Proof. intros s l; revert s; induction l; intros s; simpl; now rewrite ? IHl. Qed.
 
 Lemma seq_S : forall s l, seq s (S l) = seq s l ++ s + l :: nil.
 Proof.
