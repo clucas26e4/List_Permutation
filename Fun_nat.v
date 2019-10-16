@@ -220,8 +220,7 @@ replace (beq_nat (nth a l d) k) with false.
 Qed.
 
 Lemma app_nat_fun_downshift_commu : forall a l f k,
-  In_nat_bool k (a :: l) = false ->
-  all_lt f (length (a :: l)) = true ->
+  In_nat_bool k (a :: l) = false -> all_lt f (length (a :: l)) = true ->
   f ∘ downshift (a :: l) k = downshift (f ∘ a :: l) k.
 Proof.
 intros a l f k Hlen Hnin.
@@ -262,32 +261,28 @@ destruct l.
 Qed.
 
 Lemma app_nat_fun_dflt_right {A} : forall (l1 l2 : list A) f d,
-    all_lt f (length l2) = true ->
-    app_nat_fun_dflt (incr_all f (length l1)) (l1 ++ l2) d = app_nat_fun_dflt f l2 d.
+  app_nat_fun_dflt (incr_all f (length l1)) (l1 ++ l2) d = app_nat_fun_dflt f l2 d.
 Proof.
-intros l1 l2 f; revert l1 l2; induction f; intros l1 l2 d Hlen; [ reflexivity | ].
-simpl in Hlen; apply andb_true_iff in Hlen as [Hlen1 Hlen2]; apply Nat.ltb_lt in Hlen1.
-simpl; rewrite IHf; [ | assumption ].
+intros l1 l2 f; revert l1 l2; induction f; intros l1 l2 d; [ reflexivity | ].
+simpl; rewrite IHf.
 f_equal.
 rewrite app_nth2; f_equal; lia.
 Qed.
 
-Lemma app_nat_fun_right {A} : forall k (l1 l2 : list A) f,
-  k = length l1 -> all_lt f (length l2) = true ->
+Lemma app_nat_fun_right {A} : forall k (l1 l2 : list A) f, k = length l1 -> all_lt f (length l2) = true ->
   incr_all f k ∘ l1 ++ l2 = f ∘ l2.
 Proof.
 intros k l1 l2 f Heq Hlen; subst.
 induction l1; simpl.
-- rewrite shift_0; reflexivity.
+- now rewrite shift_0.
 - change (S (length l1)) with (length (a :: l1)).
   rewrite app_comm_cons.
-  rewrite app_nat_fun_dflt_right; [ | assumption ].
-  symmetry; apply app_nat_fun_app_nat_fun_dflt; assumption.
+  rewrite app_nat_fun_dflt_right.
+  now symmetry; apply app_nat_fun_app_nat_fun_dflt.
 Qed.
 
-Lemma app_nat_fun_dflt_left {A} : forall (l1 l2 : list A) f d1 d2,
-    all_lt f (length l1) = true ->
-    app_nat_fun_dflt f (l1 ++ l2) d1 = app_nat_fun_dflt f l1 d2.
+Lemma app_nat_fun_dflt_left {A} : forall (l1 l2 : list A) f d1 d2, all_lt f (length l1) = true ->
+   app_nat_fun_dflt f (l1 ++ l2) d1 = app_nat_fun_dflt f l1 d2.
 Proof.
 intros l1 l2 f d1 d2 Hlen.
 unfold app_nat_fun_dflt.
@@ -302,8 +297,7 @@ rewrite app_nth1; [ | apply Hx ].
 apply nth_indep, Hx.
 Qed.
 
-Lemma app_nat_fun_left {A} : forall (l1 l2 : list A) f,
-  all_lt f (length l1) = true ->
+Lemma app_nat_fun_left {A} : forall (l1 l2 : list A) f, all_lt f (length l1) = true ->
   f ∘ l1 ++ l2 = f ∘ l1.
 Proof.
 intros l1 l2 f Hlen.
@@ -326,10 +320,14 @@ Lemma append_fun_eq {A} : forall (l1 l2 : list A) f1 f2,
   f1 ++ incr_all f2 (length l1) ∘ l1 ++ l2 = (f1 ∘ l1) ++ (f2 ∘ l2).
 Proof. intros; now rewrite app_nat_fun_app; f_equal; [ apply app_nat_fun_left | apply app_nat_fun_right ]. Qed.
 
+Lemma pappend_fun_eq {A} : forall (l1 l2 : list A) f1 f2, length f1 = length l1 ->
+  all_lt f1 (length f1) = true -> all_lt f2 (length l2) = true ->
+  f1 +++ f2 ∘ l1 ++ l2 = (f1 ∘ l1) ++ (f2 ∘ l2).
+Proof. intros l1 l2 f1 f2 Hlen Hlt1 Hlt2; now rewrite <- append_fun_eq; rewrite_all Hlen. Qed.
+
 Lemma app_nat_fun_downshift_shift : forall l f n0 n,
   all_distinct l = true -> all_distinct f = true ->
-  all_lt f (pred (length l)) = true ->
-  n < length l ->
+  all_lt f (pred (length l)) = true -> n < length l ->
   f ∘ downshift l (nth n l n0) = downshift (shift f n 1 ∘ l) (nth n l n0).
 Proof with try reflexivity; try assumption.
   intros l f n0 n Had Hadf Hal Hlen.
@@ -350,17 +348,14 @@ Proof with try reflexivity; try assumption.
       change (shift (a :: f) 0 1) with (S a :: (shift f 0 1)).
       unfold app_nat_fun at 2.
       app_nat_fun_dflt_unfold (shift f 0 1) (@nil nat) (S a) (nth 0 l n0) (nth 0 l n0).
-      replace (nth (S a) (nth 0 l n0 :: nil) (nth 0 l n0)) with (nth 0 l n0).
-      2:{ destruct a... }
+      replace (nth (S a) (nth 0 l n0 :: nil) (nth 0 l n0)) with (nth 0 l n0) by now destruct a.
       rewrite downshift_eq... }
     rewrite <- Hlenla.
     change (nil ++ nth (length nil) l n0 :: n1 :: lb) with
         (nil ++ (nth (@length nat nil) l n0 :: nil) ++ (n1 :: lb)).
     change 1 with (length (nth (@length nat nil) l n0 :: nil)).
-    rewrite app_nat_fun_shift...
-    2:{ intros H; inversion H. }
-    rewrite 2 app_nil_l.
-    simpl app.
+    rewrite app_nat_fun_shift by now try (intros H; inversion H).
+    rewrite 2 app_nil_l; simpl app.
     rewrite downshift_eq.
     apply app_nat_fun_downshift_commu...
     apply all_distinct_right with (@nil nat).
@@ -387,13 +382,11 @@ Proof with try reflexivity; try assumption.
         -- apply all_distinct_right with (n1 :: la).
            rewrite Hlenla; rewrite<- Heql...
       * simpl.
-        rewrite app_length in Hal |- *.
-        simpl in Hal.
+        rewrite app_length in Hal |- *; simpl in Hal.
         rewrite Nat.add_succ_r in Hal...
     + intros H; inversion H.
     + simpl.
-      rewrite app_length in Hal |- * .
-      simpl in Hal.
+      rewrite app_length in Hal |- * ; simpl in Hal.
       rewrite Nat.add_succ_r in Hal...
 Qed.
 

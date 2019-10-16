@@ -20,10 +20,6 @@ Definition is_perm l := all_lt l (length l) && all_distinct l.
 Definition perm := {p & is_perm p = true}.
 Definition perm_of n := {p : _ & is_perm p = true & length p = n}.
 
-Notation "f1 +++ f2" := (f1 ++ shift f2 0 (length f1)) (at level 61).
-(*
-Notation "p • l" := (projT1 (sigT_of_sigT2 (p : perm_of (length l))) ∘ l) (at level 66).
-*)
 
 (* Some facts about is_perm *)
 

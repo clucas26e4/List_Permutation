@@ -87,12 +87,12 @@ Proof. intros l a Hp; apply Perm_R_nil in Hp; inversion Hp. Qed.
 Theorem Perm_R_app : forall l m l' m', l ~~ l' -> m ~~ m' -> l ++ m ~~ l' ++ m'.
 Proof.
 intros l m l' m' [p Hperm [Hlen Heq]] [p' Hperm' [Hlen' Heq']].
-split with (p +++ p'); repeat split.
+split with (p +++ p'); repeat split; subst.
 - now apply append_perm_is_perm.
 - length_lia.
 - apply andb_prop in Hperm as [Hal _].
-  apply andb_prop in Hperm' as [Hal' _].
-  now rewrite Hlen, append_fun_eq; rewrite <- ? Hlen, <- ? Hlen'; f_equal.
+  apply andb_prop in Hperm' as [Hal' _]; rewrite Hlen' in Hal'.
+  now symmetry; apply pappend_fun_eq.
 Defined.
 
 Global Instance Perm_R_app' : Proper (@Perm_R A ==> @Perm_R A ==> @Perm_R A) (@app A) | 10.

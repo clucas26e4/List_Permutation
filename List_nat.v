@@ -785,8 +785,7 @@ Lemma shift_if_all_lt : forall l n i,
   all_lt l n = true -> shift l n i = l.
 Proof with try reflexivity; try assumption.
   induction l; intros n i Hal...
-  apply andb_prop in Hal as (Hlt & Hal).
-  simpl.
+  apply andb_prop in Hal as (Hlt & Hal); simpl.
   rewrite Hlt, IHl...
 Qed.
 
@@ -797,13 +796,11 @@ Proof. intros l n i; apply all_distinct_map, incr_inj. Qed.
 Lemma append_fun_all_lt : forall l1 l2 k n1 n2,
   all_lt l1 n1 = true -> all_lt l2 n2 = true ->
   all_lt (l1 ++ (shift l2 k n1)) (n1 + n2) = true.
-Proof with try reflexivity; try assumption.
+Proof.
   intros l1 l2 k n1 n2 Hal1 Hal2.
   rewrite all_lt_app.
-  apply andb_true_iff.
-  split.
-  - apply all_lt_leq with n1...
-    lia...
+  apply andb_true_iff; split.
+  - now apply all_lt_leq with n1; try lia.
   - now rewrite all_lt_shift_true.
 Qed.
 
@@ -831,6 +828,7 @@ Proof with try assumption.
       now apply all_lt_leq with i; [ | lia ].
 Qed.
 
+Notation "f1 +++ f2" := (f1 ++ shift f2 0 (length f1)) (at level 61).
 
 (** ** incr_all *)
 
@@ -847,14 +845,12 @@ Lemma nth_incr_all : forall l n n0 k,
 Proof. intros; apply nth_shift_ge; lia. Qed.
 
 Lemma In_nat_bool_incr_all : forall l k n,
- In_nat_bool (n + k) (incr_all l n) = In_nat_bool k l.
+  In_nat_bool (n + k) (incr_all l n) = In_nat_bool k l.
 Proof. intros; apply shift_In_nat_bool_ge, Nat.leb_le; lia. Qed.
 
-Lemma all_distinct_app : forall la lb k,
-    all_lt la k = true ->
-    all_distinct la = true ->
-    all_distinct lb = true ->
-    all_distinct (la ++ incr_all lb k) = true.
+Lemma all_distinct_app : forall la lb k, all_lt la k = true ->
+  all_distinct la = true -> all_distinct lb = true ->
+  all_distinct (la ++ incr_all lb k) = true.
 Proof with try reflexivity; try assumption.
   induction la; intros lb k Hal Hada Hadb.
   - simpl; rewrite all_distinct_shift...
