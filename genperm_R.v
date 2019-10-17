@@ -17,6 +17,7 @@ Require Import Perm_R_more.
 Require Import Perm_R_solve.
 Require Import CyclicPerm_R.
 Require Import CyclicPerm_R_solve.
+Require Import misc.
 
 
 
@@ -44,13 +45,12 @@ Qed.
   
 (** Permutation or cyclic permutation *)
 
-Definition PCperm_R {A} (b : bool) :=
-  if b then @Perm_R A else @CyclicPerm_R A.
+Definition PCperm_R {A} (b : bool) (l1 l2 : list A) : Type :=
+  { p : _ & cond_PCperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
 
 (** Permutation or equality *)
-Definition PEperm_R {A} (b : bool) :=
-  if b then @Perm_R A else @eq (list A).
-
+Definition PEperm_R {A} (b : bool) (l1 l2 : list A) : Type :=
+  { p : _ & cond_PEperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
 
 (** ** Permutation or cyclic permutation *)
 
@@ -73,45 +73,6 @@ Ltac PCperm_R_solve :=
   end.
 
 (** *** Properties *)
-(*
-Lemma properties_PCperm_R_PCperm {A} b :
-  forall (P : list A -> list A ->  Type),
-    (forall l1 l2, PCperm_R b l1 l2 -> P l1 l2) ->
-    forall p l1,
-      cond_PCperm b p ->
-      length p = length l1 ->
-      P l1 (app_nat_fun p l1).
-Proof with try reflexivity; try assumption.
-  intros P H p l1 Hperm Hlen.
-  apply H.
-  revert Hperm; destruct b; simpl; intros Hperm.
-  - split with (existT _ p Hperm).
-    unfold app_perm.
-    simpl.
-    split...
-  - split with (existT _ p Hperm).
-    simpl; split...
-Qed.
-
-Lemma properties_PEperm_R_PEperm {A} b :
-  forall (P : list A -> list A ->  Type),
-    (forall l1 l2, PEperm_R b l1 l2 -> P l1 l2) ->
-    forall p l1,
-      cond_PEperm b p ->
-      length p = length l1 ->
-      P l1 (app_nat_fun p l1).
-Proof with try reflexivity; try assumption.
-  intros P H p l1 Hperm Hlen.
-  apply H.
-  revert Hperm; destruct b; simpl; intros Hperm.
-  - split with (existT _ p Hperm).
-    unfold app_perm.
-    simpl.
-    split...
-  - rewrite Hperm.
-    rewrite Hlen.
-    symmetry;apply app_Id.
-Qed.*)
 
 Instance PCperm_Perm_R {A} b : Proper (PCperm_R b ==> (@Perm_R A)) (fun a => a).
 Proof with try assumption.
@@ -250,7 +211,10 @@ destruct b ; intros a l l1 l2 HC.
 - apply CyclicPerm_R_vs_elt_inv in HC.
   destruct HC as [(l' & l'') Heq1 Heq2] ; subst.
   exists (l',l'')...
-  assumption.
+  split with (Id (length (l'' ++ l'))); repeat split.
+  + simpl; rewrite seq_length...
+  + rewrite Heq1; length_lia.
+  + rewrite Heq1; rewrite app_Id...
 Qed.
 
 Lemma PCperm_R_vs_cons_inv {A} b : forall (a : A) l l1,
@@ -360,30 +324,44 @@ Ltac PEperm_R_solve :=
 
 (** *** Properties *)
 
+Instance Eperm_R_eq {A} : Proper (PEperm_R false ==> (@eq (list A))) id.
+Proof with try reflexivity.
+  intros l l' [p Hp [Hlen Heq]]; simpl in Hp.
+  rewrite Hp in Heq; rewrite Hlen in Heq; rewrite app_Id in Heq; rewrite Heq...
+Defined.
+
+Lemma PEperm_R_false {A} : forall (l1 l2 : list A), PEperm_R false l1 l2 -> l1 = l2.
+Proof with try reflexivity.
+  intros l l' [p Hp [Hlen Heq]]; simpl in Hp.
+  rewrite Hp in Heq; rewrite Hlen in Heq; rewrite app_Id in Heq; rewrite Heq...
+Qed.
+
 Instance PEperm_perm_R {A} b : Proper (PEperm_R b ==> (@Perm_R A)) id.
 Proof.
-destruct b ; intros l l' HP ; simpl in HP ; now subst.
+  destruct b ; intros l l' HP ; simpl in HP; now rewrite HP.
 Defined.
 
 Instance PEperm_R_refl {A} b : Reflexive (@PEperm_R A b).
 Proof.
 destruct b ; intros l.
 - apply Perm_R_refl.
-- reflexivity.
+- split with (Id (length l)); repeat split; simpl; try rewrite seq_length; try reflexivity.
+  rewrite app_Id; reflexivity.
 Defined.
 
 Instance PEperm_R_sym {A} b : Symmetric (@PEperm_R A b).
 Proof with try assumption.
 destruct b ; intros l l' HP.
 - apply Perm_R_sym...
-- symmetry...
+- rewrite PEperm_R_false with l l'...
+  reflexivity.
 Defined.
 
 Instance PEperm_R_trans {A} b : Transitive (@PEperm_R A b).
 Proof with try eassumption.
 destruct b ; intros l l' l'' HP1 HP2.
 - eapply Perm_R_trans...
-- etransitivity...
+- rewrite PEperm_R_false with l l'...
 Defined.
 
 Instance PEperm_R_equiv {A} b : Equivalence (@PEperm_R A b).
@@ -406,14 +384,15 @@ Instance PEperm_R_cons {A} b :
 Proof.
 destruct b ; intros x y Heq l1 l2 HP ; subst.
 - now apply Perm_R_cons.
-- now rewrite HP.
+- now rewrite (PEperm_R_false _ _ HP).
 Defined.
 
 Instance PEperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PEperm_R b) (@app A).
-Proof.
+Proof with try assumption.
 destruct b ; simpl ; intros l m HP1 l' m' HP2.
 - now apply Perm_R_app.
-- now subst.
+- rewrite (PEperm_R_false _ _ HP1)...
+  now rewrite (PEperm_R_false _ _ HP2).
 Defined.
 
 Lemma PEperm_R_app_tail {A} b : forall l l' tl : list A,
@@ -421,7 +400,7 @@ Lemma PEperm_R_app_tail {A} b : forall l l' tl : list A,
 Proof.
 destruct b ; simpl ; intros l l' tl HP.
 - now apply Perm_R_app_tail.
-- now subst.
+- now rewrite (PEperm_R_false _ _ HP).
 Defined.
 
 Lemma PEperm_R_app_head {A} b : forall l tl tl' : list A,
@@ -429,22 +408,23 @@ Lemma PEperm_R_app_head {A} b : forall l tl tl' : list A,
 Proof.
 destruct b ; simpl ; intros l tl tl' HP.
 - now apply Perm_R_app_head.
-- now subst.
+- now rewrite (PEperm_R_false _ _ HP).
 Defined.
 
 Lemma PEperm_R_add_inside {A} b : forall (a : A) l l' tl tl',
   PEperm_R b l l' -> PEperm_R b tl tl' -> PEperm_R b (l ++ a :: tl) (l' ++ a :: tl').
-Proof.
+Proof with try assumption.
 destruct b ; simpl ; intros a l l' tl tl' HP1 HP2.
 - now apply Perm_R_add_inside.
-- now subst.
+- rewrite (PEperm_R_false _ _ HP1)...
+  now rewrite (PEperm_R_false _ _ HP2).
 Defined.
 
 Lemma PEperm_R_nil {A} b : forall l, @PEperm_R A b nil l -> l = nil.
 Proof with try assumption.
 destruct b ; intros.
 - apply Perm_R_nil...
-- symmetry...
+- now rewrite (PEperm_R_false _ _ X).
 Qed.
 
 Lemma PEperm_nil_cons {A} b : forall l (a : A),
@@ -452,7 +432,7 @@ Lemma PEperm_nil_cons {A} b : forall l (a : A),
 Proof with try eassumption.
 destruct b ; intros l a H.
 - eapply Perm_R_nil_cons...
-- inversion H.
+- apply PEperm_R_false in H; inversion H.
 Qed.
 
 Lemma PEperm_R_length_1_inv {A} b : forall (a : A) l,
@@ -460,7 +440,7 @@ Lemma PEperm_R_length_1_inv {A} b : forall (a : A) l,
 Proof with try assumption.
 destruct b ; intros.
 - apply Perm_R_length_1_inv...
-- symmetry...
+- now rewrite (PEperm_R_false _ _ X).
 Qed.
 
 Lemma PEperm_R_length_2_inv {A} b : forall (a1 : A) a2 l,
@@ -468,7 +448,7 @@ Lemma PEperm_R_length_2_inv {A} b : forall (a1 : A) a2 l,
 Proof with try assumption.
 destruct b ; intros.
 - apply Perm_R_length_2_inv...
-- left ; symmetry...
+- left ; now rewrite (PEperm_R_false _ _ X).
 Qed.
 
 Lemma PEperm_R_vs_elt_inv {A} b : forall (a : A) l l1 l2,
@@ -483,8 +463,7 @@ destruct b ; simpl ; intros a l l1 l2 HP.
   apply Perm_R_sym in HP.
   exists (l',l'')...
   assumption.
-- subst.
-  exists (l1,l2)...
+- rewrite (PEperm_R_false _ _ HP); exists (l1,l2)...
 Defined.
 
 Lemma PEperm_R_vs_cons_inv {A} b : forall (a : A) l l1,
@@ -501,7 +480,7 @@ Instance PEperm_R_in {A} b (a : A) : Proper (PEperm_R b ==> Basics.impl) (In a).
 Proof with try eassumption.
 destruct b ; simpl ; intros l l' HP HIn.
 - eapply Perm_R_in...
-- subst...
+- now rewrite<- (PEperm_R_false _ _ HP).
 Qed.
 
 Instance PEperm_R_Forall {A} b (P : A -> Prop) :
@@ -509,7 +488,7 @@ Instance PEperm_R_Forall {A} b (P : A -> Prop) :
 Proof with try eassumption.
 destruct b ; simpl ; intros l1 l2 HP HF.
 - eapply Perm_R_Forall...
-- subst...
+- now rewrite<- (PEperm_R_false _ _ HP).
 Qed.
 
 Instance PEperm_R_Exists {A} b (P : A -> Prop) :
@@ -517,7 +496,7 @@ Instance PEperm_R_Exists {A} b (P : A -> Prop) :
 Proof with try eassumption.
 destruct b ; simpl ; intros l1 l2 HP HF.
 - eapply Perm_R_Exists...
-- subst...
+- now rewrite<- (PEperm_R_false _ _ HP).
 Qed.
 
 Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) :
@@ -526,6 +505,7 @@ Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) :
 Proof.
 destruct b ; [ apply Perm_R_Forall2 | ].
 intros l1 l1' l2 HE HF ; simpl in HE ; subst.
+rewrite (PEperm_R_false _ _ HE) in HF.
 exists l2 ; [ reflexivity | assumption ].
 Defined.
 
@@ -535,8 +515,7 @@ Proof.
 destruct b ; intros l l' HP.
 - apply Perm_R_map.
   assumption.
-- simpl in HP ; subst.
-  reflexivity.
+- now rewrite (PEperm_R_false _ _ HP).
 Defined.
 
 Instance PEperm_R_Forall_R {A} b (P : A -> Type) :
@@ -544,7 +523,7 @@ Instance PEperm_R_Forall_R {A} b (P : A -> Type) :
 Proof with try eassumption.
 destruct b ; simpl ; intros l1 l2 HP HF.
 - eapply Perm_R_Forall_Type...
-- subst...
+- now rewrite (PEperm_R_false _ _ HP) in HF.
 Qed.
 
 Instance PEperm_R_Exists_R {A} b (P : A -> Type) :
@@ -552,7 +531,7 @@ Instance PEperm_R_Exists_R {A} b (P : A -> Type) :
 Proof with try eassumption.
 destruct b ; simpl ; intros l1 l2 HP HF.
 - eapply Perm_R_Exists_Type...
-- subst...
+- now rewrite (PEperm_R_false _ _ HP) in HF.
 Qed.
 
 Lemma PEperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
@@ -561,7 +540,7 @@ Lemma PEperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
 Proof.
 destruct b ; simpl ; intros f l1 l2 HP.
 - eapply Perm_R_map_inv ; eassumption.
-- subst.
+- rewrite (PEperm_R_false _ _ HP).
   exists l2 ; reflexivity.
 Defined.
 
@@ -569,7 +548,7 @@ Instance PEperm_R_rev {A} b : Proper (PEperm_R b ==> PEperm_R b) (@rev A).
 Proof.
 destruct b ; intros l1 l2 HP.
 - now apply Perm_R_rev'.
-- now (simpl in HP ; subst).
+- now rewrite (PEperm_R_false _ _ HP).
 Defined.
 
 Lemma PEperm_R_map_inv_inj {A B} b : forall f : A -> B, injective f ->
@@ -577,7 +556,7 @@ Lemma PEperm_R_map_inv_inj {A B} b : forall f : A -> B, injective f ->
 Proof with try assumption.
 destruct b ; intros f Hi l1 l2 HP.
 - apply Perm_R_map_inv_inj in HP...
-- apply map_inj in HP...
+- apply PEperm_R_false in HP; apply map_inj in HP; [now rewrite HP | ]...
 Defined.
 
 Lemma PEperm_R_image {A B} b : forall (f : A -> B) a l l',
@@ -585,7 +564,7 @@ Lemma PEperm_R_image {A B} b : forall (f : A -> B) a l l',
 Proof.
 destruct b ; intros f a l l' H.
 - eapply Perm_R_image ; eassumption.
-- destruct l' ; inversion H ; subst.
+- apply PEperm_R_false in H; destruct l' ; inversion H ; subst.
   exists a0 ; reflexivity.
 Qed.
 
@@ -596,7 +575,7 @@ Instance PEperm_PCperm_R {A} b : Proper (PEperm_R b ==> PCperm_R b) (@id (list A
 Proof.
 destruct b ; simpl ; intros l l' HP.
 - assumption.
-- subst ; apply CyclicPerm_R_refl.
+- rewrite (PEperm_R_false _ _ HP) ; apply CyclicPerm_R_refl.
 Defined.
 
 Instance PEperm_PCperm_R_cons {A} b :
