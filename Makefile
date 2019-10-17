@@ -55,7 +55,7 @@ Perm_R_more.vo : Perm_R_more.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_more.
 Perm_R_solve.vo : Perm_R_solve.v $(OLLIBSDIR)/List_more.vo Perm_R_more.vo
 CyclicPerm_R.vo : CyclicPerm_R.v $(OLLIBSDIR)/List_Type_more.vo List_nat.vo Perm.vo Perm_R_more.vo List_more2.vo Fun_nat.vo
 CyclicPerm_R_solve.vo : CyclicPerm_R_solve.v $(OLLIBSDIR)/List_more.vo CyclicPerm_R.vo
-genperm_R.vo : genperm_R.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_Type.vo Perm.vo Perm_R_more.vo Perm_R_solve.vo CyclicPerm_R.vo CyclicPerm_R_solve.vo List_nat.vo List_more2.vo Fun_nat.vo
+genperm_R.vo : genperm_R.v $(OLLIBSDIR)/Injective.vo $(OLLIBSDIR)/List_Type.vo Perm.vo Perm_R_more.vo Perm_R_solve.vo CyclicPerm_R.vo CyclicPerm_R_solve.vo misc.vo Fun_nat.vo
 Perm_solve.vo : Perm_solve.v misc.vo Perm.vo List_nat.vo List_more2.vo Fun_nat.vo all_lt_solve.vo $(OLLIBSDIR)/List_more.vo
 all_lt_solve.vo : all_lt_solve.v List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo $(OLLIBSDIR)/List_more.vo
 

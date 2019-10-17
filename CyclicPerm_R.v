@@ -33,18 +33,20 @@ intros n m; destruct n ; [ | destruct m ].
 - apply cfun_S_cond_cyclic.
 Qed.
 
-Lemma cond_cyclic_cfun_lt : forall l, cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m & m = 0 -> n = 0}.
+Lemma cond_cyclic_cfun_lt {l} : cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m & m = 0 -> n = 0}.
 Proof.
-intros l [[[n m] Heqcp] | Heqcp]; subst.
+intros [[[n m] Heqcp] | Heqcp]; subst.
 - now exists (S n, S m).
 - exists (0, length l).
   + now unfold cfun; rewrite app_nil_r.
   + now intros _.
 Qed.
 
-Lemma cond_cyclic_cfun : forall l, cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m }.
-Proof. intros l Hc; destruct (cond_cyclic_cfun_lt l Hc) as [(n,m) Heq Hlt]; now exists (n,m). Qed.
+Lemma cond_cyclic_cfun {l} : cond_cyclicPerm l -> {' (n, m) : _ & l = cfun n m }.
+Proof. intros Hc; destruct (cond_cyclic_cfun_lt Hc) as [(n,m) Heq Hlt]; now exists (n,m). Qed.
 
+Lemma cond_cyclic_is_perm {l} : cond_cyclicPerm l -> is_perm l = true.
+Proof. intros Hc; destruct (cond_cyclic_cfun Hc) as [(n, m) Heq]; subst; apply cfun_is_perm. Qed.
 
 Definition CyclicPerm_R {A} (l1 l2 : list A) :=
   { f : _ & cond_cyclicPerm f & prod (length f = length l1) (l2 = f ∘ l1) }.
@@ -70,7 +72,7 @@ Lemma decomp_CyclicPerm_R : forall la lb,
   la ~°~ lb -> {' (la', lb') : _ & la' ++ lb' = la & lb' ++ la' = lb }.
 Proof.
 intros l1 l2 [f Hc [Hlen Heq]]; subst.
-destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
+destruct (cond_cyclic_cfun Hc) as [(n,m) Heq]; subst.
 exists (Id n ∘ l1, seq n m ∘ l1).
 - rewrite <- app_nat_fun_app, <- seq_app.
   rewrite cfun_length in Hlen; rewrite Hlen.
@@ -79,11 +81,7 @@ exists (Id n ∘ l1, seq n m ∘ l1).
 Qed.
 
 Instance CyclicPerm_Perm_R : Proper (CyclicPerm_R ==> (@Perm_R A)) (fun a => a).
-Proof.
-intros l1 l2 [f Hc [Hlen Heq]]; subst.
-destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
-now exists (cfun n m); [ apply cfun_is_perm | ].
-Defined.
+Proof. intros l1 l2 [f Hc [Hlen Heq]]; subst; now exists f; [ apply cond_cyclic_is_perm | ]. Defined.
 
 Instance CyclicPerm_R_refl : Reflexive (@CyclicPerm_R A).
 Proof.
@@ -97,7 +95,7 @@ Defined.
 Instance CyclicPerm_R_sym : Symmetric (@CyclicPerm_R A).
 Proof.
 intros l l' [f Hc [Hlen Heq]]; subst.
-destruct (cond_cyclic_cfun f Hc) as [(n,m) Heq]; subst.
+destruct (cond_cyclic_cfun Hc) as [(n,m) Heq]; subst.
 exists (cfun m n); [ | split ].
 - apply cfun_cond_cyclic.
 - rewrite app_nat_fun_length by assumption.
@@ -110,8 +108,8 @@ Defined.
 Instance CyclicPerm_R_trans : Transitive (@CyclicPerm_R A).
 Proof.
 intros l1 l2 l3 [c1 HC1 [Hlen1 Heq1]] [c2 HC2 [Hlen2 Heq2]]; subst.
-destruct (cond_cyclic_cfun _ HC1) as [(i,j) Heq]; subst.
-destruct (cond_cyclic_cfun _ HC2) as [(k,l) Heq]; subst.
+destruct (cond_cyclic_cfun HC1) as [(i,j) Heq]; subst.
+destruct (cond_cyclic_cfun HC2) as [(k,l) Heq]; subst.
 rewrite app_nat_fun_length in Hlen2 by assumption.
 rewrite_all cfun_length.
 destruct (cfun_cfun i j k l) as [(n,m) Heq]; [ lia | ].
