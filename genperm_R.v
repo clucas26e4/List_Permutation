@@ -32,11 +32,9 @@ Definition cond_PEperm (b : bool) l : Type :=
   if b then is_perm l = true else (l = Id (length l)).
 
 Lemma PEperm_Perm : forall b l, cond_PEperm b l -> is_perm l = true.
-Proof with try assumption.
-  intro b; case b; simpl; intros l Hperm...
-  rewrite Hperm; apply Id_is_perm.
-Qed.
-  
+Proof. now intros b l Hperm; destruct b; [ | rewrite Hperm; apply Id_is_perm ]. Qed.
+
+
 (** Permutation or cyclic permutation *)
 
 Definition PCperm_R {A} (b : bool) (l1 l2 : list A) : Type :=
@@ -208,274 +206,158 @@ Ltac PEperm_R_solve :=
 (** *** Properties *)
 
 Instance PEperm_R_eq {A} : Proper (PEperm_R false ==> (@eq (list A))) id.
-Proof with try reflexivity.
+Proof.
   intros l l' [p Hp [Hlen Heq]]; simpl in Hp.
-  rewrite Hp in Heq; rewrite Hlen in Heq; rewrite app_Id in Heq; rewrite Heq...
+  now rewrite Hp in Heq; rewrite Hlen in Heq; rewrite app_Id in Heq; rewrite Heq.
 Defined.
 
 Lemma PEperm_R_false {A} : forall (l1 l2 : list A), PEperm_R false l1 l2 -> l1 = l2.
-Proof with try reflexivity.
-  intros l l' [p Hp [Hlen Heq]]; simpl in Hp.
-  rewrite Hp in Heq; rewrite Hlen in Heq; rewrite app_Id in Heq; rewrite Heq...
-Qed.
+Proof. apply PEperm_R_eq. Qed.
+
+Lemma eq_PEperm_R_false {A} : forall (l1 l2 : list A), l1 = l2 -> PEperm_R false l1 l2.
+Proof.
+intros l1 l2 Heq; subst.
+now split with (Id (length l2)); repeat split; simpl; rewrite ? seq_length; [ | | rewrite app_Id ].
+Defined.
 
 Instance PEperm_perm_R {A} b : Proper (PEperm_R b ==> (@Perm_R A)) id.
-Proof.
-  destruct b ; intros l l' HP ; simpl in HP; now rewrite HP.
-Defined.
+Proof. destruct b ; intros l l' HP ; simpl in HP; now rewrite HP. Defined.
 
 Instance PEperm_R_refl {A} b : Reflexive (@PEperm_R A b).
-Proof.
-destruct b ; intros l.
-- apply Perm_R_refl.
-- split with (Id (length l)); repeat split; simpl; try rewrite seq_length; try reflexivity.
-  rewrite app_Id; reflexivity.
-Defined.
+Proof. destruct b ; intros l; [ apply Perm_R_refl | now apply eq_PEperm_R_false ]. Defined.
 
 Instance PEperm_R_sym {A} b : Symmetric (@PEperm_R A b).
-Proof with try assumption.
-destruct b ; intros l l' HP.
-- apply Perm_R_sym...
-- rewrite PEperm_R_false with l l'...
-  reflexivity.
-Defined.
+Proof. now destruct b; intros l l' Hp; [ symmetry
+                                       | apply PEperm_R_false in Hp; apply eq_PEperm_R_false ]. Defined.
 
 Instance PEperm_R_trans {A} b : Transitive (@PEperm_R A b).
-Proof with try eassumption.
-destruct b ; intros l l' l'' HP1 HP2.
-- eapply Perm_R_trans...
-- rewrite PEperm_R_false with l l'...
-Defined.
+Proof. now destruct b ; intros l l' l'' HP1 HP2; [ transitivity l' | rewrite PEperm_R_false with l l' ]. Defined.
 
 Instance PEperm_R_equiv {A} b : Equivalence (@PEperm_R A b).
-Proof.
-split.
-- apply PEperm_R_refl.
-- apply PEperm_R_sym.
-- apply PEperm_R_trans.
-Qed.
+Proof. split; [ apply PEperm_R_refl | apply PEperm_R_sym | apply PEperm_R_trans ]. Qed.
 
 Instance eq_PEperm_R {A} b : Proper (eq ==> PEperm_R b) (@id (list A)).
-Proof.
-destruct b ; intros l l' Heq ; subst.
-- apply Perm_R_refl.
-- reflexivity.
-Defined.
+Proof. destruct b; intros l l' Heq; subst; reflexivity. Defined.
 
-Instance PEperm_R_cons {A} b :
-  Proper (eq ==> PEperm_R b ==> PEperm_R b) (@cons A).
-Proof.
-destruct b ; intros x y Heq l1 l2 HP ; subst.
-- now apply Perm_R_cons.
-- now rewrite (PEperm_R_false _ _ HP).
-Defined.
+Instance PEperm_R_cons {A} b : Proper (eq ==> PEperm_R b ==> PEperm_R b) (@cons A).
+Proof. now destruct b; intros x y Heq l1 l2 HP; subst; [ apply Perm_R_cons
+                                                       | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
 Instance PEperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PEperm_R b) (@app A).
-Proof with try assumption.
-destruct b ; simpl ; intros l m HP1 l' m' HP2.
-- now apply Perm_R_app.
-- rewrite (PEperm_R_false _ _ HP1)...
-  now rewrite (PEperm_R_false _ _ HP2).
+Proof.
+now destruct b; simpl; intros l m HP1 l' m' HP2; [ apply Perm_R_app
+                                                 | rewrite (PEperm_R_false _ _ HP1), (PEperm_R_false _ _ HP2) ].
 Defined.
 
-Lemma PEperm_R_app_tail {A} b : forall l l' tl : list A,
-  PEperm_R b l l' -> PEperm_R b (l ++ tl) (l' ++ tl).
-Proof.
-destruct b ; simpl ; intros l l' tl HP.
-- now apply Perm_R_app_tail.
-- now rewrite (PEperm_R_false _ _ HP).
-Defined.
+Lemma PEperm_R_app_tail {A} b : forall l l' tl : list A, PEperm_R b l l' -> PEperm_R b (l ++ tl) (l' ++ tl).
+Proof. now destruct b; simpl; intros l l' tl HP; [ apply Perm_R_app_tail
+                                                 | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
-Lemma PEperm_R_app_head {A} b : forall l tl tl' : list A,
-  PEperm_R b tl tl' -> PEperm_R b (l ++ tl) (l ++ tl').
-Proof.
-destruct b ; simpl ; intros l tl tl' HP.
-- now apply Perm_R_app_head.
-- now rewrite (PEperm_R_false _ _ HP).
-Defined.
+Lemma PEperm_R_app_head {A} b : forall l tl tl' : list A, PEperm_R b tl tl' -> PEperm_R b (l ++ tl) (l ++ tl').
+Proof. now destruct b; simpl; intros l tl tl' HP; [ apply Perm_R_app_head
+                                                  | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
 Lemma PEperm_R_add_inside {A} b : forall (a : A) l l' tl tl',
   PEperm_R b l l' -> PEperm_R b tl tl' -> PEperm_R b (l ++ a :: tl) (l' ++ a :: tl').
-Proof with try assumption.
-destruct b ; simpl ; intros a l l' tl tl' HP1 HP2.
-- now apply Perm_R_add_inside.
-- rewrite (PEperm_R_false _ _ HP1)...
-  now rewrite (PEperm_R_false _ _ HP2).
+Proof.
+now destruct b ; simpl ; intros a l l' tl tl' HP1 HP2;
+  [ apply Perm_R_add_inside
+  | rewrite (PEperm_R_false _ _ HP1),  (PEperm_R_false _ _ HP2) ].
 Defined.
 
 Lemma PEperm_R_nil {A} b : forall l, @PEperm_R A b nil l -> l = nil.
-Proof.
-destruct b ; intros.
-- now apply Perm_R_nil.
-- now rewrite (PEperm_R_false _ _ X).
-Qed.
+Proof. now destruct b ; intros l H; [ apply Perm_R_nil | rewrite (PEperm_R_false _ _ H) ]. Qed.
 
-Lemma PEperm_nil_cons {A} b : forall l (a : A),
-  PEperm_R b nil (a :: l) -> False.
-Proof.
-destruct b ; intros l a H.
-- now apply Perm_R_nil_cons with l a.
-- apply PEperm_R_false in H; inversion H.
-Qed.
+Lemma PEperm_nil_cons {A} b : forall l (a : A), PEperm_R b nil (a :: l) -> False.
+Proof. now destruct b ; intros l a H; [ apply Perm_R_nil_cons with l a
+                                      | apply PEperm_R_false in H; inversion H ]. Qed.
 
-Lemma PEperm_R_length_1_inv {A} b : forall (a : A) l,
-  PEperm_R b (a :: nil) l -> l = a :: nil.
-Proof.
-destruct b ; intros.
-- now apply Perm_R_length_1_inv.
-- now rewrite (PEperm_R_false _ _ X).
-Qed.
+Lemma PEperm_R_length_1_inv {A} b : forall (a : A) l, PEperm_R b (a :: nil) l -> l = a :: nil.
+Proof. now destruct b ; intros a l H; [ apply Perm_R_length_1_inv | rewrite (PEperm_R_false _ _ H) ]. Qed.
 
 Lemma PEperm_R_length_2_inv {A} b : forall (a1 : A) a2 l,
   PEperm_R b (a1 :: a2 :: nil) l -> { l = a1 :: a2 :: nil } + { l = a2 :: a1 :: nil }.
-Proof with try assumption.
-destruct b ; intros.
-- apply Perm_R_length_2_inv...
-- left ; now rewrite (PEperm_R_false _ _ X).
-Qed.
+Proof. now destruct b ; intros a1 a2 l H; [ apply Perm_R_length_2_inv
+                                          | left; rewrite (PEperm_R_false _ _ H) ]. Qed.
 
 Lemma PEperm_R_vs_elt_inv {A} b : forall (a : A) l l1 l2,
   PEperm_R b l (l1 ++ a :: l2) ->
-  { pl : _ & l = fst pl ++ a :: snd pl & PEperm_R b (l1 ++ l2) (fst pl ++ snd pl) }.
-Proof with try reflexivity.
+    {'(l1',l2') : _ & l = l1' ++ a :: l2' & PEperm_R b (l1 ++ l2) (l1' ++ l2') }.
+Proof.
 destruct b ; simpl ; intros a l l1 l2 HP.
-- assert (HP' := HP).
-  apply Perm_R_vs_elt_inv in HP'.
-  destruct HP' as ((l' & l'') & Heq) ; subst.
+- destruct (Perm_R_vs_elt_inv _ _ _ _ HP) as [(l',l'') Heq]; subst.
   apply Perm_R_app_inv in HP.
   apply Perm_R_sym in HP.
-  exists (l',l'')...
-  assumption.
-- rewrite (PEperm_R_false _ _ HP); exists (l1,l2)...
+  now exists (l',l'').
+- rewrite (PEperm_R_false _ _ HP); now exists (l1,l2).
 Defined.
 
 Lemma PEperm_R_vs_cons_inv {A} b : forall (a : A) l l1,
   PEperm_R b l (a :: l1) ->
-  { pl : _ & l = fst pl ++ a :: snd pl & PEperm_R b l1 (fst pl ++ snd pl) }.
-Proof.
-intros a l l1 HP.
-rewrite <- (app_nil_l l1).
-eapply PEperm_R_vs_elt_inv.
-assumption.
-Defined.
+    {'(l1',l2') : _ & l = l1' ++ a :: l2' & PEperm_R b l1 (l1' ++ l2') }.
+Proof. intros a l l1 HP; rewrite <- (app_nil_l l1); now apply PEperm_R_vs_elt_inv. Defined.
 
 Instance PEperm_R_in {A} b (a : A) : Proper (PEperm_R b ==> Basics.impl) (In a).
-Proof with try eassumption.
-destruct b ; simpl ; intros l l' HP HIn.
-- eapply Perm_R_in...
-- now rewrite<- (PEperm_R_false _ _ HP).
-Qed.
+Proof. now destruct b ; simpl ; intros l l' HP HIn; [ apply Perm_R_in with l
+                                                    | rewrite <- (PEperm_R_false _ _ HP) ]. Qed.
 
-Instance PEperm_R_Forall {A} b (P : A -> Prop) :
-  Proper (PEperm_R b ==> Basics.impl) (Forall P).
-Proof with try eassumption.
-destruct b ; simpl ; intros l1 l2 HP HF.
-- eapply Perm_R_Forall...
-- now rewrite<- (PEperm_R_false _ _ HP).
-Qed.
+Instance PEperm_R_Forall {A} b (P : A -> Prop) : Proper (PEperm_R b ==> Basics.impl) (Forall P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall with l1
+                                                    | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
-Instance PEperm_R_Exists {A} b (P : A -> Prop) :
-  Proper (PEperm_R b ==> Basics.impl) (Exists P).
-Proof with try eassumption.
-destruct b ; simpl ; intros l1 l2 HP HF.
-- eapply Perm_R_Exists...
-- now rewrite<- (PEperm_R_false _ _ HP).
-Qed.
+Instance PEperm_R_Exists {A} b (P : A -> Prop) : Proper (PEperm_R b ==> Basics.impl) (Exists P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists with l1
+                                                    | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
-Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) :
-  forall l1 l1' l2, PEperm_R b l1 l1' -> Forall2_Type P l1 l2 -> 
+Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) : forall l1 l1' l2,
+  PEperm_R b l1 l1' -> Forall2_Type P l1 l2 -> 
     { l2' : _ & PEperm_R b l2 l2' & Forall2_Type P l1' l2' }.
 Proof.
 destruct b ; [ apply Perm_R_Forall2 | ].
 intros l1 l1' l2 HE HF ; simpl in HE ; subst.
-rewrite (PEperm_R_false _ _ HE) in HF.
-exists l2 ; [ reflexivity | assumption ].
+rewrite (PEperm_R_false _ _ HE) in HF; now exists l2.
 Defined.
 
-Instance PEperm_R_map {A B} (f : A -> B) b :
-  Proper (PEperm_R b ==> PEperm_R b) (map f).
-Proof.
-destruct b ; intros l l' HP.
-- apply Perm_R_map.
-  assumption.
-- now rewrite (PEperm_R_false _ _ HP).
-Defined.
+Instance PEperm_R_map {A B} (f : A -> B) b : Proper (PEperm_R b ==> PEperm_R b) (map f).
+Proof. now destruct b ; intros l l' HP; [ apply Perm_R_map | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
-Instance PEperm_R_Forall_R {A} b (P : A -> Type) :
-  Proper (PEperm_R b ==> Basics.arrow) (Forall_Type P).
-Proof with try eassumption.
-destruct b ; simpl ; intros l1 l2 HP HF.
-- eapply Perm_R_Forall_Type...
-- now rewrite (PEperm_R_false _ _ HP) in HF.
-Qed.
+Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Forall_Type P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall_Type with l1
+                                                    | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
-Instance PEperm_R_Exists_R {A} b (P : A -> Type) :
-  Proper (PEperm_R b ==> Basics.arrow) (Exists_Type P).
-Proof with try eassumption.
-destruct b ; simpl ; intros l1 l2 HP HF.
-- eapply Perm_R_Exists_Type...
-- now rewrite (PEperm_R_false _ _ HP) in HF.
-Qed.
+Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Exists_Type P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists_Type with l1
+                                                    | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
 Lemma PEperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
-  PEperm_R b l1 (map f l2) ->
-  { l : _ & l1 = map f l & (PEperm_R b l2 l) }.
-Proof.
-destruct b ; simpl ; intros f l1 l2 HP.
-- eapply Perm_R_map_inv ; eassumption.
-- rewrite (PEperm_R_false _ _ HP).
-  exists l2 ; reflexivity.
-Defined.
+  PEperm_R b l1 (map f l2) -> { l : _ & l1 = map f l & PEperm_R b l2 l }.
+Proof. now destruct b ; simpl ; intros f l1 l2 HP; [ apply Perm_R_map_inv
+                                                   | rewrite (PEperm_R_false _ _ HP); exists l2 ]. Defined.
 
 Instance PEperm_R_rev {A} b : Proper (PEperm_R b ==> PEperm_R b) (@rev A).
-Proof.
-destruct b ; intros l1 l2 HP.
-- now apply Perm_R_rev'.
-- now rewrite (PEperm_R_false _ _ HP).
-Defined.
+Proof. now destruct b ; intros l1 l2 HP; [ apply Perm_R_rev' | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
-Lemma PEperm_R_map_inv_inj {A B} b : forall f : A -> B, injective f ->
-  forall l1 l2, PEperm_R b (map f l1) (map f l2) -> PEperm_R b l1 l2.
-Proof with try assumption.
-destruct b ; intros f Hi l1 l2 HP.
-- apply Perm_R_map_inv_inj in HP...
-- apply PEperm_R_false in HP; apply map_inj in HP; [now rewrite HP | ]...
-Defined.
+Lemma PEperm_R_map_inv_inj {A B} b : forall f : A -> B, injective f -> forall l1 l2,
+  PEperm_R b (map f l1) (map f l2) -> PEperm_R b l1 l2.
+Proof. now destruct b ; intros f Hi l1 l2 HP; [ apply Perm_R_map_inv_inj with f
+                                              | apply PEperm_R_false, map_inj in HP; subst ]. Defined.
 
-Lemma PEperm_R_image {A B} b : forall (f : A -> B) a l l',
-  PEperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
+Lemma PEperm_R_image {A B} b : forall (f : A -> B) a l l', PEperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
 Proof.
 destruct b ; intros f a l l' H.
-- eapply Perm_R_image ; eassumption.
-- apply PEperm_R_false in H; destruct l' ; inversion H ; subst.
-  exists a0 ; reflexivity.
+- now apply Perm_R_image with l l'.
+- apply PEperm_R_false in H; destruct l'; inversion H; subst; now eexists.
 Qed.
 
 
 (** ** From PEperm to PCperm *)
 
 Instance PEperm_PCperm_R {A} b : Proper (PEperm_R b ==> PCperm_R b) (@id (list A)).
-Proof.
-destruct b ; simpl ; intros l l' HP.
-- assumption.
-- rewrite (PEperm_R_false _ _ HP) ; apply CyclicPerm_R_refl.
-Defined.
+Proof. now destruct b ; simpl ; intros l l' HP; [ | rewrite (PEperm_R_false _ _ HP); reflexivity ]. Defined.
 
-Instance PEperm_PCperm_R_cons {A} b :
-  Proper (eq ==> PEperm_R b ==> PCperm_R b) (@cons A).
-Proof.
-intros x y Heq l1 l2 HP ; subst.
-apply PEperm_PCperm_R.
-now apply PEperm_R_cons.
-Defined.
+Instance PEperm_PCperm_R_cons {A} b : Proper (eq ==> PEperm_R b ==> PCperm_R b) (@cons A).
+Proof. now intros x y Heq l1 l2 HP ; subst; apply PEperm_PCperm_R, PEperm_R_cons. Defined.
 
-Instance PEperm_PCperm_R_app {A} b :
-  Proper (PEperm_R b ==> PEperm_R b ==> PCperm_R b) (@app A).
-Proof.
-intros l1 l1' HPhd l2 l2' HPtl.
-apply PEperm_PCperm_R.
-rewrite HPhd.
-rewrite HPtl.
-reflexivity.
-Defined.
+Instance PEperm_PCperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PCperm_R b) (@app A).
+Proof. now intros l1 l1' HPhd l2 l2' HPtl; apply PEperm_PCperm_R; rewrite HPhd, HPtl. Defined.
 
