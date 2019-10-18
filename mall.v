@@ -31,8 +31,8 @@ Fixpoint dual A :=
   match A with
   | var X => covar X
   | covar X => var X
-  | tens A B => parr (dual A) (dual B)
-  | parr A B => tens (dual A) (dual B)
+  | tens A B => parr (dual B) (dual A)
+  | parr A B => tens (dual B) (dual A)
   | aplus A B => awith (dual A) (dual B)
   | awith A B => aplus (dual A) (dual B)
   end.
@@ -48,7 +48,7 @@ Ltac fsize_lia := simpl; rewrite ? fsize_dual; lia.
 Inductive mall : list formulas -> Type :=
 | ax_r : forall X, mall (covar X :: var X :: nil)
 | ex_r : forall l1 l2, mall l1 -> l1 ~~ l2 -> mall l2
-| tens_r : forall A B l1 l2, mall (A :: l1) -> mall (B :: l2) -> mall (tens A B :: l1 ++ l2)
+| tens_r : forall A B l1 l2, mall (A :: l1) -> mall (B :: l2) -> mall (tens A B :: l2 ++ l1)
 | parr_r : forall A B l, mall (A :: B :: l) -> mall (parr A B :: l)
 | plus_r1 : forall A B l, mall (A :: l) -> mall (aplus A B :: l)
 | plus_r2 : forall A B l, mall (B :: l) -> mall (aplus A B :: l)
@@ -104,27 +104,27 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         remember (tens_r _ _ _ _ pi2_1 pi2_2) as Htens; clear HeqHtens.
         revert p IHsize; rewrite Heql'; rewrite <- (app_nil_l (dual (tens A0 B) :: _)); intros p IHsize.
         destruct (Perm_R_vs_cons_inv _ _ _ p) as [[p1 p2] Heq]; simpl in Heq; subst.
-        apply ex_r with (p1 ++ (l3 ++ l4) ++ p2);
-        [ | clear - p; apply Perm_R_app_inv in p; simpl in p; rewrite <- p; list_simpl;
-            apply Perm_R_app_head; now rewrite (Perm_R_app_comm p2); list_simpl ].
+        apply ex_r with (p1 ++ (l4 ++ l3) ++ p2);
+          [ | clear - p; apply Perm_R_app_inv in p; simpl in p; rewrite <- p; list_simpl;
+              apply Perm_R_app_head; now rewrite (Perm_R_app_comm p2); list_simpl ].
         revert Htens IHsize ; simpl;
-          replace (tens A0 B) with (dual (parr (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
+          replace (tens A0 B) with (dual (parr (dual B) (dual A0))) by (now simpl; rewrite 2 bidual);
           intros Htens IHsize.
         refine (IHsize _ _ _ _ Htens pi1 _ _)...
       * (* parr_r *)
         clear IHsize; subst.
-        rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _)...
-        apply ex_r with ((dual A0 :: nil) ++ l4 ++ l0); [ | now rewrite <- Perm_R_app_rot ].
-          (* could be done with rewrite, but Coq bug *)
         rewrite <- (bidual B) in pi2_2; refine (IHcut _ _ _ _ _ pi2_2 _)...
+        apply ex_r with ((dual B :: nil) ++ l3 ++ l0); [ | now rewrite <- Perm_R_app_rot ].
+          (* could be done with rewrite, but Coq bug *)
+        rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _)...
     + (* commutative case *)
       dichot_Type_elt_app_exec H1 ; subst.
       * rewrite 2 app_assoc; apply tens_r...
-        revert pi2_1 IHsize ; simpl ; rewrite (app_comm_cons _ _ A0); intros pi2_1 IHsize; list_simpl.
-        refine (IHsize _ _ _ _ pi1 pi2_1 _ _)...
-      * list_simpl ; apply tens_r...
-        revert pi2_2 IHsize; simpl; rewrite (app_comm_cons _ _ B); intros pi2_2 IHsize.
+        revert pi2_2 IHsize ; simpl ; rewrite (app_comm_cons _ _ B); intros pi2_2 IHsize; list_simpl.
         refine (IHsize _ _ _ _ pi1 pi2_2 _ _)...
+      * list_simpl ; apply tens_r...
+        revert pi2_1 IHsize; simpl; rewrite (app_comm_cons _ _ A0); intros pi2_1 IHsize.
+        refine (IHsize _ _ _ _ pi1 pi2_1 _ _)...
   - (* parr_r *)
     destruct l1; inversion Heql; subst; simpl in Hc; list_simpl.
     + (* main case *)
@@ -137,13 +137,13 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         [ | clear - p; apply Perm_R_app_inv in p; simpl in p; rewrite <- p; list_simpl;
             apply Perm_R_app_head, Perm_R_app_comm ].
         revert Hparr IHsize; simpl;
-          replace (parr A0 B) with (dual (tens (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
+          replace (parr A0 B) with (dual (tens (dual B) (dual A0))) by (now simpl; rewrite 2 bidual);
           intros Hparr IHsize.
         refine (IHsize _ _ _ _ Hparr pi1 _ _)...
       * (* tens_r *)
         clear IHsize; subst; list_simpl.
-        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_2 _)...
-        rewrite <- (app_nil_l _); refine (IHcut _ _ _ _ _ pi1_1 _)...
+        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_1 _)...
+        rewrite <- (app_nil_l _); refine (IHcut _ _ _ _ _ pi1_2 _)...
     + (* commutative case *)
       apply parr_r.
       revert pi2 IHsize; simpl; rewrite (app_comm_cons l1 _ B), (app_comm_cons _ _ A0); intros pi2 IHsize.
@@ -225,7 +225,7 @@ Qed.
 Inductive mall_cut : list formulas -> Type :=
 | ax_cut_r : forall X, mall_cut (covar X :: var X :: nil)
 | ex_cut_r : forall l1 l2, mall_cut l1 -> l1 ~~ l2 -> mall_cut l2
-| tens_cut_r : forall A B l1 l2, mall_cut (A :: l1) -> mall_cut (B :: l2) -> mall_cut (tens A B :: l1 ++ l2)
+| tens_cut_r : forall A B l1 l2, mall_cut (A :: l1) -> mall_cut (B :: l2) -> mall_cut (tens A B :: l2 ++ l1)
 | parr_cut_r : forall A B l, mall_cut (A :: B :: l) -> mall_cut (parr A B :: l)
 | plus_cut_r1 : forall A B l, mall_cut (A :: l) -> mall_cut (aplus A B :: l)
 | plus_cut_r2 : forall A B l, mall_cut (B :: l) -> mall_cut (aplus A B :: l)
