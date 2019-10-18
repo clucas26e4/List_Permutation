@@ -620,6 +620,12 @@ destruct (Compare_dec.le_lt_dec j k) as [Hle | Hgt].
 - exists (i + k, j - k); now apply cfun_cfun_le; try lia.
 Defined.
 
+Lemma cfun_0_n : forall n, cfun 0 n = Id n.
+Proof. intros n; now unfold cfun; rewrite app_nil_r. Qed.
+
+Lemma cfun_n_0 : forall n, cfun n 0 = Id n.
+Proof. intros n; now unfold cfun. Qed.
+
 Lemma cfun_arg_inj : forall n1 n2 m1 m2, cfun (S n1) (S m1) = cfun (S n2) (S m2) -> n1 = n2 /\ m1 = m2.
 Proof.
 intros n1 n2 m1 m2 Heq.

@@ -293,43 +293,23 @@ Defined.
 
 Lemma CircularShift_R_image {A B} : forall (f : A -> B) a l l',
   a :: l ~°~ map f l' -> { a' | a = f a' }.
-Proof.
-intros f a l l' HP.
-eapply Perm_R_image.
-apply CircularShift_Perm_R ; eassumption.
-Qed.
+Proof. now intros f a l l' HP; apply Perm_R_image with l l', CircularShift_Perm_R. Qed.
 
 Instance CircularShift_R_Forall {A} (P : A -> Prop) :
   Proper (CircularShift_R ==> Basics.impl) (Forall P).
-Proof with try eassumption.
-intros l1 l2 HC HF.
-eapply Perm_R_Forall...
-apply CircularShift_Perm_R...
-Qed.
+Proof. intros l1 l2 HC HF; now apply Perm_R_Forall with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Instance CircularShift_R_Exists {A} (P : A -> Prop) :
   Proper (CircularShift_R ==> Basics.impl) (Exists P).
-Proof with try eassumption.
-intros l1 l2 HC HE.
-eapply Perm_R_Exists...
-apply CircularShift_Perm_R...
-Qed.
+Proof. intros l1 l2 HC HE; now apply Perm_R_Exists with l1; [ apply CircularShift_Perm_R | ]. Qed.
 
 Instance CircularShift_R_Forall_Type {A} (P : A -> Type) :
   Proper (CircularShift_R ==> Basics.arrow) (Forall_Type P).
-Proof with try eassumption.
-intros l1 l2 HC HF.
-eapply Perm_R_Forall_Type...
-apply CircularShift_Perm_R...
-Qed.
+Proof. intros l1 l2 HC HF; now apply Perm_R_Forall_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Instance CircularShift_R_Exists_Type {A} (P : A -> Type) :
   Proper (CircularShift_R ==> Basics.arrow) (Exists_Type P).
-Proof with try eassumption.
-intros l1 l2 HC HE.
-eapply Perm_R_Exists_Type...
-apply CircularShift_Perm_R...
-Qed.
+Proof. intros l1 l2 HC HF; now apply Perm_R_Exists_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Lemma CircularShift_R_Forall2 {A B} (P : A -> B -> Type) : forall l1 l1' l2,
   l1 ~°~ l1' -> Forall2_Type P l1 l2 -> { l2' : _ & l2 ~°~ l2' & Forall2_Type P l1' l2' }.
@@ -356,62 +336,72 @@ Defined.
 
 
 (* Cyclic Permutations as Nat *)
-Definition app_cshift_nat {A} n (l : list A) :=
-  skipn n l ++ firstn n l.
+Definition app_cshift_nat {A} n (l : list A) := skipn n l ++ firstn n l.
 
-Lemma app_cshift_cfun {A} : forall n (l : list A), n <= length l ->
-  app_cshift_nat n l = app_nat_fun (cfun n (length l - n)) l.
+Lemma app_cshift_cfun {A} : forall i (l : list A), i <= length l ->
+  app_cshift_nat i l = app_nat_fun (cfun i (length l - i)) l.
 Proof.
-  intros n l Hle.
-  rewrite<- (firstn_skipn n l) at 3.
-  rewrite<- (firstn_length_le l) at 2; try assumption.
-  replace (length l - n) with (length (skipn n l)); [ symmetry; apply app_cfun_eq | ].
-  rewrite<- (firstn_skipn n l) at 2.
-  rewrite app_length.
-  rewrite firstn_length_le; try assumption; lia.
+  intros i l Hle.
+  rewrite<- (firstn_skipn i l) at 3.
+  rewrite<- (firstn_length_le l) at 2 by assumption.
+  replace (length l - i) with (length (skipn i l)); [ symmetry; apply app_cfun_eq | ].
+  rewrite<- (firstn_skipn i l) at 2.
+  rewrite app_length, firstn_length_le by assumption; lia.
+Qed.
+
+Lemma app_cshift_iter {A} : forall i (l : list A), i <= length l ->
+  app_cshift_nat i l = Nat.iter i (app_nat_fun (cfun 1 (length l - 1))) l.
+Proof.
+induction i; intros l Hlen; simpl.
+- now unfold app_cshift_nat; rewrite app_nil_r.
+- destruct l; simpl in Hlen; (try now lia).
+  rewrite app_cshift_cfun; [ | simpl; lia ].
+  change (length l - 0) with (length (a :: l) - 1); rewrite <- (IHi (a :: l)); [ | simpl; lia ].
+  rewrite app_cshift_cfun; [ | simpl; lia ].
+  rewrite <- asso_app_nat_fun.
+  rewrite cfun_cfun_le; simpl length; try lia.
+  f_equal; f_equal; lia.
 Qed.
 
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
-  { n & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
+  { n : _ & n < max 1 (length p)
+          & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
 Proof with try reflexivity.
   intros p Hperm.
-  destruct Hperm as [[[n m] Heq]| Heq].
-  - split with (S n).
+  destruct Hperm as [ [(n, m) Heq] | Heq].
+  - split with (S n); [ subst; length_lia | ].
     intros A l Hlen.
     rewrite Heq in Hlen |- *.
     rewrite cfun_length in Hlen.
     replace (S m) with (length l - S n) by lia.
     rewrite app_cshift_cfun...
     lia.
-  - split with (length p).
+  - split with 0; [ lia | ].
     intros A l Hlen.
     rewrite Heq at 1; rewrite Hlen.
     rewrite app_Id.
-    unfold app_cshift_nat.
-    rewrite skipn_all2 by lia.
-    rewrite firstn_all2 by lia...
-Qed.
+    symmetry; apply app_cshift_iter; lia.
+Defined.
 
 Lemma app_cshift_to_cond_circularShift : forall n len,
   {p : _ & cond_circularShift p
          & prod (length p = len)
                 (forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l)}.
-Proof with try reflexivity.
+Proof.
   intros n len.
   destruct n; [ | case_eq ((S n) <? len); intros H ; [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H] ].
   - split with (Id len); [ | split].
-    + right; rewrite seq_length...
+    + right; now rewrite seq_length.
     + apply seq_length.
     + intros A l Hlen.
       rewrite seq_length in Hlen.
       rewrite Hlen.
       rewrite app_Id.
       unfold app_cshift_nat; simpl.
-      rewrite app_nil_r...
+      symmetry; apply app_nil_r.
   - split with (cfun (S n) (S (pred (pred len) - n))); [ | split ].
-    + left; split with (n , pred (pred len) - n)...
-    + rewrite cfun_length.
-      lia.
+    + left; now split with (n , pred (pred len) - n).
+    + rewrite cfun_length; lia.
     + intros A l Hlen.
       rewrite cfun_length in Hlen.
       replace (S (Init.Nat.pred (Init.Nat.pred len) - n)) with (len - S n) by lia.
@@ -421,13 +411,13 @@ Proof with try reflexivity.
       replace (len - S n) with (length (skipn (S n) l)); [apply app_cfun_eq | ].
       rewrite skipn_length; lia.
   - split with (Id len);  [ | split].
-    + right; rewrite seq_length...
+    + right; now rewrite seq_length.
     + apply seq_length.
     + intros A l Hlen.
       rewrite seq_length in Hlen; rewrite Hlen.
       rewrite app_Id.
       unfold app_cshift_nat.
       rewrite skipn_all2 by lia.
-      rewrite firstn_all2 by lia...
-Qed.
+      now rewrite firstn_all2 by lia.
+Defined.
 
