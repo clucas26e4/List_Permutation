@@ -10,15 +10,15 @@ Require Import Fun_nat.
 Require Import Perm.
 Require Import Perm_R_more.
 Require Import Perm_R_solve.
-Require Import CyclicPerm_R.
-Require Import CyclicPerm_R_solve.
+Require Import CircularShift_R.
+Require Import CircularShift_R_solve.
 Require Import misc.
 
 
 (** ** Definitions
  parametrized by a boolean. *)
 Definition cond_PCperm (b : bool) l : Type :=
-  if b then is_perm l = true else cond_cyclicPerm l.
+  if b then is_perm l = true else cond_circularShift l.
 
 Lemma PCperm_Perm : forall b l, cond_PCperm b l -> is_perm l = true.
 Proof with try reflexivity; try assumption.
@@ -60,16 +60,16 @@ Ltac PCperm_R_solve :=
   | |- PCperm_R ?b _ _ => unfold PCperm_R ; destruct b ;
                         simpl ; PCperm_R_solve
   | |- Perm_R _ _  => Perm_R_solve
-  | |- CyclicPerm_R _ _  => CyclicPerm_R_solve
+  | |- CircularShift_R _ _  => CircularShift_R_solve
   end.
 
 (** *** Properties *)
 
 Instance PCperm_Perm_R {A} b : Proper (PCperm_R b ==> (@Perm_R A)) (fun a => a).
-Proof. now destruct b; intros; [ | apply CyclicPerm_Perm_R ]. Defined.
+Proof. now destruct b; intros; [ | apply CircularShift_Perm_R ]. Defined.
 
-Instance CylicPerm_PCperm_R {A} b : Proper (CyclicPerm_R ==> PCperm_R b) (fun a : (list A) => a).
-Proof. now destruct b; intros; [ apply CyclicPerm_Perm_R | ]. Defined.
+Instance CylicPerm_PCperm_R {A} b : Proper (CircularShift_R ==> PCperm_R b) (fun a : (list A) => a).
+Proof. now destruct b; intros; [ apply CircularShift_Perm_R | ]. Defined.
 
 Instance PCperm_R_refl {A} b : Reflexive (@PCperm_R A b).
 Proof. destruct b; intros ?; reflexivity. Defined.
@@ -84,25 +84,25 @@ Instance PCperm_R_equiv {A} b : Equivalence (@PCperm_R A b).
 Proof. split; [ apply PCperm_R_refl | apply PCperm_R_sym | apply PCperm_R_trans ]. Qed.
 
 Lemma PCperm_R_swap {A} b : forall a1 a2 : A, PCperm_R b (a1 :: a2 :: nil) (a2 :: a1 :: nil).
-Proof. destruct b; [ apply Perm_R_swap | apply CyclicPerm_R_swap ]. Defined.
+Proof. destruct b; [ apply Perm_R_swap | apply CircularShift_R_swap ]. Defined.
 
 Lemma PCperm_R_last {A} b : forall (a : A) l, PCperm_R b (a :: l) (l ++ a :: nil).
-Proof. destruct b; intros; [ apply Perm_R_cons_append | apply CyclicPerm_R_last ]. Defined.
+Proof. destruct b; intros; [ apply Perm_R_cons_append | apply CircularShift_R_last ]. Defined.
 
 Lemma PCperm_R_app_comm {A} b : forall l l' : list A, PCperm_R b (l ++ l') (l' ++ l).
-Proof. destruct b; [ apply Perm_R_app_comm | apply CyclicPerm_R_commu ]. Defined.
+Proof. destruct b; [ apply Perm_R_app_comm | apply CircularShift_R_commu ]. Defined.
 
 Lemma PCperm_R_app_rot {A} b : forall l1 l2 l3 : list A, PCperm_R b  (l1 ++ l2 ++ l3) (l2 ++ l3 ++ l1).
-Proof. destruct b ; [ apply Perm_R_app_rot | apply CyclicPerm_R_app_rot ]. Defined.
+Proof. destruct b ; [ apply Perm_R_app_rot | apply CircularShift_R_app_rot ]. Defined.
 
 Lemma PCperm_R_nil {A} b : forall l : list A, PCperm_R b nil l -> l = nil.
-Proof. destruct b; [ apply Perm_R_nil | apply CyclicPerm_R_nil ]. Qed.
+Proof. destruct b; [ apply Perm_R_nil | apply CircularShift_R_nil ]. Qed.
 
 Lemma PCperm_R_nil_cons {A} b : forall l (a : A), PCperm_R b nil (a :: l) -> False.
-Proof. destruct b; [ apply Perm_R_nil_cons | apply CyclicPerm_R_nil_cons ]. Qed.
+Proof. destruct b; [ apply Perm_R_nil_cons | apply CircularShift_R_nil_cons ]. Qed.
 
 Lemma PCperm_R_length_1_inv {A} b : forall (a : A) l, PCperm_R b (a :: nil) l -> l = a :: nil.
-Proof. now destruct b; intros; [ apply Perm_R_length_1_inv | apply CyclicPerm_R_one_inv ]. Qed.
+Proof. now destruct b; intros; [ apply Perm_R_length_1_inv | apply CircularShift_R_one_inv ]. Qed.
 
 Lemma PCperm_length_1_inv b : forall p, cond_PCperm b p -> length p = 1 -> p = Id 1.
 Proof.
@@ -115,7 +115,7 @@ Qed.
 
 Lemma PCperm_R_length_2_inv {A} b : forall (a1 : A) a2 l,
   PCperm_R b (a1 :: a2 :: nil) l -> { l = a1 :: a2 :: nil } + { l = a2 :: a1 :: nil }.
-Proof. destruct b; [ apply Perm_R_length_2_inv | apply CyclicPerm_R_two_inv ]. Qed.
+Proof. destruct b; [ apply Perm_R_length_2_inv | apply CircularShift_R_two_inv ]. Qed.
 
 Lemma PCperm_R_vs_elt_inv {A} b : forall (a : A) l l1 l2,
   PCperm_R b l (l1 ++ a :: l2) ->
@@ -129,7 +129,7 @@ destruct b ; intros a l l1 l2 HC.
   eapply Perm_R_trans ; [ apply Perm_R_app_comm | ].
   eapply Perm_R_trans ; [ eassumption | ].
   apply Perm_R_app_comm.
-- apply CyclicPerm_R_vs_elt_inv in HC.
+- apply CircularShift_R_vs_elt_inv in HC.
   destruct HC as [(l' & l'') Heq1 Heq2] ; subst.
   exists (l',l'')...
   split with (Id (length (l'' ++ l'))); repeat split.
@@ -151,37 +151,37 @@ now rewrite app_nil_r in Heq.
 Defined.
 
 Instance PCperm_R_map {A B} (f : A -> B) b : Proper (PCperm_R b ==> PCperm_R b) (map f).
-Proof. now destruct b; intros ? ? ?; [ apply Perm_R_map | apply CyclicPerm_R_map ]. Defined.
+Proof. now destruct b; intros ? ? ?; [ apply Perm_R_map | apply CircularShift_R_map ]. Defined.
 
 Lemma PCperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
   PCperm_R b l1 (map f l2) ->
   { l : _ & l1 = map f l & (PCperm_R b l2 l) }.
-Proof. destruct b ; [ apply Perm_R_map_inv | apply CyclicPerm_R_map_inv ]. Defined.
+Proof. destruct b ; [ apply Perm_R_map_inv | apply CircularShift_R_map_inv ]. Defined.
 
 Instance PCperm_R_in {A} b (a : A) : Proper (PCperm_R b ==> Basics.impl) (In a).
-Proof. now destruct b; intros l ? ? ?; [ apply Perm_R_in with l | apply CyclicPerm_R_in with l ]. Qed.
+Proof. now destruct b; intros l ? ? ?; [ apply Perm_R_in with l | apply CircularShift_R_in with l ]. Qed.
 
 Instance PCperm_R_Forall {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.impl) (Forall P).
-Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall with l | apply CyclicPerm_R_Forall with l ]. Qed.
+Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall with l | apply CircularShift_R_Forall with l ]. Qed.
 
 Instance PCperm_R_Exists {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.impl) (Exists P).
-Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists with l | apply CyclicPerm_R_Exists with l ]. Qed.
+Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists with l | apply CircularShift_R_Exists with l ]. Qed.
 
 Lemma PCperm_R_Forall2 {A B} b (P : A -> B -> Type) : forall l1 l1' l2,
   PCperm_R b l1 l1' -> Forall2_Type P l1 l2 -> 
     { l2' : _ & PCperm_R b l2 l2' & Forall2_Type P l1' l2' }.
-Proof. destruct b; [ apply Perm_R_Forall2 | apply CyclicPerm_R_Forall2 ]. Qed.
+Proof. destruct b; [ apply Perm_R_Forall2 | apply CircularShift_R_Forall2 ]. Qed.
 
 Lemma PCperm_R_image {A B} b : forall (f : A -> B) a l l', PCperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
-Proof. destruct b; [ apply Perm_R_image | apply CyclicPerm_R_image ]. Qed.
+Proof. destruct b; [ apply Perm_R_image | apply CircularShift_R_image ]. Qed.
 
 Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Forall_Type P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall_Type with l
-                                        | apply CyclicPerm_R_Forall_Type with l ]. Qed.
+                                        | apply CircularShift_R_Forall_Type with l ]. Qed.
 
 Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Exists_Type P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists_Type with l
-                                        | apply CyclicPerm_R_Exists_Type with l ]. Qed.
+                                        | apply CircularShift_R_Exists_Type with l ]. Qed.
 
 
 (** ** Permutation or equality *)
