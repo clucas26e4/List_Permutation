@@ -6,7 +6,6 @@ Require Import wf_nat_more.
 Require Import List_more.
 Require Import List_Type_more.
 
-Require Import Perm_R_more.
 Require Import genperm_R.
 
 

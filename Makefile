@@ -60,3 +60,4 @@ Perm_solve.vo : Perm_solve.v misc.vo Perm.vo List_nat.vo List_more2.vo Fun_nat.v
 all_lt_solve.vo : all_lt_solve.v List_nat.vo List_more2.vo Fun_nat.vo Perm.vo misc.vo $(OLLIBSDIR)/List_more.vo
 
 mall.vo : mall.v $(OLLIBSDIR)/wf_nat_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo Perm_R_more.vo
+mall.vo : mall.v $(OLLIBSDIR)/wf_nat_more.vo $(OLLIBSDIR)/List_more.vo $(OLLIBSDIR)/List_Type_more.vo genperm_R.vo
