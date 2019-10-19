@@ -21,11 +21,11 @@ Definition cond_PCperm (b : bool) l : Type :=
   if b then is_perm l = true else cond_circularShift l.
 
 Lemma PCperm_Perm : forall b l, cond_PCperm b l -> is_perm l = true.
-Proof with try reflexivity; try assumption.
-  intros b; case b; simpl; intros l Hperm...
-  destruct Hperm as [((n , m) & Heq) | Heq].
-  - rewrite Heq; apply cfun_is_perm.
-  - rewrite Heq; apply Id_is_perm.
+Proof.
+intros b; case b; simpl; intros l Hperm; [ assumption | ].
+destruct Hperm as [((n , m) & Heq) | Heq]; rewrite Heq.
+- apply cfun_is_perm.
+- apply Id_is_perm.
 Qed.
 
 Definition cond_PEperm (b : bool) l : Type :=
@@ -78,7 +78,7 @@ Instance PCperm_R_sym {A} b : Symmetric (@PCperm_R A b).
 Proof. now destruct b; intros ? ? ?; symmetry. Defined.
 
 Instance PCperm_R_trans {A} b : Transitive (@PCperm_R A b).
-Proof. now destruct b; intros l l' l'' H1 H2; transitivity l'. Defined.
+Proof. now destruct b; intros ? l' ? ? ?; transitivity l'. Defined.
 
 Instance PCperm_R_equiv {A} b : Equivalence (@PCperm_R A b).
 Proof. split; [ apply PCperm_R_refl | apply PCperm_R_sym | apply PCperm_R_trans ]. Qed.
@@ -135,7 +135,7 @@ destruct b ; intros a l l1 l2 HC.
   split with (Id (length (l'' ++ l'))); repeat split.
   + simpl; rewrite seq_length...
   + rewrite Heq1; length_lia.
-  + rewrite Heq1; rewrite app_Id...
+  + rewrite Heq1, app_Id...
 Qed.
 
 Lemma PCperm_R_vs_cons_inv {A} b : forall (a : A) l l1,

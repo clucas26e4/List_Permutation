@@ -37,9 +37,7 @@ Lemma cond_circular_cfun_lt {l} : cond_circularShift l -> {' (n, m) : _ & l = cf
 Proof.
 intros [[[n m] Heqcp] | Heqcp]; subst.
 - now exists (S n, S m).
-- exists (0, length l).
-  + now unfold cfun; rewrite app_nil_r.
-  + now intros _.
+- now exists (0, length l); unfold cfun; [ rewrite app_nil_r | ].
 Qed.
 
 Lemma cond_circular_cfun {l} : cond_circularShift l -> {' (n, m) : _ & l = cfun n m }.
@@ -58,27 +56,6 @@ Section Properties.
 
 Context {A : Type}.
 Implicit Types la lb lc : list A.
-
-Lemma CircularShift_R_commu : forall la lb, la ++ lb ~°~ lb ++ la.
-Proof.
-intros l1 l2.
-split with (cfun (length l1) (length l2)); [ | split ].
-- apply cfun_cond_circular.
-- length_lia.
-- symmetry; apply app_cfun_eq.
-Defined.
-
-Lemma decomp_CircularShift_R : forall la lb,
-  la ~°~ lb -> {' (la', lb') : _ & la' ++ lb' = la & lb' ++ la' = lb }.
-Proof.
-intros l1 l2 [f Hc [Hlen Heq]]; subst.
-destruct (cond_circular_cfun Hc) as [(n,m) Heq]; subst.
-exists (Id n ∘ l1, seq n m ∘ l1).
-- rewrite <- app_nat_fun_app, <- seq_app.
-  rewrite cfun_length in Hlen; rewrite Hlen.
-  apply app_Id.
-- symmetry; apply app_nat_fun_app.
-Qed.
 
 Instance CircularShift_Perm_R : Proper (CircularShift_R ==> (@Perm_R A)) (fun a => a).
 Proof. intros l1 l2 [f Hc [Hlen Heq]]; subst; now exists f; [ apply cond_circular_is_perm | ]. Defined.
@@ -122,12 +99,28 @@ exists (cfun n m); [ | split ].
 Defined.
 
 Global Instance CircularShift_R_equiv : Equivalence (@CircularShift_R A).
+Proof. split; [ apply CircularShift_R_refl | apply CircularShift_R_sym | apply CircularShift_R_trans ]. Qed.
+
+Lemma decomp_CircularShift_R : forall la lb,
+  la ~°~ lb -> {' (la', lb') : _ & la' ++ lb' = la & lb' ++ la' = lb }.
 Proof.
-split.
-- apply CircularShift_R_refl.
-- apply CircularShift_R_sym.
-- apply CircularShift_R_trans.
+intros l1 l2 [f Hc [Hlen Heq]]; subst.
+destruct (cond_circular_cfun Hc) as [(n,m) Heq]; subst.
+exists (Id n ∘ l1, seq n m ∘ l1).
+- rewrite <- app_nat_fun_app, <- seq_app.
+  rewrite cfun_length in Hlen; rewrite Hlen.
+  apply app_Id.
+- symmetry; apply app_nat_fun_app.
 Qed.
+
+Lemma CircularShift_R_commu : forall la lb, la ++ lb ~°~ lb ++ la.
+Proof.
+intros l1 l2.
+split with (cfun (length l1) (length l2)); [ | split ].
+- apply cfun_cond_circular.
+- length_lia.
+- symmetry; apply app_cfun_eq.
+Defined.
 
 Lemma CircularShift_R_app : forall la lb lc, la ++ lb ~°~ lc -> lb ++ la ~°~ lc.
 Proof. intros l1 l2 l3 HC; now transitivity (l1 ++ l2); [ apply CircularShift_R_commu | ]. Defined.
@@ -255,11 +248,7 @@ intro l ; induction l ; intros l' HC.
 Defined.
 
 Instance CircularShift_R_in (a : A) : Proper (CircularShift_R ==> Basics.impl) (In a).
-Proof with try eassumption.
-intros l l' HC Hin.
-eapply Perm_R_in...
-apply CircularShift_Perm_R...
-Qed.
+Proof. intros l l' HC Hin; now apply Perm_R_in with l; [ apply CircularShift_Perm_R | ]. Qed.
 
 End Properties.
 
@@ -366,22 +355,14 @@ Qed.
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
   { n : _ & n < max 1 (length p)
           & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
-Proof with try reflexivity.
-  intros p Hperm.
-  destruct Hperm as [ [(n, m) Heq] | Heq].
-  - split with (S n); [ subst; length_lia | ].
-    intros A l Hlen.
-    rewrite Heq in Hlen |- *.
-    rewrite cfun_length in Hlen.
-    replace (S m) with (length l - S n) by lia.
-    rewrite app_cshift_cfun...
-    lia.
-  - split with 0; [ lia | ].
-    intros A l Hlen.
-    rewrite Heq at 1; rewrite Hlen.
-    rewrite app_Id.
-    symmetry; apply app_cshift_iter; lia.
-Defined.
+Proof.
+intros p Hperm.
+destruct (cond_circular_cfun_lt Hperm) as [(n, m) Heq Hz]; subst; rewrite cfun_length.
+exists n; [ lia | ].
+intros A l Hlen.
+replace m with (length l - n) by lia.
+symmetry; apply app_cshift_cfun; lia.
+Qed.
 
 Lemma app_cshift_to_cond_circularShift : forall n len,
   {p : _ & cond_circularShift p
@@ -419,5 +400,5 @@ Proof.
       unfold app_cshift_nat.
       rewrite skipn_all2 by lia.
       now rewrite firstn_all2 by lia.
-Defined.
+Qed.
 

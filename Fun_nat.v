@@ -626,7 +626,7 @@ Proof. intros n; now unfold cfun; rewrite app_nil_r. Qed.
 Lemma cfun_n_0 : forall n, cfun n 0 = Id n.
 Proof. intros n; now unfold cfun. Qed.
 
-Lemma cfun_arg_inj : forall n1 n2 m1 m2, cfun (S n1) (S m1) = cfun (S n2) (S m2) -> n1 = n2 /\ m1 = m2.
+Lemma cfun_arg_inj_S : forall n1 n2 m1 m2, cfun (S n1) (S m1) = cfun (S n2) (S m2) -> n1 = n2 /\ m1 = m2.
 Proof.
 intros n1 n2 m1 m2 Heq.
 enough (n1 = n2 /\ n1 + m1 = n2 + m2) as [Hn Hp] by (split; lia).
@@ -636,6 +636,23 @@ split.
 - apply (f_equal (@length _)) in Heq.
   simpl in Heq; rewrite ? app_length in Heq; simpl in Heq; rewrite ? seq_length in Heq; lia.
 Qed.
+
+Lemma cfun_arg_inj : forall n1 n2 m1 m2, (m1 = 0 -> n1 = 0) -> (m2 = 0 -> n2 = 0) ->
+  cfun n1 m1 = cfun n2 m2 -> n1 = n2 /\ m1 = m2.
+Proof.
+intros n1 n2 m1 m2 Hz1 Hz2 Heq.
+assert (n1 + m1 = n2 + m2) as Hplus by now rewrite <- 2 cfun_length; rewrite Heq.
+destruct m1; [ | destruct m2 ]; try lia.
+destruct n1; destruct n2; try lia.
+- exfalso; unfold cfun in Heq; inversion Heq.
+- exfalso; unfold cfun in Heq; inversion Heq.
+- apply cfun_arg_inj_S in Heq; lia.
+Qed.
+
+Lemma nat_cfun_arg : forall n i, 0 <= i < max 1 n <-> (n = i -> i = 0) /\ i <= n.
+Proof. intros; lia. Qed.
+Lemma nat_cfun_args : forall i j, 0 <= i < max 1 (i + j) <-> (j = 0 -> i = 0).
+Proof. intros; lia. Qed.
 
 
 (* Extensionality *)
