@@ -495,7 +495,7 @@ Qed.
 (* Canonicity *)
 
 Lemma Perm_R_eq_as_perm {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :
-  forall (l1 l2 : list A) (HP1 : Perm_R l1 l2) (HP2 : Perm_R l1 l2),
+  forall (l1 l2 : list A) (HP1 HP2: Perm_R l1 l2),
     projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
 Proof.
 intros l1 l2 [p1 Hp1 [Heql1 Heqp1]] [p2 Hp2 [Heql2 Heqp2]] Heq; simpl in Heq; subst; repeat f_equal.

@@ -2,6 +2,7 @@ Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.
 
+Require Import Bool_more.
 Require Import List_Type_more.
 
 Require Import List_more2.
@@ -323,6 +324,29 @@ intros l2' HF ; inversion HF ; subst.
       constructor ; auto.
 Defined.
 
+(* Canonicity *)
+Lemma CircularShift_R_eq_as_perm {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :
+  forall (l1 l2 : list A) (HP1 HP2: CircularShift_R l1 l2),
+    projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
+Proof.
+intros l1 l2 [p1 Hp1 [Heql1 Heqp1]] [p2 Hp2 [Heql2 Heqp2]] Heq; simpl in Heq; subst; repeat f_equal.
+- destruct Hp1; destruct Hp2; f_equal.
+  + destruct s as [[n1 m1] Hs1]; destruct s0 as [[n2 m2] Hs2]; subst.
+    destruct (cfun_arg_inj_S _ _ _ _ Hs2) as [Heqn Heqm]; subst.
+    f_equal; apply UIP_list_nat.
+  + exfalso.
+    destruct s as [[n m] Hs]; subst.
+    rewrite <- cfun_0_n in e.
+    apply cfun_arg_inj in e; lia.
+  + exfalso.
+    destruct s as [[n m] Hs]; subst.
+    rewrite <- cfun_0_n in e.
+    apply cfun_arg_inj in e; lia.
+  + apply UIP_list_nat.
+- apply UIP_nat.
+- now apply Eqdep_dec.UIP_dec, list_eq_dec.
+Qed.
+
 
 (* Cyclic Permutations as Nat *)
 Definition app_cshift_nat {A} n (l : list A) := skipn n l ++ firstn n l.
@@ -353,12 +377,12 @@ induction i; intros l Hlen; simpl.
 Qed.
 
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
-  { n : _ & n < max 1 (length p)
+  { n : _ & n <? max 1 (length p) = true
           & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
 Proof.
 intros p Hperm.
 destruct (cond_circular_cfun_lt Hperm) as [(n, m) Heq Hz]; subst; rewrite cfun_length.
-exists n; [ lia | ].
+exists n; [ apply Nat.ltb_lt; lia | ].
 intros A l Hlen.
 replace m with (length l - n) by lia.
 symmetry; apply app_cshift_cfun; lia.
@@ -400,5 +424,18 @@ Proof.
       unfold app_cshift_nat.
       rewrite skipn_all2 by lia.
       now rewrite firstn_all2 by lia.
+Qed.
+
+Definition CircularShift_nat_R {A} (l1 l2 : list A) :=
+  { n : _ & n <? max 1 (length l1) = true & l2 = app_cshift_nat n l1 }.
+
+(* Canonicity *)
+Lemma CircularShift_nat_R_eq_as_nat {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :
+  forall (l1 l2 : list A) (HP1 HP2: CircularShift_nat_R l1 l2),
+    projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
+Proof.
+intros l1 l2 [n1 Hp1 Heqp1] [n2 Hp2 Heqp2] Heq; simpl in Heq; subst; repeat f_equal.
+- apply UIP_bool.
+- now apply Eqdep_dec.UIP_dec, list_eq_dec.
 Qed.
 

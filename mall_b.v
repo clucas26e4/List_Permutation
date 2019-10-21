@@ -205,8 +205,7 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         rewrite PCperm_R_app_rot in HP'.
         apply ex_r with (p1 ++ l2 ++ p2); [ | symmetry]...
         revert Hwith IHsize ; simpl ;
-          replace (awith A0 B) with (dual (aplus (dual A0) (dual B)))
-          by (simpl ; rewrite 2 bidual ; reflexivity) ;
+          replace (awith A0 B) with (dual (aplus (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
           intros Hwith IHsize.
         refine (IHsize _ _ _ _ Hwith pi1 _ _)...
       * (* plus_r1 *)
