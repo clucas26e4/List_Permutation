@@ -1,5 +1,6 @@
 Require Import Lia.
 Require Import PeanoNat.
+Require Import Nat.
 
 Require Import Injective.
 Require Import Bool_more.
@@ -569,6 +570,26 @@ rewrite app_nat_fun_app; f_equal.
 - rewrite app_nat_fun_left.
   + apply app_Id.
   + apply all_lt_seq; lia.
+Qed.
+
+Lemma cfun_c1n : forall i j,
+    cfun 1 (i + j) ∘ cfun i (S j) = cfun (S i) j.
+Proof.
+  intros i j.
+  unfold cfun at 2 3.
+  rewrite <- seq_cons; simpl app; rewrite cons_is_app.
+  replace (i + j) with (length (seq (S i) j ++ Id i)) by (rewrite app_length; rewrite ? seq_length; lia).
+  change 1 with (length (i :: nil)).
+  rewrite app_cfun_eq; rewrite<- app_assoc.
+  unfold Id; now rewrite<- seq_S.
+Qed.
+
+Lemma cfun_generated_by_c1n : forall i j,
+    cfun i j = iter i (app_nat_fun (cfun 1 (pred (i+j)))) (Id (i + j)).
+Proof.
+  induction i; intros j; [ unfold cfun; now rewrite app_nil_r | ].
+  specialize (IHi (S j)); replace (i + S j) with (S i + j) in IHi by lia.
+  simpl in *; rewrite<- IHi; now rewrite cfun_c1n.
 Qed.
 
 Lemma cfun_inv : forall n m, cfun n m ∘ cfun m n = Id (m + n).
