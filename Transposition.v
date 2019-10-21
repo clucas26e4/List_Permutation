@@ -1,3 +1,5 @@
+(* Consecutive and non-consecutive transpositions.
+   Decomposition of a non-consecutive transpositions into a composition of consecutive ones. *)
 Require Import Lia.
 Require Import PeanoNat.
 

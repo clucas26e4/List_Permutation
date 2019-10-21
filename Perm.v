@@ -1,3 +1,4 @@
+(* Properties of lists of natural numbers that represent permutations. *)
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.

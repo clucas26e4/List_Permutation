@@ -1,3 +1,4 @@
+(* Booleans and operators used to represent functions as lists of natural numbers. *)
 Require Import Lia.
 Require Import PeanoNat.
 Require Import Injective.
