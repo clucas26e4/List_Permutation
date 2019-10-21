@@ -1,3 +1,4 @@
+(* Multiplicative-additive fragment of Linear Logic, using Perm_R for the exchange rule. Cut-elimination theorem. *)
 Require Import CMorphisms.
 Require Import PeanoNat.
 Require Import Lia.

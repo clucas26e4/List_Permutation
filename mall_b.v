@@ -1,3 +1,4 @@
+(* Factorization of MALL and cyMALL, using PCperm_R for the exchange rule. Cut-elimination theorem. *)
 Require Import CMorphisms.
 Require Import PeanoNat.
 Require Import Lia.

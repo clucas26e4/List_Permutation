@@ -1,3 +1,5 @@
+(* Action of List nat over a list of arbitary elements. 
+   Identity function and cfun functions (circular shifts). *)
 Require Import Lia.
 Require Import PeanoNat.
 Require Import Nat.

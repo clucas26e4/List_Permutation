@@ -1,3 +1,4 @@
+(* Less classical properties of Perm_R, necessary for the cut-elimination theorem of Linear Logic.*)
 Require Import CMorphisms.
 Require Import PeanoNat.
 Require Import Bool.
@@ -7,8 +8,6 @@ Require Import Injective.
 Require Import List_more.
 Require Import List_Type_more.
 Require Import Permutation_Type_more.
-
-Require Import List_more2.
 
 Require Import List_nat.
 Require Import Fun_nat.

@@ -1,3 +1,5 @@
+(* Definition and properties of circular shift.
+   Definition of a relation CiculiarShift_R, similar to Perm_R.v but using circular shifts instead of permutation. *)
 Require Import CMorphisms.
 Require Import Lia.
 Require Import PeanoNat.

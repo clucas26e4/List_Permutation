@@ -19,4 +19,3 @@ Proof.
     + destruct (IH Hin) as [n Hn Hn'].
       exists (S n); simpl; auto with arith.
 Qed.
-
