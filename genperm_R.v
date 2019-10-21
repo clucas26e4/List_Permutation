@@ -9,9 +9,7 @@ Require Import List_Type.
 Require Import Fun_nat.
 Require Import Perm.
 Require Import Perm_R_more.
-Require Import Perm_R_solve.
 Require Import CircularShift_R.
-Require Import CircularShift_R_solve.
 Require Import misc.
 
 
@@ -51,16 +49,6 @@ Ltac hyps_PCperm_R_unfold :=
   match goal with
   | H : PCperm_R _ _ _ |- _ => unfold PCperm_R in H ; hyps_PCperm_R_unfold
   | _ => idtac
-  end.
-
-(** automatic solving *)
-Ltac PCperm_R_solve :=
-  hyps_PCperm_R_unfold; simpl;
-  match goal with
-  | |- PCperm_R ?b _ _ => unfold PCperm_R ; destruct b ;
-                        simpl ; PCperm_R_solve
-  | |- Perm_R _ _  => Perm_R_solve
-  | |- CircularShift_R _ _  => CircularShift_R_solve
   end.
 
 (** *** Properties *)
@@ -186,21 +174,11 @@ Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists_Type with l
 
 (** ** Permutation or equality *)
 
-(** unfolding into [Permutation] or [eq] and automatic solving *)
+(** unfolding into [Permutation] or [eq] *)
 Ltac hyps_PEperm_R_unfold :=
   match goal with
   | H : PEperm_R _ _ _ |- _ => unfold PEperm_R in H ; hyps_PEperm_R_unfold
   | _ => idtac
-  end.
-
-(** automatic solving *)
-Ltac PEperm_R_solve :=
-  hyps_PEperm_R_unfold; simpl ;
-  match goal with
-  | |- PEperm_R ?b _ _ => unfold PEperm_R ; destruct b ;
-                        simpl ; PEperm_R_solve
-  | |- Perm_R _ _  => Perm_R_solve
-  | |- eq _ _  => reflexivity
   end.
 
 (** *** Properties *)

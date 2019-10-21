@@ -13,11 +13,6 @@ Perm_R.v
 Perm_R_more.v
 CircularShift_R.v
 
-all_lt_solve.v
-Perm_solve.v
-Perm_R_solve.v
-CircularShift_R_solve.v
-
 genperm_R.v
 
 mall.v
