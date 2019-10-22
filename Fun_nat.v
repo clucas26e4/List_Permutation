@@ -1,8 +1,8 @@
 (* Action of List nat over a list of arbitary elements. 
    Identity function and cfun functions (circular shifts). *)
+
 Require Import Lia.
 Require Import PeanoNat.
-Require Import Nat.
 
 Require Import Injective.
 Require Import Bool_more.
@@ -10,6 +10,7 @@ Require Import List_more.
 Require Import List_Type_more.
 
 Require Import List_more2.
+
 Require Import List_nat.
 
 
@@ -587,7 +588,7 @@ Proof.
 Qed.
 
 Lemma cfun_generated_by_c1n : forall i j,
-    cfun i j = iter i (app_nat_fun (cfun 1 (pred (i+j)))) (Id (i + j)).
+    cfun i j = Nat.iter i (app_nat_fun (cfun 1 (pred (i+j)))) (Id (i + j)).
 Proof.
   induction i; intros j; [ unfold cfun; now rewrite app_nil_r | ].
   specialize (IHi (S j)); replace (i + S j) with (S i + j) in IHi by lia.
