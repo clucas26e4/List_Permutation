@@ -13,7 +13,7 @@ Require Import Permutation_Type.
 Require Import List_nat.
 Require Import Fun_nat.
 Require Import Transposition.
-Require Import misc.
+Require Import length_lia.
 Require Import Perm.
 
 Set Implicit Arguments.
@@ -371,7 +371,7 @@ Proof with try assumption; try reflexivity.
            intros H; inversion H.
   - clear l l' p Hperm Hlen Heq.
     intros f1 f2 l Hperm1 Hperm2 Hlen1 Hlen2 IH1 IH2 _.
-    specialize_hyps.
+    specialize (IH1 Hperm1); specialize (IH2 Hperm2).
     apply Htrans with (app_nat_fun f1 l)...
     + split with f1; repeat split...
       symmetry...

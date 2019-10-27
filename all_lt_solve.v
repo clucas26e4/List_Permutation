@@ -1,14 +1,15 @@
 (* Automatic tactic to solve all_lt goals *)
 
-Require Import List_more.
 Require Import Lia.
-Require Import Nat.
 Require Import PeanoNat.
+
+Require Import List_more.
+
 Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 Require Import Perm.
-Require Import misc.
+Require Import length_lia.
 
 Ltac all_lt_run :=
   match goal with

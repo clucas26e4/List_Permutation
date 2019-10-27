@@ -6,7 +6,7 @@ List_nat.v
 Fun_nat.v
 
 Transposition.v
-misc.v
+length_lia.v
 
 Perm.v
 Perm_R.v

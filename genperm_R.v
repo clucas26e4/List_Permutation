@@ -12,7 +12,7 @@ Require Import Perm_R_more.
 Require Import Perm_R_solve.
 Require Import CircularShift_R.
 Require Import CircularShift_R_solve.
-Require Import misc.
+Require Import length_lia.
 
 
 (** ** Definitions

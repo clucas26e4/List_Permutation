@@ -11,7 +11,10 @@ Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 Require Import Transposition.
-Require Import misc.
+Require Import length_lia.
+
+Ltac splitb := apply andb_true_intro; split.
+
 
 
 (* PERMUTATION DEFINITION *)

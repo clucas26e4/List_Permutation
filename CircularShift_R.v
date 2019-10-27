@@ -12,8 +12,7 @@ Require Import List_nat.
 Require Import Fun_nat.
 Require Import Perm.
 Require Import Perm_R_more.
-Require Import misc.
-
+Require Import length_lia.
 
 
 (** Definition *)

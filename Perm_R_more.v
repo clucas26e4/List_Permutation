@@ -13,7 +13,7 @@ Require Import List_nat.
 Require Import Fun_nat.
 Require Import Perm.
 Require Export Perm_R.
-Require Import misc.
+
 
 
 Instance Perm_R_refl' {A} : Proper (Logic.eq ==> @Perm_R A) (fun a => a).
