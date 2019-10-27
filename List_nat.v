@@ -5,7 +5,6 @@ Require Import Injective.
 
 Require Import Bool_more.
 Require Import List_more.
-Require Import List_more2.
 
 Notation beq_nat := Nat.eqb.
 

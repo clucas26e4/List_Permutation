@@ -2,7 +2,6 @@ Require Export all_lt_solve.
 Require Import List_more.
 Require Import Perm.
 Require Import List_nat.
-Require Import List_more2.
 Require Import Fun_nat.
 
 Ltac replace_perm perm L1 L2 :=

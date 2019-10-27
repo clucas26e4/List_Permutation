@@ -5,7 +5,6 @@ Require Import PeanoNat.
 
 Require Import Bool_more.
 Require Import List_more.
-Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 

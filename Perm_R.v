@@ -5,8 +5,8 @@ Require Import Lia.
 Require Import PeanoNat.
 
 Require Import Bool_more.
-Require Import List_more2.
-Require Import List_Type_more2.
+Require Import List_more.
+Require Import List_Type_more.
 
 Require Import Permutation_Type.
 

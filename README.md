@@ -1,8 +1,6 @@
 # Canonical Representation of Permutations Acting on Lists
 
-The files List_more2.v and List_Type_more2.v contain additional properties on nth which are neither in the standard library nor in the ollibs library.
-
-The files are listed in the order of dependence: a file in the list is dependent of the files above it.  
+The files are listed in order of dependence: a file in the list may depend on the files above it.  
 The descriptions contain the notions that are introduced in the files.
 
 - List_nat.v: Boolean properties and operators used to represent functions as lists of natural numbers.

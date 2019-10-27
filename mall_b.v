@@ -3,7 +3,7 @@ Require Import CMorphisms.
 Require Import PeanoNat.
 Require Import Lia.
 
-Require Import wf_nat_more.
+Require Import Wf_nat_more.
 Require Import List_more.
 Require Import List_Type_more.
 

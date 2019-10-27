@@ -7,7 +7,6 @@ Require Import PeanoNat.
 Require Import Bool_more.
 Require Import List_Type_more.
 
-Require Import List_more2.
 Require Import List_nat.
 Require Import Fun_nat.
 Require Import Perm.
@@ -317,7 +316,7 @@ intros l2' HF ; inversion HF ; subst.
     exists (y :: l').
     * reflexivity.
     * rewrite app_nil_l in HF ; simpl ; rewrite app_nil_r ; assumption.
-  + apply Forall2_Type_app_inv_l in X0 as ([(la & lb) H1 H2] & Heq).
+  + apply Forall2_Type_app_inv_l in X0 as [(la, lb) [H1 H2] Heq].
     simpl in Heq ; rewrite Heq.
     exists (lb ++ y :: la).
     * rewrite app_comm_cons ; apply CircularShift_R_commu.
