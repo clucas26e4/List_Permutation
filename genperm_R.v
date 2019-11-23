@@ -1,18 +1,8 @@
 (** * Factorized statements for different notions of permutation *)
 
-Require Import CMorphisms.
-Require Import List.
-
-Require Import Injective.
-Require Import List_Type.
-
-Require Import Fun_nat.
-Require Import Perm.
-Require Import Perm_R_more.
-Require Import Perm_R_solve.
-Require Import CircularShift_R.
-Require Import CircularShift_R_solve.
-Require Import length_lia.
+Require Import List CMorphisms.
+Require Import List_Type funtheory.
+Require Import Fun_nat Perm Perm_R_more Perm_R_solve CircularShift_R CircularShift_R_solve length_lia.
 
 
 (** ** Definitions
@@ -340,7 +330,7 @@ Proof. now destruct b ; intros l1 l2 HP; [ apply Perm_R_rev' | rewrite (PEperm_R
 Lemma PEperm_R_map_inv_inj {A B} b : forall f : A -> B, injective f -> forall l1 l2,
   PEperm_R b (map f l1) (map f l2) -> PEperm_R b l1 l2.
 Proof. now destruct b ; intros f Hi l1 l2 HP; [ apply Perm_R_map_inv_inj with f
-                                              | apply PEperm_R_false, map_inj in HP; subst ]. Defined.
+                                              | apply PEperm_R_false, map_injective in HP; subst ]. Defined.
 
 Lemma PEperm_R_image {A B} b : forall (f : A -> B) a l l', PEperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
 Proof.

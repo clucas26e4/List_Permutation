@@ -1,4 +1,5 @@
 -R ../ollibs ""
+-R . ""
 
 List_nat.v
 Fun_nat.v

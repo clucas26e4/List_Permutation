@@ -1,16 +1,9 @@
 (* Action of List nat over a list of arbitary elements. 
    Identity function and cfun functions (circular shifts). *)
 
-Require Import Lia.
-Require Import PeanoNat.
-
-Require Import Injective.
-Require Import Bool_more.
-Require Import List_more.
-Require Import List_Type_more.
-
+Require Import PeanoNat Lia.
+Require Import Bool_more List_more List_Type_more funtheory.
 Require Import List_nat.
-
 
 
 (* APP_NAT_FUN *)
@@ -755,7 +748,7 @@ Proof with try reflexivity; try assumption.
     intros x.
     rewrite map_nth... }
   rewrite app_nat_fun_map in Heq.
-  apply (map_inj _ Hinj)...
+  apply (map_injective _ Hinj)...
 Qed.
 
 Lemma app_nat_fun_elt_map_inv {A B} : forall (f : A -> B) g a l1 l2 l3 l4,

@@ -1,19 +1,9 @@
 (* Less classical properties of Perm_R, necessary for the cut-elimination theorem of Linear Logic.*)
-Require Import CMorphisms.
-Require Import PeanoNat.
-Require Import Bool.
-Require Import Lia.
 
-Require Import Injective.
-Require Import List_more.
-Require Import List_Type_more.
-Require Import Permutation_Type_more.
-
-Require Import List_nat.
-Require Import Fun_nat.
-Require Import Perm.
+Require Import Bool PeanoNat CMorphisms Lia.
+Require Import List_more List_Type_more Permutation_Type_more funtheory.
+Require Import List_nat Fun_nat Perm.
 Require Export Perm_R.
-
 
 
 Instance Perm_R_refl' {A} : Proper (Logic.eq ==> @Perm_R A) (fun a => a).
@@ -239,7 +229,7 @@ Proof with try reflexivity; try assumption.
   split with p; repeat split...
   - rewrite map_length in Hlen...
   - rewrite app_nat_fun_map in Heq.
-    apply map_inj_local with f...
+    apply map_injective_in with f...
     intros x y _ _ Heq'.
     apply Hi...
 Defined.

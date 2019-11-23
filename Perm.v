@@ -1,19 +1,11 @@
 (* Properties of lists of natural numbers that represent permutations. *)
-Require Import CMorphisms.
-Require Import Lia.
-Require Import PeanoNat.
 
-Require Import Injective.
-Require Import Bool_more.
-Require Import List_Type_more.
+Require Import PeanoNat CMorphisms Lia.
+Require Import Bool_more List_Type_more funtheory.
 
-Require Import List_nat.
-Require Import Fun_nat.
-Require Import Transposition.
-Require Import length_lia.
+Require Import List_nat Fun_nat Transposition length_lia.
 
 Ltac splitb := apply andb_true_intro; split.
-
 
 
 (* PERMUTATION DEFINITION *)
