@@ -334,15 +334,12 @@ Proof with try reflexivity; try assumption.
   apply Nat.ltb_lt in Hlt; lia.
 Qed.
 
-Lemma all_lt_max : forall l, all_lt l (S (fold_left max l 0)) = true.
+Lemma all_lt_max : forall l, all_lt l (S (list_max l)) = true.
 Proof.
   induction l; [reflexivity | ].
   simpl; apply andb_true_intro; split.
-  - apply Nat.ltb_lt.
-    apply le_n_S; apply fold_left_max_r.
-  - apply all_lt_leq with (S (fold_left Init.Nat.max l 0)); [ assumption | ].
-    apply le_n_S.
-    apply fold_left_max_le_r; lia.
+  - apply Nat.ltb_lt; lia.
+  - apply all_lt_leq with (S (list_max l)); [ assumption | lia ].
 Qed.
 
 (** ** all_distinct *)

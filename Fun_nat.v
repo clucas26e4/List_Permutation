@@ -676,7 +676,7 @@ Lemma app_nat_fun_ext : forall f1 f2,
   (forall {A} (l : list A), f1 ∘ l = f2 ∘ l) -> f1 = f2.
 Proof.
   intros f1 f2 H.
-  specialize (H nat (Id (max (S (fold_left max f1 0)) (S (fold_left max f2 0))))).
+  specialize (H nat (Id (max (S (list_max f1)) (S (list_max f2))))).
   rewrite 2 app_nat_fun_Id_r in H; [apply H | | ];
     try eapply all_lt_leq; try apply all_lt_max; try lia.
 Qed.
