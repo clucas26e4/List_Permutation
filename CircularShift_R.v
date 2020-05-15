@@ -321,7 +321,6 @@ intros l2' HF ; inversion HF ; subst.
     exists (lb ++ y :: la).
     * rewrite app_comm_cons ; apply CircularShift_R_commu.
     * apply Forall2_Type_app ; auto.
-      constructor ; auto.
 Defined.
 
 (* Canonicity *)
