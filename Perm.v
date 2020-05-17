@@ -1,8 +1,7 @@
 (* Properties of lists of natural numbers that represent permutations. *)
 
-Require Import PeanoNat CMorphisms Lia.
-Require Import Bool_more List_Type_more funtheory.
-
+From Coq Require Import Bool PeanoNat CMorphisms Lia.
+From OLlibs Require Import funtheory List_more.
 Require Import List_nat Fun_nat Transposition length_lia.
 
 Ltac splitb := apply andb_true_intro; split.
@@ -79,7 +78,7 @@ Lemma decomp_perm : forall l k, k < length l -> is_perm l = true ->
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
   destruct (perm_surj l 0 k Hperm Hlen) as [i Hleni Heq].
-  destruct (nth_split_Type i l 0 Hleni) as [(la,lb) Heql Heq_len].
+  destruct (nth_split_inf l 0 Hleni) as [(la,lb) Heql Heq_len].
   split with (la, lb); [ | split].
   - rewrite<- Heq...
   - apply andb_prop in Hperm as (_ & Had).
@@ -144,7 +143,7 @@ Proof with try reflexivity; try assumption.
     apply H with n; try (simpl; rewrite<- Hlen)...
     + apply cond_all_lt_inv...
     + apply cond_all_lt_inv...
-    + rewrite 2 nth_nth...
+    + rewrite 2 nth_nth_nth_map; [ | left | left]...
       rewrite 2 nth_indep with _ _ _ n k by (rewrite map_length; assumption)...
   - apply cond_all_distinct_false_inv with _ n in Hal as ((k1 & k2) & (Hlt1 & (Hlt2 & (nHeq & Heq)))).
     simpl in Hlt1 , Hlt2.
@@ -158,7 +157,7 @@ Proof with try reflexivity; try assumption.
       apply nHeq.
       apply cond_all_distinct_inv with p n...
       rewrite<- Heqk1, <- Heqk2, H...
-    + unfold app_nat_fun_dflt; rewrite<- 2 nth_nth with _ _ _ n _...
+    + unfold app_nat_fun_dflt; rewrite <- 2 nth_nth_nth_map with (dn := n); [ | left | left ]...
       rewrite Heqk1, Heqk2...
 Qed.
 
@@ -173,7 +172,7 @@ Proof with try reflexivity; try assumption.
     unfold app_nat_fun, app_nat_fun_dflt  in *.
     rewrite map_length in Hlt.
     rewrite (nth_indep _ k0 n0) by (rewrite map_length; assumption).
-    rewrite<- nth_nth with _ _ _ n0 _...
+    rewrite<- nth_nth_nth_map with (dn := n0); [ | left ]...
     apply cond_all_lt_inv...
     apply cond_all_lt_inv...
     apply andb_prop in Hperm as (H & _)...
@@ -185,7 +184,7 @@ Proof with try reflexivity; try assumption.
     destruct (perm_surj _ n0 k Hperm Hlen') as [i Hlen'' Heqi].
     symmetry; apply cond_all_lt_false with i n0.
     + rewrite map_length...
-    + rewrite<- nth_nth with _ _ _ n0 _...
+    + rewrite <- nth_nth_nth_map with (dn := n0); [ | left ]...
       rewrite Heqi...
 Qed.
 
@@ -313,7 +312,7 @@ Qed.
 
 Lemma app_nat_fun_vs_cons {A} : forall l1 l2 (a : A) n p,
   length (n :: p) = length l2 -> is_perm (n :: p) = true ->
-  a :: l1 = n :: p ∘ l2 -> {' (la, lb) : _ & l2 = la ++ a :: lb & length la = n }.
+  a :: l1 = (n :: p) ∘ l2 -> {' (la, lb) | l2 = la ++ a :: lb & length la = n }.
 Proof.
   intros l1 l2 a n p Hlen Hperm Heq.
   destruct l2; try now inversion Heq.
@@ -321,7 +320,7 @@ Proof.
   rewrite map_cons in Heq.
   remember (a0 :: l2) as l3.
   inversion Heq; subst.
-  apply nth_split_Type.
+  apply nth_split_inf.
   apply andb_prop in Hperm as (Halt & _).
   apply andb_prop in Halt as (Hlt & _).
   apply Nat.ltb_lt in Hlt; lia.
@@ -347,8 +346,8 @@ Proof with try reflexivity; try assumption; try length_lia.
     destruct (andb_prop _ _ Hperm) as (Hal & Had); simpl in Hal, Had.
     apply andb_prop in Hal as (Hlt & Hal); apply Nat.ltb_lt in Hlt.
     apply andb_prop in Had as (nHin & Had); apply negb_true_iff in nHin.
-    destruct (nth_split_Type i lp nil) as [(lpa,lpb) Heqlp Hlenlpa]...
-    destruct (nth_split_Type i L1 nil) as [(L1a,L1b) HeqL1 HlenL1a]...
+    destruct (@nth_split_inf _ i lp nil) as [(lpa,lpb) Heqlp Hlenlpa]...
+    destruct (@nth_split_inf _ i L1 nil) as [(L1a,L1b) HeqL1 HlenL1a]...
     specialize (IHL2 (downshift p1 i) (L1a ++ L1b) (lpa ++ lpb)) as [p Hperm' [Hlen' Heq']].
     + rewrite HeqL1 in Hlen1; rewrite downshift_length...
     + rewrite Heqlp in Hlenp; rewrite downshift_length...
@@ -517,7 +516,7 @@ Proof with try reflexivity; try assumption.
     apply andb_prop in Hperm as [Hal _].
     inversion Hal.
   - destruct (perm_surj p 0 0 Hperm) as [i Hlt Heqi]; [lia | ].
-    destruct (nth_split_Type i p 0) as [(la,lb) Heqp Hlenp]...
+    destruct (@nth_split_inf _ i p 0) as [(la,lb) Heqp Hlenp]...
     destruct la.
     { simpl in Heqp.
       destruct (IHn (downshift lb 0)) as [l Heql].
@@ -625,7 +624,7 @@ intros n [p Hp Hlen]; destruct (decomp_perm_nc_transpo p) as [l Heq]; [ assumpti
   exists l.
   unfold p_compo_nc_transpo.
   apply eq_sigT2_uncurried; simpl.
-  exists Heq; [ apply UIP_bool | apply Eqdep_dec.UIP_dec, Nat.eq_dec ].
+  exists Heq; [ apply (Eqdep_dec.UIP_dec bool_dec) | apply (Eqdep_dec.UIP_dec Nat.eq_dec) ].
 Qed.
 
 Lemma decomp_perm_transpo : forall p, is_perm p = true -> p <> nil ->
@@ -655,7 +654,7 @@ intros n [p Hp Hlen]; destruct (decomp_perm_transpo p) as [l Heq]; [ assumption 
   exists l.
   unfold p_compo_nc_transpo.
   apply eq_sigT2_uncurried; simpl.
-  exists Heq; [ apply UIP_bool | apply Eqdep_dec.UIP_dec, Nat.eq_dec ].
+  exists Heq; [ apply (Eqdep_dec.UIP_dec bool_dec) | apply (Eqdep_dec.UIP_dec Nat.eq_dec) ].
 Qed.
 
 Lemma perm_inv : forall p, is_perm p = true ->
@@ -759,21 +758,21 @@ Qed.
 
 (* UIP, eq_dec, ... *)
 Lemma perm_eq_as_list : forall (p1 p2 : perm), projT1 p1 = projT1 p2 -> p1 = p2.
-Proof. intros [l1 H1] [l2 H2]; simpl; intros Heq; subst; f_equal; apply UIP_bool. Qed.
+Proof. intros [l1 H1] [l2 H2]; simpl; intros Heq; subst; f_equal; apply (Eqdep_dec.UIP_dec bool_dec). Qed.
 
 Lemma perm_eq_dec : forall (p1 p2 : perm), {p1 = p2} + {p1 <> p2}.
 Proof.
   intros [p1 Hperm1] [p2 Hperm2].
   destruct (list_nat_eq_dec p1 p2).
   - left; subst; replace Hperm1 with Hperm2; try reflexivity.
-    apply UIP_bool.
+    apply (Eqdep_dec.UIP_dec bool_dec).
   - right; intros H; inversion H; now apply n.
 Qed.
 
 Lemma UIP_perm : forall (p1 p2 : perm) (Heq1 Heq2 : p1 = p2), Heq1 = Heq2.
 Proof. intros; apply Eqdep_dec.UIP_dec, perm_eq_dec. Qed.
 
-Fixpoint perm_eqb (p1 p2 : perm) :=
+Definition perm_eqb (p1 p2 : perm) :=
   match p1, p2 with
   | existT _ p1 _, existT _ p2 _ => list_nat_eqb p1 p2
   end.
@@ -782,7 +781,7 @@ Lemma perm_eqb_eq : forall p1 p2, perm_eqb p1 p2 = true <-> p1 = p2.
 Proof.
   intros [p1 Hperm1] [p2 Hperm2]; split; intros Heq.
   - simpl in Heq; apply list_nat_eqb_eq in Heq; subst; replace Hperm1 with Hperm2; try reflexivity.
-    apply UIP_bool.
+    apply (Eqdep_dec.UIP_dec bool_dec).
   - simpl; inversion Heq; now apply list_nat_eqb_eq.
 Qed.
 
@@ -795,4 +794,3 @@ Proof.
   - intros _ Heq; replace (perm_eqb p1 p2) with true in H by (symmetry; now apply perm_eqb_eq); inversion H.
   - trivial.
 Qed.
-

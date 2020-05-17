@@ -1,7 +1,7 @@
 (** * Some tactics for tentative automatic solving of [CyclicPerm_R] goals
 The main tactic is [cperm_solve] which fails is the goal is not solved. *)
 
-Require Import List_more.
+From OLlibs Require Import List_more.
 Require Import CircularShift_R.
 
 
@@ -60,5 +60,3 @@ with CircularShift_R_run :=
           | instantiate ]
   | _ => idtac
   end ).
-
-

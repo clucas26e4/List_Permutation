@@ -1,4 +1,3 @@
--R ../ollibs ""
 -R . ""
 
 List_nat.v
@@ -21,4 +20,3 @@ genperm_R.v
 
 mall.v
 mall_b.v
-

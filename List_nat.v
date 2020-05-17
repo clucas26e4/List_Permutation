@@ -1,7 +1,7 @@
 (* Booleans and operators used to represent functions as lists of natural numbers. *)
 
-Require Import PeanoNat Lia.
-Require Import Bool_more List_more funtheory.
+From Coq Require Import Bool PeanoNat Lia.
+From OLlibs Require Import List_more funtheory.
 
 Notation beq_nat := Nat.eqb.
 
@@ -589,7 +589,7 @@ Proof. intros; apply map_app. Qed.
 
 Lemma shift_inj : forall l1 l2 n i,
   shift l1 n i = shift l2 n i -> l1 = l2.
-Proof. intros l1 l2 n i Hi; refine (map_injective _ _ _ _ Hi); apply incr_inj. Qed.
+Proof. intros l1 l2 n i Hi; refine (map_injective _ _ _ Hi); apply incr_inj. Qed.
 
 Lemma shift_0 : forall l n, shift l n 0 = l.
 Proof.
@@ -1233,4 +1233,3 @@ Proof.
   - intros _ Heq; rewrite (proj2 (list_nat_eqb_eq _ _) Heq) in H; inversion H.
   - trivial.
 Qed.
-

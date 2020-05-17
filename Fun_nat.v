@@ -1,8 +1,8 @@
 (* Action of List nat over a list of arbitary elements. 
    Identity function and cfun functions (circular shifts). *)
 
-Require Import PeanoNat Lia.
-Require Import Bool_more List_more List_Type_more funtheory.
+From Coq Require Import Bool PeanoNat Lia.
+From OLlibs Require Import List_more funtheory.
 Require Import List_nat.
 
 
@@ -31,7 +31,7 @@ Definition app_nat_fun {A} (p : list nat) (l : list A) :=
   | a :: l => app_nat_fun_dflt p (a :: l) a
   end.
 
-Infix "∘" := app_nat_fun (at level 65).
+Infix "∘" := app_nat_fun (at level 40, left associativity).
 
 Ltac app_nat_fun_dflt_unfold l1 l2 n a d :=
   change (app_nat_fun_dflt (n :: l1) (a :: l2) d)
@@ -47,7 +47,7 @@ Lemma app_nat_fun_not_nil {A} : forall p (l : list A) a,
 Proof. intros p l a Hnil; destruct l; [ contradiction Hnil | ]; reflexivity. Qed.
 
 Lemma app_nat_fun_cons {A} : forall n (a : A) p l,
-  n :: p ∘ a :: l = nth n (a :: l) a :: (p ∘ a :: l).
+  (n :: p) ∘ (a :: l) = nth n (a :: l) a :: (p ∘ (a :: l)).
 Proof. intros n a p l; unfold app_nat_fun; app_nat_fun_dflt_unfold p l n a a; reflexivity. Qed.
 
 Lemma app_nat_fun_app_nat_fun_dflt {A} : forall p (l : list A) d,
@@ -64,12 +64,12 @@ destruct l.
 Qed.
 
 Lemma app_nat_fun_middle {A} : forall l1 l2 (a : A) p,
-  length l1 :: p ∘ l1 ++ a :: l2 = a :: (p ∘ l1 ++ a :: l2).
+  (length l1 :: p) ∘ (l1 ++ a :: l2) = a :: (p ∘ (l1 ++ a :: l2)).
 Proof.
   intros l1 l2 a0 p.
   destruct l1; [ reflexivity | ].
-  change (length (a :: l1) :: p ∘ (a :: l1) ++ a0 :: l2)
-    with (nth (length (a :: l1)) ((a :: l1) ++ a0 :: l2) a :: (p ∘ (a :: l1) ++ a0 :: l2)).
+  change ((length (a :: l1) :: p) ∘ ((a :: l1) ++ a0 :: l2))
+    with (nth (length (a :: l1)) ((a :: l1) ++ a0 :: l2) a :: (p ∘ ((a :: l1) ++ a0 :: l2))).
   replace a0 with (nth (length (a :: l1)) ((a :: l1) ++ a0 :: l2) a);
     f_equal; apply nth_middle.
 Qed.
@@ -112,13 +112,13 @@ Proof.
   - apply Nat.ltb_ge in Ha0.
     rewrite app_nth2; try lia.
     replace (length lb + a - length la) with (length lb + (a - length la)) by lia.
-    rewrite nth_plus.
+    rewrite app_nth2_plus.
     now rewrite <- app_nth2; try lia.
 Qed.
 
 Lemma app_nat_fun_shift {A} : forall (la lb lc :list A) p,
   length (la ++ lc) <> 0 -> all_lt p (length (la ++ lc)) = true ->
-    shift p (length la) (length lb) ∘ la ++ lb ++ lc = p ∘ la ++ lc.
+    shift p (length la) (length lb) ∘ (la ++ lb ++ lc) = p ∘ (la ++ lc).
 Proof.
   intros la lb lc p Hlen Hlt.
   destruct la; [ destruct lc | ].
@@ -162,7 +162,7 @@ Qed.
 
 Lemma app_nat_fun_downshift {A} : forall la lb (a : A) p,
   In_nat_bool (length la) p = false -> all_lt p (S (length (la ++ lb))) = true ->
-    p ∘ la ++ a :: lb = downshift p (length la) ∘ la ++ lb.
+    p ∘ (la ++ a :: lb) = downshift p (length la) ∘ (la ++ lb).
 Proof.
 intros la lb a p Hlen Hlt.
 case_eq p.
@@ -216,7 +216,7 @@ Qed.
 
 Lemma app_nat_fun_downshift_commu : forall a l f k,
   In_nat_bool k (a :: l) = false -> all_lt f (length (a :: l)) = true ->
-  f ∘ downshift (a :: l) k = downshift (f ∘ a :: l) k.
+  f ∘ downshift (a :: l) k = downshift (f ∘ (a :: l)) k.
 Proof.
 intros a l f k Hlen Hnin.
 rewrite 2 app_nat_fun_not_nil with _ _ 0.
@@ -265,7 +265,7 @@ rewrite app_nth2; f_equal; lia.
 Qed.
 
 Lemma app_nat_fun_right {A} : forall k (l1 l2 : list A) f, k = length l1 -> all_lt f (length l2) = true ->
-  incr_all f k ∘ l1 ++ l2 = f ∘ l2.
+  incr_all f k ∘ (l1 ++ l2) = f ∘ l2.
 Proof.
 intros k l1 l2 f Heq Hlen; subst.
 induction l1; simpl.
@@ -293,7 +293,7 @@ apply nth_indep, Hx.
 Qed.
 
 Lemma app_nat_fun_left {A} : forall (l1 l2 : list A) f, all_lt f (length l1) = true ->
-  f ∘ l1 ++ l2 = f ∘ l1.
+  f ∘ (l1 ++ l2) = f ∘ l1.
 Proof.
 intros l1 l2 f Hlen.
 destruct l2; [ list_simpl; reflexivity | ].
@@ -307,17 +307,17 @@ Lemma app_nat_fun_dflt_app {A} : forall (l : list A) f1 f2 d,
   app_nat_fun_dflt (f1 ++ f2) l d = app_nat_fun_dflt f1 l d ++ app_nat_fun_dflt f2 l d.
 Proof. intros l f1 f2 d; apply map_app. Qed.
 
-Lemma app_nat_fun_app {A} : forall (l : list A) f1 f2, f1 ++ f2 ∘ l = (f1 ∘ l) ++ (f2 ∘ l).
+Lemma app_nat_fun_app {A} : forall (l : list A) f1 f2, (f1 ++ f2) ∘ l = (f1 ∘ l) ++ (f2 ∘ l).
 Proof. intros l f1 f2; destruct l; [ reflexivity | apply app_nat_fun_dflt_app ]. Qed.
 
 Lemma append_fun_eq {A} : forall (l1 l2 : list A) f1 f2,
   all_lt f1 (length l1) = true -> all_lt f2 (length l2) = true ->
-  f1 ++ incr_all f2 (length l1) ∘ l1 ++ l2 = (f1 ∘ l1) ++ (f2 ∘ l2).
+  (f1 ++ incr_all f2 (length l1)) ∘ (l1 ++ l2) = (f1 ∘ l1) ++ (f2 ∘ l2).
 Proof. intros; now rewrite app_nat_fun_app; f_equal; [ apply app_nat_fun_left | apply app_nat_fun_right ]. Qed.
 
 Lemma pappend_fun_eq {A} : forall (l1 l2 : list A) f1 f2, length f1 = length l1 ->
   all_lt f1 (length f1) = true -> all_lt f2 (length l2) = true ->
-  f1 +++ f2 ∘ l1 ++ l2 = (f1 ∘ l1) ++ (f2 ∘ l2).
+  (f1 +++ f2) ∘ (l1 ++ l2) = (f1 ∘ l1) ++ (f2 ∘ l2).
 Proof. intros l1 l2 f1 f2 Hlen Hlt1 Hlt2; now rewrite <- append_fun_eq; rewrite_all Hlen. Qed.
 
 Lemma app_nat_fun_downshift_shift : forall l f n0 n,
@@ -491,10 +491,10 @@ intros i j k n; revert i k; induction n; intros i k Hlt; simpl.
 - replace j with (S (j - 1)) by lia.
   simpl seq.
   rewrite app_nat_fun_cons; f_equal.
-  + rewrite seq_cons, seq_nth; lia.
+  + rewrite cons_seq, seq_nth; lia.
   + replace (S (i + k)) with (i + S k) by lia.
     rewrite <- IHn; [ | lia ].
-    f_equal; rewrite seq_cons; f_equal; lia.
+    f_equal; rewrite cons_seq; f_equal; lia.
 Qed.
 
 Lemma app_Id {A} : forall (l : list A), Id (length l) ∘ l = l.
@@ -510,7 +510,7 @@ Proof.
   apply in_seq in Hin; simpl in Hin; lia.
 Qed.
 
-Lemma app_Id_ext {A} : forall k (l1 l2 : list A), length l1 = k -> Id k ∘ l1 ++ l2 = l1.
+Lemma app_Id_ext {A} : forall k (l1 l2 : list A), length l1 = k -> Id k ∘ (l1 ++ l2) = l1.
 Proof.
 intros k l1 l2 Heq.
 rewrite <- Heq.
@@ -551,7 +551,7 @@ Proof.
   apply all_distinct_seq.
 Qed.
 
-Lemma app_cfun_eq {A} : forall (l1 : list A) l2, cfun (length l1) (length l2) ∘ l1 ++ l2 = l2 ++ l1.
+Lemma app_cfun_eq {A} : forall (l1 : list A) l2, cfun (length l1) (length l2) ∘ (l1 ++ l2) = l2 ++ l1.
 Proof.
 intros l1 l2.
 unfold cfun.
@@ -571,7 +571,7 @@ Lemma cfun_c1n : forall i j,
 Proof.
   intros i j.
   unfold cfun at 2 3.
-  rewrite <- seq_cons; simpl app; rewrite cons_is_app.
+  rewrite <- cons_seq; simpl app; rewrite cons_is_app.
   replace (i + j) with (length (seq (S i) j ++ Id i)) by (rewrite app_length; rewrite ? seq_length; lia).
   change 1 with (length (i :: nil)).
   rewrite app_cfun_eq; rewrite<- app_assoc.
@@ -714,8 +714,7 @@ Proof with try reflexivity; try assumption.
   intros a f l l1 l2 Heq.
   case_eq (nth (length l1) f 0 <? length l); intro H ;
     [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H].
-  - destruct (nth_split_Type (nth (length l1) f 0) l (hd a l)) as [[la lb] Heql Hlen];
-      [ apply H | ].
+  - destruct (nth_split_inf l (hd a l) H) as [[la lb] Heql Hlen].
     split with (la, lb).
     rewrite app_antecedent with _ _ _ _ l2 in Heql...
   - destruct l; [destruct l1; inversion Heq | ].
@@ -748,21 +747,20 @@ Proof with try reflexivity; try assumption.
     intros x.
     rewrite map_nth... }
   rewrite app_nat_fun_map in Heq.
-  apply (map_injective _ Hinj)...
+  apply (map_injective Hinj)...
 Qed.
 
 Lemma app_nat_fun_elt_map_inv {A B} : forall (f : A -> B) g a l1 l2 l3 l4,
-  g ∘ l3 ++ map f l4 = l1 ++ a :: l2 ->
+  g ∘ (l3 ++ map f l4) = l1 ++ a :: l2 ->
   (forall b, a <> f b) -> { '(l5,l6) | l3 = l5 ++ a :: l6 }.
 Proof.
 intros f g a l1 l2 l3 l4 HP Hf.
 apply app_nat_fun_vs_elt_inv in HP.
 destruct HP as [(l',l'') Heq].
-dichot_Type_elt_app_exec Heq.
+dichot_elt_app_inf_exec Heq.
 - subst; exists (l', l) ; reflexivity.
 - exfalso.
-  decomp_map_Type Heq1.
+  symmetry in Heq1; decomp_map_inf Heq1; symmetry in Heq1.
   apply Hf in Heq1.
   inversion Heq1.
 Qed.
-

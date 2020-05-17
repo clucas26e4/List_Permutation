@@ -1,27 +1,15 @@
 (* Definition of the relation of Perm_R and basic properties. *)
 
-Require Import CMorphisms.
-Require Import Lia.
-Require Import PeanoNat.
-
-Require Import Bool_more.
-Require Import List_more.
-Require Import List_Type_more.
-
-Require Import Permutation_Type.
-
-Require Import List_nat.
-Require Import Fun_nat.
-Require Import Transposition.
-Require Import length_lia.
-Require Import Perm.
+From Coq Require Import CMorphisms Bool PeanoNat Lia.
+From OLlibs Require Import List_more Permutation_Type.
+Require Import List_nat Fun_nat Transposition length_lia Perm.
 
 Set Implicit Arguments.
 
 
 
 Definition Perm_R {A} (l1 l2 : list A) : Type :=
-  { p : _ & is_perm p = true & prod (length p = length l1) (l2 = app_nat_fun p l1) }.
+  { p & is_perm p = true & prod (length p = length l1) (l2 = app_nat_fun p l1) }.
 
 Infix "~~" := Perm_R (at level 70).
 
@@ -156,7 +144,7 @@ Proof. intros; now rewrite Perm_R_app_comm, app_comm_cons, Perm_R_app_comm. Defi
 Theorem Perm_R_cons_app : forall l l1 l2 a, l ~~ l1 ++ l2 -> a :: l ~~ l1 ++ a :: l2.
 Proof. intros l l1 l2 a Hperm; rewrite Hperm; apply Perm_R_middle. Defined.
 
-Lemma Perm_R_Add_Type a l l' : Add_Type a l l' -> a :: l ~~ l'.
+Lemma Perm_R_Add_Type a l l' : Add_inf a l l' -> a :: l ~~ l'.
 Proof. intros Hadd; induction Hadd; [ reflexivity | rewrite <- IHHadd; apply Perm_R_swap ]. Defined.
 
 Theorem Perm_R_rev : forall l, l ~~ rev l.
@@ -189,7 +177,7 @@ rewrite Heql, app_nat_fun_downshift...
 Defined.
 
 Theorem Perm_R_Add_Type_inv a l1 l2 : Perm_R l1 l2 ->
-  forall l1' l2', Add_Type a l1' l1 -> Add_Type a l2' l2 -> l1' ~~ l2'.
+  forall l1' l2', Add_inf a l1' l1 -> Add_inf a l2' l2 -> l1' ~~ l2'.
 Proof.
 intros Hperm l1' l2' Hadd1 Hadd2.
 apply Perm_R_cons_inv with a.
@@ -244,7 +232,7 @@ rewrite <- Heq', Heq; clear Heq'.
 destruct l; try now inversion Hlen'.
 replace (nth n (a0 :: l) a) with (nth n (a0 :: l) a0) by (apply nth_indep; assumption).
 destruct (perm_surj _ 0 n Hperm) as [i Hlen'' Heq'']; [ lia | ]; subst.
-rewrite nth_nth; [ | assumption ].
+rewrite nth_nth_nth_map; [ | left; assumption ].
 apply nth_In.
 now  rewrite app_nat_fun_length_cons.
 Qed.
@@ -252,20 +240,20 @@ Qed.
 Global Instance Perm_R_in' : Proper (Logic.eq ==> @Perm_R A ==> iff) (@In A) | 10.
 Proof. repeat intro; subst; split; now apply Perm_R_in. Qed.
 
-Theorem Perm_R_in_Type : forall l m a, l ~~ m -> In_Type a l -> In_Type a m.
+Theorem Perm_R_in_Type : forall l m a, l ~~ m -> In_inf a l -> In_inf a m.
 Proof.
 intros l m a [p Hperm [Hlen Heq]] Hin.
-apply In_nth_Type with _ _ a in Hin as [n Hlen' Heq'].
+apply In_inf_nth with (d := a) in Hin as [n Hlen' Heq'].
 rewrite <- Heq', Heq; clear Heq'.
 destruct l; try now simpl in Hlen'; exfalso; lia.
 replace (nth n (a0 :: l) a) with (nth n (a0 :: l) a0) by (apply nth_indep; assumption).
 destruct (perm_surj _ 0 n Hperm) as [i Hlen'' Heq'']; [ lia | ]; subst.
-rewrite nth_nth; [ | assumption ].
-apply nth_In_Type.
+rewrite nth_nth_nth_map; [ | left; assumption ].
+apply nth_In_inf.
 now  rewrite app_nat_fun_length_cons.
 Qed.
 
-Global Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_Type A) | 10.
+Global Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_inf A) | 10.
 Proof. repeat intro; subst; eapply Perm_R_in_Type; eassumption. Qed.
 
 Lemma Perm_R_concat : forall p (L : list (list A)), length p = length L -> is_perm p = true ->
@@ -501,8 +489,7 @@ Lemma Perm_R_eq_as_perm {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :
     projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
 Proof.
 intros l1 l2 [p1 Hp1 [Heql1 Heqp1]] [p2 Hp2 [Heql2 Heqp2]] Heq; simpl in Heq; subst; repeat f_equal.
-- apply UIP_bool.
+- apply (Eqdep_dec.UIP_dec bool_dec).
 - apply UIP_nat.
 - now apply Eqdep_dec.UIP_dec, list_eq_dec.
 Qed.
-

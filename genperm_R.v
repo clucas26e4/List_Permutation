@@ -1,7 +1,7 @@
 (** * Factorized statements for different notions of permutation *)
 
-Require Import List CMorphisms.
-Require Import List_Type funtheory.
+From Coq Require Import List CMorphisms.
+From OLlibs Require Import funtheory List_more.
 Require Import Fun_nat Perm Perm_R_more Perm_R_solve CircularShift_R CircularShift_R_solve length_lia.
 
 
@@ -158,18 +158,18 @@ Instance PCperm_R_Exists {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.i
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists with l | apply CircularShift_R_Exists with l ]. Qed.
 
 Lemma PCperm_R_Forall2 {A B} b (P : A -> B -> Type) : forall l1 l1' l2,
-  PCperm_R b l1 l1' -> Forall2_Type P l1 l2 -> 
-    { l2' : _ & PCperm_R b l2 l2' & Forall2_Type P l1' l2' }.
+  PCperm_R b l1 l1' -> Forall2_inf P l1 l2 -> 
+    { l2' & PCperm_R b l2 l2' & Forall2_inf P l1' l2' }.
 Proof. destruct b; [ apply Perm_R_Forall2 | apply CircularShift_R_Forall2 ]. Qed.
 
 Lemma PCperm_R_image {A B} b : forall (f : A -> B) a l l', PCperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
 Proof. destruct b; [ apply Perm_R_image | apply CircularShift_R_image ]. Qed.
 
-Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Forall_Type P).
+Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Forall_inf P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall_Type with l
                                         | apply CircularShift_R_Forall_Type with l ]. Qed.
 
-Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Exists_Type P).
+Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Exists_inf P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists_Type with l
                                         | apply CircularShift_R_Exists_Type with l ]. Qed.
 
@@ -300,8 +300,8 @@ Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists with l
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
 Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) : forall l1 l1' l2,
-  PEperm_R b l1 l1' -> Forall2_Type P l1 l2 -> 
-    { l2' : _ & PEperm_R b l2 l2' & Forall2_Type P l1' l2' }.
+  PEperm_R b l1 l1' -> Forall2_inf P l1 l2 -> 
+    { l2' & PEperm_R b l2 l2' & Forall2_inf P l1' l2' }.
 Proof.
 destruct b ; [ apply Perm_R_Forall2 | ].
 intros l1 l1' l2 HE HF ; simpl in HE ; subst.
@@ -311,11 +311,11 @@ Defined.
 Instance PEperm_R_map {A B} (f : A -> B) b : Proper (PEperm_R b ==> PEperm_R b) (map f).
 Proof. now destruct b ; intros l l' HP; [ apply Perm_R_map | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
-Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Forall_Type P).
+Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Forall_inf P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall_Type with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
-Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Exists_Type P).
+Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Exists_inf P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists_Type with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
@@ -350,4 +350,3 @@ Proof. now intros x y Heq l1 l2 HP ; subst; apply PEperm_PCperm_R, PEperm_R_cons
 
 Instance PEperm_PCperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PCperm_R b) (@app A).
 Proof. now intros l1 l1' HPhd l2 l2' HPtl; apply PEperm_PCperm_R; rewrite HPhd, HPtl. Defined.
-

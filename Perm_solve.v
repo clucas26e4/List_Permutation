@@ -1,8 +1,6 @@
+From OLlibs Require Import List_more.
+Require Import List_nat Fun_nat Perm.
 Require Export all_lt_solve.
-Require Import List_more.
-Require Import Perm.
-Require Import List_nat.
-Require Import Fun_nat.
 
 Ltac replace_perm perm L1 L2 :=
   let p := fresh "p" in
@@ -12,4 +10,3 @@ Ltac replace_perm perm L1 L2 :=
   destruct (perm_block perm L1 L2) as (p & (Hperm & (Hlenp & Heqp))) ;
    [ reflexivity | reflexivity | reflexivity
    | unfold concat at 1 in Heqp; symmetry in Heqp; unfold concat at 1 in Heqp; rewrite Heqp].
-

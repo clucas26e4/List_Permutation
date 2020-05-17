@@ -1,11 +1,9 @@
 (* Permutation_solve library *)
 
-(* output in Types *)
-
 (** * Some tactics for tentative automatic solving of [Permutation] goals
 The main tactic is [perm_solve] which fails is the goal is not solved. *)
 
-Require Import List_more.
+From OLlibs Require Import List_more.
 Require Import Perm_R_more.
 
 
@@ -100,5 +98,3 @@ with Perm_R_run :=
           | instantiate ]
   | _ => idtac
   end ).
-
-

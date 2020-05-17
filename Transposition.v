@@ -1,12 +1,9 @@
 (* Consecutive and non-consecutive transpositions.
    Decomposition of a non-consecutive transpositions into a composition of consecutive ones. *)
-Require Import Lia.
-Require Import PeanoNat.
 
-Require Import Bool_more.
-Require Import List_more.
-Require Import List_nat.
-Require Import Fun_nat.
+From Coq Require Import Bool PeanoNat Lia.
+From OLlibs Require Import List_more.
+Require Import List_nat Fun_nat.
 
 Ltac length_lia := repeat (try rewrite concat_app;
                            try rewrite shift_length in *;
@@ -353,4 +350,3 @@ Proof.
   - apply seq_length.
   - simpl; rewrite app_nat_fun_length; rewrite nc_transpo_length; now try rewrite IHl.
 Qed.
-

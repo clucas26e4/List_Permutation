@@ -1,14 +1,8 @@
 (* Automatic tactic to solve all_lt goals *)
 
-Require Import Lia.
-Require Import PeanoNat.
-
-Require Import List_more.
-
-Require Import List_nat.
-Require Import Fun_nat.
-Require Import Perm.
-Require Import length_lia.
+From Coq Require Import PeanoNat Lia.
+From OLlibs Require Import List_more.
+Require Import List_nat Fun_nat Perm length_lia.
 
 Ltac all_lt_run :=
   match goal with
@@ -26,4 +20,3 @@ Ltac all_lt_run :=
   | |- all_lt (nil ++ _) _ = true => rewrite app_nil_l
   | |- all_lt (_ ++ nil) _ = true => rewrite app_nil_r
   end.
-

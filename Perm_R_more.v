@@ -1,7 +1,7 @@
 (* Less classical properties of Perm_R, necessary for the cut-elimination theorem of Linear Logic.*)
 
-Require Import Bool PeanoNat CMorphisms Lia.
-Require Import List_more List_Type_more Permutation_Type_more funtheory.
+From Coq Require Import Bool PeanoNat CMorphisms Lia.
+From OLlibs Require Import funtheory List_more Permutation_Type_more.
 Require Import List_nat Fun_nat Perm.
 Require Export Perm_R.
 
@@ -89,7 +89,7 @@ apply Perm_R_sym in HP.
 apply Perm_R_vs_cons_inv in HP.
 destruct HP as [(pl1',pl2') HP].
 symmetry in HP.
-dichot_Type_elt_app_exec HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_comm_cons.
+dichot_elt_app_inf_exec HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_comm_cons.
 - now exists (pl1', l, pl2); right.
 - now exists (pl1, l0, pl2'); left.
 Qed.
@@ -120,7 +120,7 @@ induction l1 ; intros l2 l3 l4 HP.
   apply Perm_R_sym in Heq.
   apply Perm_R_vs_cons_inv in Heq.
   destruct Heq as [(pl1,pl2) Heq].
-  dichot_Type_elt_app_exec Heq ; subst.
+  dichot_elt_app_inf_exec Heq ; subst.
   + rewrite <- ?app_comm_cons in HP.
     rewrite <- app_assoc in HP.
     rewrite <- app_comm_cons in HP.
@@ -151,22 +151,22 @@ Instance Perm_R_Exists {A} (P : A -> Prop) :
 Proof. intros ? ? ?; now apply Permutation_Type_Exists, Perm_R_to_Permutation_Type. Defined.
 
 Instance Perm_R_Forall_Type {A} (P : A -> Type) :
-  Proper ((@Perm_R A) ==> Basics.arrow) (Forall_Type P).
-Proof. intros ? ? ?; now apply Permutation_Type_Forall_Type, Perm_R_to_Permutation_Type. Defined.
+  Proper ((@Perm_R A) ==> Basics.arrow) (Forall_inf P).
+Proof. intros ? ? ?; now apply Permutation_Type_Forall_inf, Perm_R_to_Permutation_Type. Defined.
 
 Instance Perm_R_Exists_Type {A} (P : A -> Type) :
-  Proper ((@Perm_R A) ==> Basics.arrow) (Exists_Type P).
-Proof. intros ? ? ?; now apply Permutation_Type_Exists_Type, Perm_R_to_Permutation_Type. Defined.
+  Proper ((@Perm_R A) ==> Basics.arrow) (Exists_inf P).
+Proof. intros ? ? ?; now apply Permutation_Type_Exists_inf, Perm_R_to_Permutation_Type. Defined.
 
 Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
-  forall l1 l1' l2, l1 ~~ l1' -> Forall2_Type P l1 l2 ->
-    { l2' : _ & l2 ~~ l2' & Forall2_Type P l1' l2' }.
+  forall l1 l1' l2, l1 ~~ l1' -> Forall2_inf P l1 l2 ->
+    { l2' & l2 ~~ l2' & Forall2_inf P l1' l2' }.
 Proof with try reflexivity; try assumption.
   intros l1 l1' l2 [p Hperm [Hlen Heq]] H.
   assert (length l1 = length l2) as Hlen'.
   { clear - H.
     induction H...
-    simpl; rewrite IHForall2_Type... }
+    simpl; rewrite IHForall2_inf... }
   split with (app_nat_fun p l2).
   - split with p; repeat split...
     now transitivity (length l1).
@@ -179,7 +179,7 @@ Proof with try reflexivity; try assumption.
     clear - H Hal1 Hal2.
     induction p.
     + destruct l1; destruct l2; try now inversion H.
-      apply Forall2_Type_nil.
+      apply Forall2_inf_nil.
     + simpl in Hal1, Hal2.
       apply andb_prop in Hal1 as (Hlt1 & Hal1).
       apply andb_prop in Hal2 as (Hlt2 & Hal2).
@@ -187,7 +187,7 @@ Proof with try reflexivity; try assumption.
       destruct l1; destruct l2; try now inversion IHp.
       app_nat_fun_unfold p l1 a a0.
       app_nat_fun_unfold p l2 a b.
-      apply Forall2_Type_cons...
+      apply Forall2_inf_cons...
       remember (a0 :: l1) as l.
       remember (b :: l2) as l'.
       clear - H Hlt1 Hlt2.
@@ -229,7 +229,7 @@ Proof with try reflexivity; try assumption.
   split with p; repeat split...
   - rewrite map_length in Hlen...
   - rewrite app_nat_fun_map in Heq.
-    apply map_injective_in with f...
+    apply map_injective_in with (f := f)...
     intros x y _ _ Heq'.
     apply Hi...
 Defined.
@@ -252,11 +252,11 @@ intros a l1 l2 l3 l4 f HP Hf.
 apply Perm_R_sym in HP.
 apply Perm_R_vs_elt_inv in HP.
 destruct HP as ((l' & l'') & Heq).
-dichot_Type_elt_app_exec Heq.
+dichot_elt_app_inf_exec Heq.
 - subst.
   exists (l', l) ; reflexivity.
 - exfalso.
-  decomp_map_Type Heq1.
+  symmetry in Heq1; decomp_map_inf Heq1; symmetry in Heq1.
   apply Hf in Heq1.
   inversion Heq1.
 Qed.
@@ -358,4 +358,3 @@ Qed.
 Lemma Perm_R_no_ext {A} (a : A) :
  ~ forall (l1 l2 : list A) (p1 p2 : l1 ~~ l2), projT1 (sigT_of_sigT2 p1) = projT1 (sigT_of_sigT2 p2).
 Proof. intros Hext; destruct (Perm_R_no_ext_double a) as [(p1,p2) Heq]; apply Heq, Hext. Qed.
-

@@ -1,12 +1,7 @@
 (* Multiplicative-additive fragment of Linear Logic, using Perm_R for the exchange rule. Cut-elimination theorem. *)
-Require Import CMorphisms.
-Require Import PeanoNat.
-Require Import Lia.
 
-Require Import Wf_nat_more.
-Require Import List_more.
-Require Import List_Type_more.
-
+From Coq Require Import CMorphisms PeanoNat Wf_nat Lia.
+From OLlibs Require Import List_more.
 Require Import Perm_R_more.
 
 
@@ -119,7 +114,7 @@ Proof with try assumption; try reflexivity; try fsize_lia.
           (* could be done with rewrite, but Coq bug *)
         rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _)...
     + (* commutative case *)
-      dichot_Type_elt_app_exec H1 ; subst.
+      dichot_elt_app_inf_exec H1 ; subst.
       * rewrite 2 app_assoc; apply tens_r...
         revert pi2_2 IHsize ; simpl ; rewrite (app_comm_cons _ _ B); intros pi2_2 IHsize; list_simpl.
         refine (IHsize _ _ _ _ pi1 pi2_2 _ _)...
@@ -242,4 +237,3 @@ Proof.
   - now apply ex_r with l1.
   - now apply cut_admissible with A.
 Qed.
-

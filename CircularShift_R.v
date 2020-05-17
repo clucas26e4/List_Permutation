@@ -1,22 +1,14 @@
 (* Definition and properties of circular shift.
    Definition of a relation CiculiarShift_R, similar to Perm_R.v but using circular shifts instead of permutation. *)
-Require Import CMorphisms.
-Require Import Lia.
-Require Import PeanoNat.
 
-Require Import Bool_more.
-Require Import List_Type_more.
-
-Require Import List_nat.
-Require Import Fun_nat.
-Require Import Perm.
-Require Import Perm_R_more.
-Require Import length_lia.
+From Coq Require Import CMorphisms Bool PeanoNat Lia.
+From OLlibs Require Import List_more.
+Require Import List_nat Fun_nat Perm Perm_R_more length_lia.
 
 
 (** Definition *)
 
-Definition cond_circularShift l := {' (n, m) : _ & l = cfun (S n) (S m) } + { l = Id (length l) }.
+Definition cond_circularShift l := {' (n, m) & l = cfun (S n) (S m) } + { l = Id (length l) }.
 
 Lemma Id_cond_circular : forall n, cond_circularShift (Id n).
 Proof. intros; right; now rewrite seq_length. Qed.
@@ -29,12 +21,12 @@ Proof.
 intros n m; destruct n ; [ | destruct m ].
 - unfold cfun; simpl; rewrite app_nil_r.
   apply Id_cond_circular.
-- unfold cfun; simpl; rewrite seq_cons.
+- unfold cfun; simpl; rewrite cons_seq.
   apply Id_cond_circular.
 - apply cfun_S_cond_circular.
 Qed.
 
-Lemma cond_circular_cfun_lt {l} : cond_circularShift l -> {' (n, m) : _ & l = cfun n m & m = 0 -> n = 0}.
+Lemma cond_circular_cfun_lt {l} : cond_circularShift l -> {' (n, m) & l = cfun n m & m = 0 -> n = 0}.
 Proof.
 intros [[[n m] Heqcp] | Heqcp]; subst.
 - now exists (S n, S m).
@@ -180,7 +172,7 @@ Proof.
   intros a l l1 l2 HC.
   apply decomp_CircularShift_R in HC as [[l0 l3] H1 H2]; subst.
   symmetry in H2.
-  dichot_Type_elt_app_exec H2 ; subst.
+  dichot_elt_app_inf_exec H2 ; subst.
   - exists (l0 ++ l1, l) ; simpl ; now rewrite <- app_assoc.
   - exists (l4, l2 ++ l3) ; simpl ; now rewrite <- app_assoc.
 Qed.
@@ -210,19 +202,19 @@ Lemma CircularShift_R_app_app_inv : forall la lb lc ld,
 Proof.
 intros l1 l2 l3 l4 HC.
 apply decomp_CircularShift_R in HC as [[lx ly] Hx Hy].
-dichot_Type_app_exec Hx ; dichot_Type_app_exec Hy ; subst.
+dichot_app_inf_exec Hx ; dichot_app_inf_exec Hy ; subst.
 - left ; left ; left ; right.
   exists (l ++ l0 , l0 ++ l).
   + split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
   + apply CircularShift_R_commu.
-- dichot_Type_app_exec Hy0 ; subst.
+- dichot_app_inf_exec Hy0 ; subst.
   + left ; left ; left ; left.
     exists (l, l0, lx, l5); split; try apply CircularShift_R_commu; reflexivity.
   + left ; right.
     exists (l1 ++ lx , lx ++ l1).
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
     * apply CircularShift_R_commu.
-- dichot_Type_app_exec Hy1 ; subst.
+- dichot_app_inf_exec Hy1 ; subst.
   + left ; left ; right.
     exists (ly ++ l2, l2 ++ ly).
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
@@ -274,8 +266,8 @@ induction l1 ; intros l2 HP.
   assert (Heq := HP).
   apply CircularShift_R_vs_cons_inv in Heq.
   destruct Heq as [(l3 & l4) Heq1 Heq2].
-  simpl in Heq1 ; simpl in Heq2 ; symmetry in Heq2.
-  decomp_map_Type Heq2 ; subst ; simpl.
+  simpl in Heq1 ; simpl in Heq2.
+  decomp_map_inf Heq2 ; subst ; simpl.
   exists (x :: l6 ++ l0).
   + simpl ; rewrite ? map_app ; reflexivity.
   + apply (CircularShift_R_commu l0).
@@ -294,15 +286,15 @@ Instance CircularShift_R_Exists {A} (P : A -> Prop) :
 Proof. intros l1 l2 HC HE; now apply Perm_R_Exists with l1; [ apply CircularShift_Perm_R | ]. Qed.
 
 Instance CircularShift_R_Forall_Type {A} (P : A -> Type) :
-  Proper (CircularShift_R ==> Basics.arrow) (Forall_Type P).
+  Proper (CircularShift_R ==> Basics.arrow) (Forall_inf P).
 Proof. intros l1 l2 HC HF; now apply Perm_R_Forall_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Instance CircularShift_R_Exists_Type {A} (P : A -> Type) :
-  Proper (CircularShift_R ==> Basics.arrow) (Exists_Type P).
+  Proper (CircularShift_R ==> Basics.arrow) (Exists_inf P).
 Proof. intros l1 l2 HC HF; now apply Perm_R_Exists_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Lemma CircularShift_R_Forall2 {A B} (P : A -> B -> Type) : forall l1 l1' l2,
-  l1 ~°~ l1' -> Forall2_Type P l1 l2 -> { l2' : _ & l2 ~°~ l2' & Forall2_Type P l1' l2' }.
+  l1 ~°~ l1' -> Forall2_inf P l1 l2 -> { l2' : _ & l2 ~°~ l2' & Forall2_inf P l1' l2' }.
 Proof.
 intros l1 l1' l2 HP; revert l2.
 apply decomp_CircularShift_R in HP as [[lx ly] Hx Hy]; subst.
@@ -316,11 +308,11 @@ intros l2' HF ; inversion HF ; subst.
     exists (y :: l').
     * reflexivity.
     * rewrite app_nil_l in HF ; simpl ; rewrite app_nil_r ; assumption.
-  + apply Forall2_Type_app_inv_l in X0 as [(la, lb) [H1 H2] Heq].
+  + apply Forall2_inf_app_inv_l in X0 as [(la, lb) [H1 H2] Heq].
     simpl in Heq ; rewrite Heq.
     exists (lb ++ y :: la).
     * rewrite app_comm_cons ; apply CircularShift_R_commu.
-    * apply Forall2_Type_app ; auto.
+    * apply Forall2_inf_app ; auto.
 Defined.
 
 (* Canonicity *)
@@ -376,7 +368,7 @@ induction i; intros l Hlen; simpl.
 Qed.
 
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
-  { n : _ & n <? max 1 (length p) = true
+  { n & n <? max 1 (length p) = true
           & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
 Proof.
 intros p Hperm.
@@ -388,9 +380,9 @@ symmetry; apply app_cshift_cfun; lia.
 Qed.
 
 Lemma app_cshift_to_cond_circularShift : forall n len,
-  {p : _ & cond_circularShift p
+  {p & cond_circularShift p
          & prod (length p = len)
-                (forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l)}.
+                (forall A (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l)}.
 Proof.
   intros n len.
   destruct n; [ | case_eq ((S n) <? len); intros H ; [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H] ].
@@ -434,7 +426,6 @@ Lemma CircularShift_nat_R_eq_as_nat {A} (HdecA : forall x y : A, {x = y} + {x <>
     projT1 (sigT_of_sigT2 HP1) = projT1 (sigT_of_sigT2 HP2) -> HP1 = HP2.
 Proof.
 intros l1 l2 [n1 Hp1 Heqp1] [n2 Hp2 Heqp2] Heq; simpl in Heq; subst; repeat f_equal.
-- apply UIP_bool.
+- apply (Eqdep_dec.UIP_dec bool_dec).
 - now apply Eqdep_dec.UIP_dec, list_eq_dec.
 Qed.
-
