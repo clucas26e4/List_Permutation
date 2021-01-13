@@ -369,7 +369,7 @@ Qed.
 
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
   { n & n <? max 1 (length p) = true
-          & forall {A} (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
+          & forall A (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
 Proof.
 intros p Hperm.
 destruct (cond_circular_cfun_lt Hperm) as [(n, m) Heq Hz]; subst; rewrite cfun_length.

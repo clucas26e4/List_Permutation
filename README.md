@@ -1,6 +1,21 @@
 # Canonical Representation of Permutations Acting on Lists
 
-The files are listed in order of dependence: a file in the list may depend on the files above it.  
+(working with `Coq 8.13.0` and [`OLlibs 2.0.1`](https://github.com/olaure01/ollibs))
+
+### Installation
+
+Requires [OLlibs](https://github.com/olaure01/ollibs) (add-ons for the standard library): [see installation instructions](https://github.com/olaure01/ollibs/blob/master/README.md).
+
+1. [install OLlibs](https://github.com/olaure01/ollibs/blob/master/README.md)
+2. install development
+
+        $ ./configure
+        $ make
+        $ make install
+
+### Content
+
+The files are listed in order of dependence: a file in the list may depend on the files above it.
 The descriptions contain the notions that are introduced in the files.
 
 - List_nat.v: Boolean properties and operators used to represent functions as lists of natural numbers.
