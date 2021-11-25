@@ -50,9 +50,11 @@ Section Properties.
 Context {A : Type}.
 Implicit Types la lb lc : list A.
 
+#[local]
 Instance CircularShift_Perm_R : Proper (CircularShift_R ==> (@Perm_R A)) (fun a => a).
 Proof. intros l1 l2 [f Hc [Hlen Heq]]; subst; now exists f; [ apply cond_circular_is_perm | ]. Defined.
 
+#[local]
 Instance CircularShift_R_refl : Reflexive (@CircularShift_R A).
 Proof.
   intros l.
@@ -62,6 +64,7 @@ Proof.
   - symmetry; apply app_Id.
 Defined.
 
+#[local]
 Instance CircularShift_R_sym : Symmetric (@CircularShift_R A).
 Proof.
 intros l l' [f Hc [Hlen Heq]]; subst.
@@ -75,6 +78,7 @@ exists (cfun m n); [ | split ].
   symmetry; apply app_Id.
 Defined.
 
+#[local]
 Instance CircularShift_R_trans : Transitive (@CircularShift_R A).
 Proof.
 intros l1 l2 l3 [c1 HC1 [Hlen1 Heq1]] [c2 HC2 [Hlen2 Heq2]]; subst.
@@ -91,7 +95,8 @@ exists (cfun n m); [ | split ].
 - reflexivity.
 Defined.
 
-Global Instance CircularShift_R_equiv : Equivalence (@CircularShift_R A).
+#[global]
+Instance CircularShift_R_equiv : Equivalence (@CircularShift_R A).
 Proof. split; [ apply CircularShift_R_refl | apply CircularShift_R_sym | apply CircularShift_R_trans ]. Qed.
 
 Lemma decomp_CircularShift_R : forall la lb,
@@ -228,6 +233,7 @@ dichot_app_inf_exec Hx ; dichot_app_inf_exec Hy ; subst.
 Defined.
 
 (** [rev], [in], [map], [Forall], [Exists], etc. *)
+#[local]
 Instance CircularShift_R_rev : Proper (CircularShift_R ==> CircularShift_R) (@rev A).
 Proof.
 intro l ; induction l ; intros l' HC.
@@ -240,12 +246,14 @@ intro l ; induction l ; intros l' HC.
   apply CircularShift_R_commu.
 Defined.
 
+#[local]
 Instance CircularShift_R_in (a : A) : Proper (CircularShift_R ==> Basics.impl) (In a).
 Proof. intros l l' HC Hin; now apply Perm_R_in with l; [ apply CircularShift_Perm_R | ]. Qed.
 
 End Properties.
 
 
+#[global]
 Instance CircularShift_R_map {A B} (f : A -> B) : Proper (CircularShift_R ==> CircularShift_R) (map f).
 Proof.
 intros l l' HC.
@@ -277,18 +285,22 @@ Lemma CircularShift_R_image {A B} : forall (f : A -> B) a l l',
   a :: l ~°~ map f l' -> { a' | a = f a' }.
 Proof. now intros f a l l' HP; apply Perm_R_image with l l', CircularShift_Perm_R. Qed.
 
+#[global]
 Instance CircularShift_R_Forall {A} (P : A -> Prop) :
   Proper (CircularShift_R ==> Basics.impl) (Forall P).
 Proof. intros l1 l2 HC HF; now apply Perm_R_Forall with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
+#[global]
 Instance CircularShift_R_Exists {A} (P : A -> Prop) :
   Proper (CircularShift_R ==> Basics.impl) (Exists P).
 Proof. intros l1 l2 HC HE; now apply Perm_R_Exists with l1; [ apply CircularShift_Perm_R | ]. Qed.
 
+#[global]
 Instance CircularShift_R_Forall_Type {A} (P : A -> Type) :
   Proper (CircularShift_R ==> Basics.arrow) (Forall_inf P).
 Proof. intros l1 l2 HC HF; now apply Perm_R_Forall_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
+#[global]
 Instance CircularShift_R_Exists_Type {A} (P : A -> Type) :
   Proper (CircularShift_R ==> Basics.arrow) (Exists_inf P).
 Proof. intros l1 l2 HC HF; now apply Perm_R_Exists_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.

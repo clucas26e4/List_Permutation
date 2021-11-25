@@ -6,6 +6,7 @@ Require Import List_nat Fun_nat Perm.
 Require Export Perm_R.
 
 
+#[global]
 Instance Perm_R_refl' {A} : Proper (Logic.eq ==> @Perm_R A) (fun a => a).
 Proof. intros x y Heq; now rewrite Heq. Defined.
 
@@ -142,18 +143,22 @@ induction l1 ; intros l2 l3 l4 HP.
     * apply Perm_R_sym, Perm_R_cons_app, Perm_R_sym...
 Defined.
 
+#[global]
 Instance Perm_R_Forall {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Forall P).
 Proof. intros ? ? ?; now apply Permutation_Type_Forall, Perm_R_to_Permutation_Type. Defined.
 
+#[global]
 Instance Perm_R_Exists {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Exists P).
 Proof. intros ? ? ?; now apply Permutation_Type_Exists, Perm_R_to_Permutation_Type. Defined.
 
+#[global]
 Instance Perm_R_Forall_Type {A} (P : A -> Type) :
   Proper ((@Perm_R A) ==> Basics.arrow) (Forall_inf P).
 Proof. intros ? ? ?; now apply Permutation_Type_Forall_inf, Perm_R_to_Permutation_Type. Defined.
 
+#[global]
 Instance Perm_R_Exists_Type {A} (P : A -> Type) :
   Proper ((@Perm_R A) ==> Basics.arrow) (Exists_inf P).
 Proof. intros ? ? ?; now apply Permutation_Type_Exists_inf, Perm_R_to_Permutation_Type. Defined.
@@ -261,6 +266,7 @@ dichot_elt_app_inf_exec Heq.
   inversion Heq1.
 Qed.
 
+#[global]
 Instance Perm_R_flat_map {A B} f :
   Proper ((@Perm_R A) ==> (@Perm_R B)) (flat_map f).
 Proof with try eassumption.
@@ -290,6 +296,7 @@ induction l1 ; intros l2 HP.
     apply Perm_R_app_rot.
 Defined.
 
+#[global]
 Instance list_sum_perm_Type : Proper (@Perm_R nat ==> eq) list_sum.
 Proof with try reflexivity.
 intros l1 ; induction l1 ; intros l2 HP.

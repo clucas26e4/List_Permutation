@@ -55,21 +55,27 @@ Ltac PCperm_R_solve :=
 
 (** *** Properties *)
 
+#[global]
 Instance PCperm_Perm_R {A} b : Proper (PCperm_R b ==> (@Perm_R A)) (fun a => a).
 Proof. now destruct b; intros; [ | apply CircularShift_Perm_R ]. Defined.
 
+#[global]
 Instance CylicPerm_PCperm_R {A} b : Proper (CircularShift_R ==> PCperm_R b) (fun a : (list A) => a).
 Proof. now destruct b; intros; [ apply CircularShift_Perm_R | ]. Defined.
 
+#[global]
 Instance PCperm_R_refl {A} b : Reflexive (@PCperm_R A b).
 Proof. destruct b; intros ?; reflexivity. Defined.
 
+#[global]
 Instance PCperm_R_sym {A} b : Symmetric (@PCperm_R A b).
 Proof. now destruct b; intros ? ? ?; symmetry. Defined.
 
+#[global]
 Instance PCperm_R_trans {A} b : Transitive (@PCperm_R A b).
 Proof. now destruct b; intros ? l' ? ? ?; transitivity l'. Defined.
 
+#[global]
 Instance PCperm_R_equiv {A} b : Equivalence (@PCperm_R A b).
 Proof. split; [ apply PCperm_R_refl | apply PCperm_R_sym | apply PCperm_R_trans ]. Qed.
 
@@ -140,20 +146,25 @@ exists (l',l'')...
 now rewrite app_nil_r in Heq.
 Defined.
 
+#[global]
 Instance PCperm_R_map {A B} (f : A -> B) b : Proper (PCperm_R b ==> PCperm_R b) (map f).
 Proof. now destruct b; intros ? ? ?; [ apply Perm_R_map | apply CircularShift_R_map ]. Defined.
 
+#[global]
 Lemma PCperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
   PCperm_R b l1 (map f l2) ->
   { l : _ & l1 = map f l & (PCperm_R b l2 l) }.
 Proof. destruct b ; [ apply Perm_R_map_inv | apply CircularShift_R_map_inv ]. Defined.
 
+#[global]
 Instance PCperm_R_in {A} b (a : A) : Proper (PCperm_R b ==> Basics.impl) (In a).
 Proof. now destruct b; intros l ? ? ?; [ apply Perm_R_in with l | apply CircularShift_R_in with l ]. Qed.
 
+#[global]
 Instance PCperm_R_Forall {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.impl) (Forall P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall with l | apply CircularShift_R_Forall with l ]. Qed.
 
+#[global]
 Instance PCperm_R_Exists {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.impl) (Exists P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists with l | apply CircularShift_R_Exists with l ]. Qed.
 
@@ -165,10 +176,12 @@ Proof. destruct b; [ apply Perm_R_Forall2 | apply CircularShift_R_Forall2 ]. Qed
 Lemma PCperm_R_image {A B} b : forall (f : A -> B) a l l', PCperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
 Proof. destruct b; [ apply Perm_R_image | apply CircularShift_R_image ]. Qed.
 
+#[global]
 Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Forall_inf P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall_Type with l
                                         | apply CircularShift_R_Forall_Type with l ]. Qed.
 
+#[global]
 Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Exists_inf P).
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists_Type with l
                                         | apply CircularShift_R_Exists_Type with l ]. Qed.
@@ -195,6 +208,7 @@ Ltac PEperm_R_solve :=
 
 (** *** Properties *)
 
+#[global]
 Instance PEperm_R_eq {A} : Proper (PEperm_R false ==> (@eq (list A))) id.
 Proof.
   intros l l' [p Hp [Hlen Heq]]; simpl in Hp.
@@ -210,29 +224,37 @@ intros l1 l2 Heq; subst.
 now split with (Id (length l2)); repeat split; simpl; rewrite ? seq_length; [ | | rewrite app_Id ].
 Defined.
 
+#[global]
 Instance PEperm_perm_R {A} b : Proper (PEperm_R b ==> (@Perm_R A)) id.
 Proof. destruct b ; intros l l' HP ; simpl in HP; now rewrite HP. Defined.
 
+#[global]
 Instance PEperm_R_refl {A} b : Reflexive (@PEperm_R A b).
 Proof. destruct b ; intros l; [ apply Perm_R_refl | now apply eq_PEperm_R_false ]. Defined.
 
+#[global]
 Instance PEperm_R_sym {A} b : Symmetric (@PEperm_R A b).
 Proof. now destruct b; intros l l' Hp; [ symmetry
                                        | apply PEperm_R_false in Hp; apply eq_PEperm_R_false ]. Defined.
 
+#[global]
 Instance PEperm_R_trans {A} b : Transitive (@PEperm_R A b).
 Proof. now destruct b ; intros l l' l'' HP1 HP2; [ transitivity l' | rewrite PEperm_R_false with l l' ]. Defined.
 
+#[global]
 Instance PEperm_R_equiv {A} b : Equivalence (@PEperm_R A b).
 Proof. split; [ apply PEperm_R_refl | apply PEperm_R_sym | apply PEperm_R_trans ]. Qed.
 
+#[global]
 Instance eq_PEperm_R {A} b : Proper (eq ==> PEperm_R b) (@id (list A)).
 Proof. destruct b; intros l l' Heq; subst; reflexivity. Defined.
 
+#[global]
 Instance PEperm_R_cons {A} b : Proper (eq ==> PEperm_R b ==> PEperm_R b) (@cons A).
 Proof. now destruct b; intros x y Heq l1 l2 HP; subst; [ apply Perm_R_cons
                                                        | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
+#[global]
 Instance PEperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PEperm_R b) (@app A).
 Proof.
 now destruct b; simpl; intros l m HP1 l' m' HP2; [ apply Perm_R_app
@@ -287,14 +309,17 @@ Lemma PEperm_R_vs_cons_inv {A} b : forall (a : A) l l1,
     {'(l1',l2') : _ & l = l1' ++ a :: l2' & PEperm_R b l1 (l1' ++ l2') }.
 Proof. intros a l l1 HP; rewrite <- (app_nil_l l1); now apply PEperm_R_vs_elt_inv. Defined.
 
+#[global]
 Instance PEperm_R_in {A} b (a : A) : Proper (PEperm_R b ==> Basics.impl) (In a).
 Proof. now destruct b ; simpl ; intros l l' HP HIn; [ apply Perm_R_in with l
                                                     | rewrite <- (PEperm_R_false _ _ HP) ]. Qed.
 
+#[global]
 Instance PEperm_R_Forall {A} b (P : A -> Prop) : Proper (PEperm_R b ==> Basics.impl) (Forall P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
+#[global]
 Instance PEperm_R_Exists {A} b (P : A -> Prop) : Proper (PEperm_R b ==> Basics.impl) (Exists P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
@@ -308,13 +333,16 @@ intros l1 l1' l2 HE HF ; simpl in HE ; subst.
 rewrite (PEperm_R_false _ _ HE) in HF; now exists l2.
 Defined.
 
+#[global]
 Instance PEperm_R_map {A B} (f : A -> B) b : Proper (PEperm_R b ==> PEperm_R b) (map f).
 Proof. now destruct b ; intros l l' HP; [ apply Perm_R_map | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
+#[global]
 Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Forall_inf P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall_Type with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
+#[global]
 Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Exists_inf P).
 Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists_Type with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
@@ -324,6 +352,7 @@ Lemma PEperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,
 Proof. now destruct b ; simpl ; intros f l1 l2 HP; [ apply Perm_R_map_inv
                                                    | rewrite (PEperm_R_false _ _ HP); exists l2 ]. Defined.
 
+#[global]
 Instance PEperm_R_rev {A} b : Proper (PEperm_R b ==> PEperm_R b) (@rev A).
 Proof. now destruct b ; intros l1 l2 HP; [ apply Perm_R_rev' | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
@@ -342,11 +371,14 @@ Qed.
 
 (** ** From PEperm to PCperm *)
 
+#[global]
 Instance PEperm_PCperm_R {A} b : Proper (PEperm_R b ==> PCperm_R b) (@id (list A)).
 Proof. now destruct b ; simpl ; intros l l' HP; [ | rewrite (PEperm_R_false _ _ HP); reflexivity ]. Defined.
 
+#[global]
 Instance PEperm_PCperm_R_cons {A} b : Proper (eq ==> PEperm_R b ==> PCperm_R b) (@cons A).
 Proof. now intros x y Heq l1 l2 HP ; subst; apply PEperm_PCperm_R, PEperm_R_cons. Defined.
 
+#[global]
 Instance PEperm_PCperm_R_app {A} b : Proper (PEperm_R b ==> PEperm_R b ==> PCperm_R b) (@app A).
 Proof. now intros l1 l1' HPhd l2 l2' HPtl; apply PEperm_PCperm_R; rewrite HPhd, HPtl. Defined.

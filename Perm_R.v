@@ -53,6 +53,7 @@ Proof.
     symmetry; apply app_Id.
 Defined.
 
+#[global]
 Instance Perm_R_Equivalence A : Equivalence (@Perm_R A) | 10 := {
   Equivalence_Reflexive := @Perm_R_refl A ;
   Equivalence_Symmetric := @Perm_R_sym A ;
@@ -85,7 +86,8 @@ split with (p +++ p'); repeat split; subst.
   now symmetry; apply pappend_fun_eq.
 Defined.
 
-Global Instance Perm_R_app' : Proper (@Perm_R A ==> @Perm_R A ==> @Perm_R A) (@app A) | 10.
+#[global]
+Instance Perm_R_app' : Proper (@Perm_R A ==> @Perm_R A ==> @Perm_R A) (@app A) | 10.
 Proof. repeat intro; now apply Perm_R_app. Defined.
 
 Lemma Perm_R_app_tail : forall l l' tl, l ~~ l' -> l ++ tl ~~ l' ++ tl.
@@ -102,6 +104,7 @@ change (a :: l') with ((a :: nil) ++ l').
 now apply Perm_R_app_head.
 Defined.
 
+#[local]
 Instance Perm_R_cons : Proper (Logic.eq ==> @Perm_R A ==> @Perm_R A) (@cons A) | 10.
 Proof. repeat intro; subst; now apply Perm_R_skip. Defined.
 
@@ -120,7 +123,8 @@ Defined.
 Lemma Perm_R_length : forall l m, l ~~ m -> length l = length m.
 Proof. intros l m [f Hp [Hlen Heq]]; subst; now rewrite app_nat_fun_length. Qed.
 
-Global Instance Perm_R_length' : Proper (@Perm_R A ==> Logic.eq) (@length A) | 10.
+#[global]
+Instance Perm_R_length' : Proper (@Perm_R A ==> Logic.eq) (@length A) | 10.
 Proof. exact Perm_R_length. Qed.
 
 Lemma Perm_R_add_inside : forall a l l' tl tl', l ~~ l' -> tl ~~ tl' -> l ++ a :: tl ~~ l' ++ a :: tl'.
@@ -150,7 +154,8 @@ Proof. intros Hadd; induction Hadd; [ reflexivity | rewrite <- IHHadd; apply Per
 Theorem Perm_R_rev : forall l, l ~~ rev l.
 Proof. induction l; [ reflexivity | simpl; rewrite <- IHl; apply Perm_R_cons_append ]. Defined.
 
-Global Instance Perm_R_rev' : Proper (@Perm_R A ==> @Perm_R A) (@rev A) | 10.
+#[global]
+Instance Perm_R_rev' : Proper (@Perm_R A ==> @Perm_R A) (@rev A) | 10.
 Proof. repeat intro; now rewrite <- 2 Perm_R_rev. Defined.
 
 Theorem Perm_R_nil_app_cons : forall l m a, nil ~~ l ++ a :: m -> False.
@@ -237,7 +242,8 @@ apply nth_In.
 now  rewrite app_nat_fun_length_cons.
 Qed.
 
-Global Instance Perm_R_in' : Proper (Logic.eq ==> @Perm_R A ==> iff) (@In A) | 10.
+#[global]
+Instance Perm_R_in' : Proper (Logic.eq ==> @Perm_R A ==> iff) (@In A) | 10.
 Proof. repeat intro; subst; split; now apply Perm_R_in. Qed.
 
 Theorem Perm_R_in_Type : forall l m a, l ~~ m -> In_inf a l -> In_inf a m.
@@ -253,7 +259,8 @@ apply nth_In_inf.
 now  rewrite app_nat_fun_length_cons.
 Qed.
 
-Global Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_inf A) | 10.
+#[global]
+Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_inf A) | 10.
 Proof. repeat intro; subst; eapply Perm_R_in_Type; eassumption. Qed.
 
 Lemma Perm_R_concat : forall p (L : list (list A)), length p = length L -> is_perm p = true ->
@@ -280,7 +287,8 @@ Proof.
   - now rewrite app_nat_fun_map, Heq.
 Defined.
 
-Global Instance Perm_R_map' : Proper (@Perm_R A ==> @Perm_R B) (map f) | 10.
+#[global]
+Instance Perm_R_map' : Proper (@Perm_R A ==> @Perm_R B) (map f) | 10.
 Proof. exact Perm_R_map. Defined.
 
 End Perm_R_map.
