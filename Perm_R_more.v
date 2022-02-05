@@ -309,8 +309,8 @@ intros l1 ; induction l1 ; intros l2 HP.
   simpl ; erewrite IHl1 ; [ | apply HP ].
   rewrite 2 list_sum_app.
   simpl.
-  rewrite 2 (Plus.plus_comm a).
-  rewrite Plus.plus_assoc...
+  rewrite 2 (Nat.add_comm a).
+  rewrite Nat.add_assoc...
 Qed.
 
 Lemma Perm_R_id {A} : forall (l : list A) p, is_perm p = true -> length p = length l ->

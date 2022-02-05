@@ -36,8 +36,7 @@ Ltac Perm_R_rot :=
   cons2app ;
   rewrite <- ? app_assoc ;
   eapply Perm_R_trans ;
-    [ apply Perm_R_app_rot
-    | instantiate ].
+    [ apply Perm_R_app_rot | ].
 
 (** The parameter [20] below is an arbitrary
  the higher, the longer, the more powerful *)
@@ -76,25 +75,20 @@ with Perm_R_run :=
   | H:Perm_R _ _ |- Perm_R _ _ => apply H
   | H:Perm_R ?l1 _ |- Perm_R (?l1 ++ _) _
        => eapply Perm_R_trans ; 
-          [ apply Perm_R_app_tail ; apply H
-          | instantiate ]
+          [ apply Perm_R_app_tail ; apply H | ]
   | H:Perm_R _ ?l1 |- Perm_R (?l1 ++ _) _
        => apply Perm_R_sym in H ;
           eapply Perm_R_trans ; 
-          [ apply Perm_R_app_tail ; apply H
-          | instantiate ]
+          [ apply Perm_R_app_tail ; apply H | ]
   | |- Perm_R (_ ++ _ ++ _) _ => Perm_R_rot
   | |- Perm_R (_ ++ _ ) _ => eapply Perm_R_trans ;
-                                  [ apply Perm_R_app_comm
-                                  | instantiate ]
+                                  [ apply Perm_R_app_comm | ]
   | H:Perm_R ?l1 _ |- Perm_R ?l1 _
        => eapply Perm_R_trans ; 
-          [ apply H
-          | instantiate ]
+          [ apply H | ]
   | H:Perm_R _ ?l1 |- Perm_R ?l1 _
        => apply Perm_R_sym in H ;
           eapply Perm_R_trans ; 
-          [ apply H
-          | instantiate ]
+          [ apply H | ]
   | _ => idtac
   end ).

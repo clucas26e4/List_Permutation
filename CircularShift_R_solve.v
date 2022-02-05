@@ -9,8 +9,7 @@ Ltac CircularShift_R_rot :=
   cons2app ;
   rewrite <- ? app_assoc ;
   eapply CircularShift_R_trans ;
-    [ apply CircularShift_R_app_rot
-    | instantiate ].
+    [ apply CircularShift_R_app_rot | ].
 
 (** The parameter [20] below is an arbitrary
  the higher, the longer, the more powerful *)
@@ -45,18 +44,13 @@ with CircularShift_R_run :=
   | H:CircularShift_R _ _ |- CircularShift_R _ _ => list_simpl in H ; apply H
   | |- CircularShift_R (_ ++ _ ++ _) _ => CircularShift_R_rot
   | |- CircularShift_R (_ ++ _ ) _ => eapply CircularShift_R_trans ;
-                                  [ apply CircularShift_R_commu
-                                  | instantiate ]
+                                  [ apply CircularShift_R_commu | ]
   | H:CircularShift_R ?l1 _ |- CircularShift_R ?l1 _
        => list_simpl in H ;
-          eapply CircularShift_R_trans ; 
-          [ apply H
-          | instantiate ]
+          eapply CircularShift_R_trans ; [ apply H | ]
   | H:CircularShift_R _ ?l1 |- CircularShift_R ?l1 _
        => list_simpl in H ;
           apply CircularShift_R_sym in H ;
-          eapply CircularShift_R_trans ; 
-          [ apply H
-          | instantiate ]
+          eapply CircularShift_R_trans ; [ apply H | ]
   | _ => idtac
   end ).

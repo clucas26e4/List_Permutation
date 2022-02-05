@@ -93,7 +93,7 @@ Proof with try assumption; try reflexivity.
       unfold In_nat_bool.
       rewrite Heq...
     + simpl in Heq.
-      simpl in Hlt; apply Lt.lt_S_n in Hlt.
+      simpl in Hlt; apply Nat.succ_lt_mono in Hlt.
       unfold In_nat_bool.
       case (n =? a)...
       change ( (fix In_nat_bool (n0 : nat) (l0 : list nat) {struct l0} : bool :=
@@ -244,7 +244,7 @@ Proof with try reflexivity; try assumption.
       intros Hlt.
       simpl in Hgeq; lia.
     + simpl in H.
-      apply Lt.lt_S_n in H.
+      apply Nat.succ_lt_mono in H.
       simpl in Hgeq.
       unfold all_lt; simpl.
       case (a <? n)...
@@ -391,14 +391,14 @@ Proof with try assumption; try reflexivity.
   - destruct n1; inversion Hlt1.
   - destruct n1; destruct n2...
     + simpl in Heq.
-      simpl in Hlt2; apply Lt.lt_S_n in Hlt2.
+      simpl in Hlt2; apply Nat.succ_lt_mono in Hlt2.
       exfalso.
       refine (proj2 (cond_negb_In_nat_bool l a) _ n2 k _ _)...
       * apply andb_prop in Hal as (H1 & _).
         apply negb_true_iff in H1...
       * symmetry...
     + simpl in Heq.
-      simpl in Hlt1; apply Lt.lt_S_n in Hlt1.
+      simpl in Hlt1; apply Nat.succ_lt_mono in Hlt1.
       exfalso.
       refine (proj2 (cond_negb_In_nat_bool l a) _ n1 k _ _)...
       apply andb_prop in Hal as (H1 & _).
