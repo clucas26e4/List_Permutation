@@ -162,22 +162,22 @@ Theorem Perm_R_nil_app_cons : forall l m a, nil ~~ l ++ a :: m -> False.
 Proof. intros l l' a Hperm; rewrite <- Perm_R_middle in Hperm; apply (Perm_R_nil_cons Hperm). Qed.
 
 Theorem Perm_R_cons_inv l l' a : a :: l ~~ a :: l' -> l ~~ l'.
-Proof with try assumption; try reflexivity.
-intros [p Hperm [Hlen Heq]].
-destruct p; [ inversion Heq | ].
+Proof.
+intros [[|n p] Hperm [Hlen Heq]]; [ inversion Heq | ].
 destruct (andb_prop _ _ Hperm) as [Hal Had].
 simpl in Hal; apply andb_prop in Hal as [_ Hal].
-simpl in Had; apply andb_prop in Had as [Had _]; apply negb_true_iff in Had.
-destruct (app_nat_fun_vs_cons _ _ _ _ _ Hlen Hperm Heq) as [(la,lb) Heql Hlenla]; subst...
+simpl in Had; apply andb_prop in Had as [Had%negb_true_iff _].
+destruct (app_nat_fun_vs_cons _ _ _ _ _ Hlen Hperm Heq) as [(la,lb) Heql Hlenla]; subst.
 assert (S (length p) = S (length (la ++ lb))) as Hlenp by (rewrite Heql in Hlen; length_lia).
 apply downshift_perm with _ (length la) in Hperm; simpl in Hperm; rewrite Nat.eqb_refl in Hperm.
 injection Heq; intros Heq'' _; subst; fold (app_nat_fun p (a :: l)) in *.
-rewrite Heql, app_nat_fun_downshift...
+rewrite Heql, app_nat_fun_downshift.
 - transitivity (la ++ lb).
-  + destruct la; inversion Heql; subst...
+  + destruct la; inversion Heql; subst; [ reflexivity | ].
     symmetry; apply Perm_R_middle.
-  + exists (downshift p (length la)); repeat split...
+  + exists (downshift p (length la)); repeat split; [ assumption | ].
     rewrite downshift_length by assumption; lia.
+- assumption.
 - now rewrite <- Hlenp.
 Defined.
 
@@ -302,19 +302,19 @@ Theorem Perm_R_rect_transpo {A} :
    (forall x y l, P (y :: x :: l) (x :: y :: l)) ->
    (forall l l' l'', l ~~ l' -> P l l' -> l' ~~ l'' -> P l' l'' -> P l l'') ->
    forall l l', l ~~ l' -> P l l'.
-Proof with try assumption; try reflexivity.
+Proof.
   intros P Hnil Hskip Hswap Htrans.
   intros l l' Hperm.
   destruct Hperm as [p Hperm [Hlen Heq]].
   simpl in Hlen.
   rewrite Heq.
-  apply (Perm_rect (fun f => fun l => is_perm f = true -> P l (app_nat_fun f l)))...
+  apply (Perm_rect (fun f => fun l => is_perm f = true -> P l (app_nat_fun f l))); try assumption.
   - clear l l' p Hperm Hlen Heq.
     intros l Hperm.
     rewrite app_Id.
     clear Hperm.
-    induction l...
-    apply Hskip...
+    induction l; [ assumption | ].
+    apply Hskip; [ reflexivity | assumption ].
   - clear l l' p Hperm Hlen Heq.
     intros l0 i Hnnil Hperm.
     clear Hperm.
@@ -324,8 +324,8 @@ Proof with try assumption; try reflexivity.
       destruct l0; try now (exfalso; apply Hnnil).
       destruct l0.
       * simpl.
-        apply Hskip...
-      * replace (0 <? (length (a :: a0 :: l0)) - 1) with true...
+        apply Hskip; [ reflexivity | assumption ].
+      * replace (0 <? (length (a :: a0 :: l0)) - 1) with true by reflexivity.
         simpl.
         replace (app_nat_fun_dflt (seq 2 (length l0 - 0)) (a :: a0 :: l0) a)
            with l0; [apply Hswap | ].
@@ -334,33 +334,33 @@ Proof with try assumption; try reflexivity.
           with (app_nat_fun (seq 2 (length l0)) ((a :: a0 :: nil) ++ l0)).
         replace 2 with (0 + 2) by lia.
         rewrite <- incr_all_seq.
-        rewrite app_nat_fun_right; [rewrite app_Id | | apply all_lt_seq ]...
+        rewrite app_nat_fun_right; [rewrite app_Id | | apply all_lt_seq ]; reflexivity.
     + destruct l0; try now (exfalso; apply Hnnil).
       assert (forall n i, transpo (S n) (S i) = 0 :: incr_all (transpo n i) 1) as transpo_S.
       { clear.
         intros n i.
         unfold transpo.
         case_eq (i <? n); intros Hcase.
-        - replace (S i <? S n) with true...
+        - replace (S i <? S n) with true.
           rewrite shift_app.
           simpl.
           rewrite ? incr_all_seq.
-          replace (S (S i) + 1) with (S (S (S i))) by lia...
-        - replace (S i <? S n) with false...
-          rewrite ? incr_all_seq... }
+          replace (S (S i) + 1) with (S (S (S i))) by lia; reflexivity.
+        - replace (S i <? S n) with false.
+          rewrite ? incr_all_seq; reflexivity. }
       destruct l0.
       * simpl.
-        apply Hskip...
+        apply Hskip; [ reflexivity | assumption ].
       * replace (length (a :: a0 :: l0) - 1) with (S (length (a0 :: l0) - 1)) by length_lia.
         rewrite transpo_S.
         app_nat_fun_unfold (shift (transpo (length (a0 :: l0) - 1) i) 0 1) (a0 :: l0) 0 a.
-        change 1 with (length (a :: nil)) at 2...
+        change 1 with (length (a :: nil)) at 2.
         change (a :: a0 :: l0) with ((a :: nil) ++ a0 :: l0) at 3.
         rewrite app_nat_fun_right; [ | reflexivity | ].
         2:{ replace (length (a0 :: l0)) with (S (length (a0 :: l0) - 1)) at 2 by length_lia.
             apply all_lt_transpo. }
         apply Hskip.
-        -- split with (transpo (length (a0 :: l0) - 1) i); repeat split...
+        -- split with (transpo (length (a0 :: l0) - 1) i); repeat split.
            ++ apply transpo_is_perm.
            ++ length_lia.
         -- apply IHi.
@@ -368,16 +368,17 @@ Proof with try assumption; try reflexivity.
   - clear l l' p Hperm Hlen Heq.
     intros f1 f2 l Hperm1 Hperm2 Hlen1 Hlen2 IH1 IH2 _.
     specialize (IH1 Hperm1); specialize (IH2 Hperm2).
-    apply Htrans with (app_nat_fun f1 l)...
-    + split with f1; repeat split...
-      symmetry...
-    + split with f2; repeat split...
+    apply Htrans with (app_nat_fun f1 l).
+    + split with f1; repeat split; [ | symmetry ]; assumption.
+    + assumption.
+    + split with f2; repeat split.
+      * assumption.
       * rewrite Hlen2.
-        destruct l; [destruct f1; try now inversion Hlen1 | ]...
-        rewrite app_nat_fun_length_cons...
+        destruct l; [destruct f1; try now inversion Hlen1 | ].
+        rewrite app_nat_fun_length_cons; [ reflexivity | ].
         intro H; inversion H.
-      * rewrite asso_app_nat_fun...
-    + rewrite asso_app_nat_fun...
+      * apply asso_app_nat_fun.
+    + rewrite asso_app_nat_fun; assumption.
 Qed.
 
 Ltac rect_transpo P Hperm :=
