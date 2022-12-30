@@ -183,8 +183,7 @@ Proof with try reflexivity; try assumption.
     rename Hal into Hal1.
     clear - H Hal1 Hal2.
     induction p.
-    + destruct l1; destruct l2; try now inversion H.
-      apply Forall2_inf_nil.
+    + now destruct l1; destruct l2.
     + simpl in Hal1, Hal2.
       apply andb_prop in Hal1 as (Hlt1 & Hal1).
       apply andb_prop in Hal2 as (Hlt2 & Hal2).
