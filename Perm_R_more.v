@@ -92,7 +92,7 @@ destruct HP as [(pl1',pl2') HP].
 symmetry in HP.
 dichot_elt_app_inf_exec HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_comm_cons.
 - now exists (pl1', l, pl2); right.
-- now exists (pl1, l0, pl2'); left.
+- now exists (pl1, l, pl2'); left.
 Qed.
 
 Lemma Perm_R_app_rot {A} : forall (l1 : list A) l2 l3, l1 ++ l2 ++ l3 ~~ l2 ++ l3 ++ l1.
@@ -260,9 +260,8 @@ dichot_elt_app_inf_exec Heq.
 - subst.
   exists (l', l) ; reflexivity.
 - exfalso.
-  symmetry in Heq1; decomp_map_inf Heq1; symmetry in Heq1.
-  apply Hf in Heq1.
-  inversion Heq1.
+  decomp_map Heq1.
+  exact (Hf l1 eq_refl).
 Qed.
 
 #[global]

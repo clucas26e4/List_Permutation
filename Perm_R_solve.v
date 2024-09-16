@@ -45,7 +45,7 @@ Ltac Perm_R_solve :=
   | |- Perm_R _ _ =>
     list_simpl ;
     try simpl_hyp_perm_all_Type ;
-    cons2app_all ;
+    cons2app in * ;
     try simpl_hyp_perm_all_Type ;
     first [
       try apply Perm_R_app_tail ;

@@ -179,7 +179,7 @@ Proof.
   symmetry in H2.
   dichot_elt_app_inf_exec H2 ; subst.
   - exists (l0 ++ l1, l) ; simpl ; now rewrite <- app_assoc.
-  - exists (l4, l2 ++ l3) ; simpl ; now rewrite <- app_assoc.
+  - exists (l, l2 ++ l3) ; simpl ; now rewrite <- app_assoc.
 Qed.
 
 Lemma CircularShift_R_vs_cons_inv : forall a la lb,
@@ -214,7 +214,7 @@ dichot_app_inf_exec Hx ; dichot_app_inf_exec Hy ; subst.
   + apply CircularShift_R_commu.
 - dichot_app_inf_exec Hy0 ; subst.
   + left ; left ; left ; left.
-    exists (l, l0, lx, l5); split; try apply CircularShift_R_commu; reflexivity.
+    exists (l, l1, lx, l0); split; try apply CircularShift_R_commu; reflexivity.
   + left ; right.
     exists (l1 ++ lx , lx ++ l1).
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
@@ -225,9 +225,9 @@ dichot_app_inf_exec Hx ; dichot_app_inf_exec Hy ; subst.
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
     * apply CircularShift_R_commu.
   + left ; left ; left ; left.
-    exists (l, ly, l3, l0); split; try apply CircularShift_R_commu; reflexivity.
+    exists (l0, ly, l2, l); split; try apply CircularShift_R_commu; reflexivity.
 - right.
-  exists (l5 ++ l0, l0 ++ l5).
+  exists (l0 ++ l, l ++ l0).
   + split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
   + apply CircularShift_R_commu.
 Defined.
@@ -275,10 +275,10 @@ induction l1 ; intros l2 HP.
   apply CircularShift_R_vs_cons_inv in Heq.
   destruct Heq as [(l3 & l4) Heq1 Heq2].
   simpl in Heq1 ; simpl in Heq2.
-  decomp_map_inf Heq2 ; subst ; simpl.
-  exists (x :: l6 ++ l0).
+  decomp_map Heq2 ; subst ; simpl.
+  exists (a :: l4 ++ l3).
   + simpl ; rewrite ? map_app ; reflexivity.
-  + apply (CircularShift_R_commu l0).
+  + apply (CircularShift_R_commu l3).
 Defined.
 
 Lemma CircularShift_R_image {A B} : forall (f : A -> B) a l l',

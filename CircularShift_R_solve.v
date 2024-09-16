@@ -17,7 +17,7 @@ Ltac CircularShift_R_solve :=
   match goal with
   | |- CircularShift_R _ _ =>
     list_simpl ;
-    cons2app_all ;
+    cons2app in * ;
     first [
       try CircularShift_R_run ;
       apply CircularShift_R_sym ;

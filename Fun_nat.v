@@ -760,7 +760,6 @@ destruct HP as [(l',l'') Heq].
 dichot_elt_app_inf_exec Heq.
 - subst; exists (l', l) ; reflexivity.
 - exfalso.
-  symmetry in Heq1; decomp_map_inf Heq1; symmetry in Heq1.
-  apply Hf in Heq1.
-  inversion Heq1.
+  decomp_map Heq1.
+  exact (Hf a eq_refl).
 Qed.
