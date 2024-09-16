@@ -581,7 +581,7 @@ Definition shift l n i := map (fun x => if x <? n then x else i + x) l.
 
 Lemma shift_length : forall l n i,
   length (shift l n i) = length l.
-Proof. intros; apply map_length. Qed.
+Proof. intros; apply length_map. Qed.
 
 Lemma shift_app : forall l1 l2 n i,
   shift (l1 ++ l2) n i = shift l1 n i ++ shift l2 n i.

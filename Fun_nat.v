@@ -75,7 +75,7 @@ Proof.
 Qed.
 
 Lemma app_nat_fun_length_cons {A} : forall f (l : list A), l <> nil -> length (f ∘ l) = length f.
-Proof. intros f l Hnnil; destruct l; [ exfalso; apply Hnnil; reflexivity | apply map_length ]. Qed.
+Proof. intros f l Hnnil; destruct l; [ exfalso; apply Hnnil; reflexivity | apply length_map ]. Qed.
 
 Lemma app_nat_fun_length {A} : forall f (l : list A), length f = length l -> length (f ∘ l) = length f.
 Proof.
@@ -174,7 +174,7 @@ case_eq p.
        with (app_nat_fun_dflt p (la ++ a :: lb) (hd a (la ++ lb))).
     * apply app_nat_fun_dflt_downshift; assumption.
     * apply app_nat_fun_dflt_indep.
-      rewrite app_length in *; simpl.
+      rewrite length_app in *; simpl.
       rewrite <- Hlt; f_equal; lia.
   + intros Heq; subst.
     rewrite Heq in Hlt; simpl in Hlt.
@@ -300,7 +300,7 @@ destruct l2; [ list_simpl; reflexivity | ].
 rewrite 2 app_nat_fun_app_nat_fun_dflt with _ _ a.
 - now apply app_nat_fun_dflt_left.
 - assumption.
-- apply all_lt_leq with (length l1); [ assumption | rewrite app_length; lia ].
+- apply all_lt_leq with (length l1); [ assumption | rewrite length_app; lia ].
 Qed.
 
 Lemma app_nat_fun_dflt_app {A} : forall (l : list A) f1 f2 d,
@@ -377,11 +377,11 @@ Proof with try reflexivity; try assumption.
         -- apply all_distinct_right with (n1 :: la).
            rewrite Hlenla; rewrite<- Heql...
       * simpl.
-        rewrite app_length in Hal |- *; simpl in Hal.
+        rewrite length_app in Hal |- *; simpl in Hal.
         rewrite Nat.add_succ_r in Hal...
     + intros H; inversion H.
     + simpl.
-      rewrite app_length in Hal |- * ; simpl in Hal.
+      rewrite length_app in Hal |- * ; simpl in Hal.
       rewrite Nat.add_succ_r in Hal...
 Qed.
 
@@ -533,7 +533,7 @@ Qed.
 Definition cfun n m := seq n m ++ seq 0 n.
 
 Lemma cfun_length : forall n m, length (cfun n m) = n + m.
-Proof. intros; unfold cfun; rewrite app_length; rewrite 2 seq_length; lia. Qed.
+Proof. intros; unfold cfun; rewrite length_app; rewrite 2 length_seq; lia. Qed.
 
 Lemma all_lt_cfun : forall n m, all_lt (cfun n m) (n + m) = true.
 Proof.
@@ -572,7 +572,7 @@ Proof.
   intros i j.
   unfold cfun at 2 3.
   rewrite <- cons_seq; simpl app; rewrite cons_is_app.
-  replace (i + j) with (length (seq (S i) j ++ Id i)) by (rewrite app_length; rewrite ? seq_length; lia).
+  replace (i + j) with (length (seq (S i) j ++ Id i)) by (rewrite length_app; rewrite ? length_seq; lia).
   change 1 with (length (i :: nil)).
   rewrite app_cfun_eq; rewrite<- app_assoc.
   unfold Id; now rewrite<- seq_S.
@@ -593,7 +593,7 @@ change (cfun m n) with (seq m n ++ Id m).
 replace (cfun n m) with (cfun (length (seq m n)) (length (Id m))).
 - rewrite app_cfun_eq.
   symmetry; apply seq_app.
-- rewrite 2 seq_length; reflexivity.
+- rewrite 2 length_seq; reflexivity.
 Qed.
 
 Lemma cfun_cfun_le : forall i j k l, i + j = k + l -> k <= j ->
@@ -603,16 +603,16 @@ intros i j k l Hlen Hlt; unfold cfun.
 rewrite app_nat_fun_app.
 replace j with (k + (j - k)) at 2 by lia.
 rewrite 2 seq_app; rewrite <- app_assoc.
-rewrite app_Id_ext by apply seq_length.
+rewrite app_Id_ext by apply length_seq.
 rewrite app_assoc; f_equal.
 replace l with (j - k + i) by lia; rewrite seq_app.
 replace (k + (j - k)) with (j - k + k) by lia; rewrite app_nat_fun_app; f_equal.
-- rewrite app_nat_fun_left by (apply all_lt_seq; rewrite seq_length; lia).
+- rewrite app_nat_fun_left by (apply all_lt_seq; rewrite length_seq; lia).
   apply app_nat_fun_seq_seq; lia.
 - replace (j - k + k) with j by lia.
   change j with (0 + j) at 1; rewrite <- incr_all_seq.
-  rewrite app_nat_fun_right; rewrite ? seq_length; try lia.
-  + replace i with (length (Id i)) at 1 by apply seq_length.
+  rewrite app_nat_fun_right; rewrite ? length_seq; try lia.
+  + replace i with (length (Id i)) at 1 by apply length_seq.
     now rewrite app_Id.
   + apply all_lt_seq; lia.
 Defined.
@@ -649,7 +649,7 @@ unfold cfun in Heq; simpl in Heq.
 split.
 - now inversion Heq.
 - apply (f_equal (@length _)) in Heq.
-  simpl in Heq; rewrite ? app_length in Heq; simpl in Heq; rewrite ? seq_length in Heq; lia.
+  simpl in Heq; rewrite ? length_app in Heq; simpl in Heq; rewrite ? length_seq in Heq; lia.
 Qed.
 
 Lemma cfun_arg_inj : forall n1 n2 m1 m2, (m1 = 0 -> n1 = 0) -> (m2 = 0 -> n2 = 0) ->

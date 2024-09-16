@@ -129,7 +129,7 @@ destruct b ; intros a l l1 l2 HC.
   destruct HC as [(l' & l'') Heq1 Heq2] ; subst.
   exists (l',l'')...
   split with (Id (length (l'' ++ l'))); repeat split.
-  + simpl; rewrite seq_length...
+  + simpl; rewrite length_seq...
   + rewrite Heq1; length_lia.
   + rewrite Heq1, app_Id...
 Qed.
@@ -221,7 +221,7 @@ Proof. apply PEperm_R_eq. Qed.
 Lemma eq_PEperm_R_false {A} : forall (l1 l2 : list A), l1 = l2 -> PEperm_R false l1 l2.
 Proof.
 intros l1 l2 Heq; subst.
-now split with (Id (length l2)); repeat split; simpl; rewrite ? seq_length; [ | | rewrite app_Id ].
+now split with (Id (length l2)); repeat split; simpl; rewrite ? length_seq; [ | | rewrite app_Id ].
 Defined.
 
 #[global]

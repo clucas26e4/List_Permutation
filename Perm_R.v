@@ -25,7 +25,7 @@ Lemma Perm_R_refl {A} : forall (l : list A), l ~~ l.
 Proof.
   intro l; split with (Id (length l)); repeat split.
   - apply Id_is_perm.
-  - apply seq_length.
+  - apply length_seq.
   - symmetry; apply app_Id.
 Defined.
 
@@ -283,7 +283,7 @@ Lemma Perm_R_map l l' : l ~~ l' -> map f l ~~ map f l'.
 Proof.
   intros [p Hperm [Hlen Heq]].
   split with p; repeat split; [ assumption | | ].
-  - now rewrite map_length.
+  - now rewrite length_map.
   - now rewrite app_nat_fun_map, Heq.
 Defined.
 

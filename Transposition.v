@@ -7,10 +7,10 @@ Require Import List_nat Fun_nat.
 
 Ltac length_lia := repeat (try rewrite concat_app;
                            try rewrite shift_length in *;
-                           try rewrite app_length in *;
-                           try rewrite seq_length in *;
+                           try rewrite length_app in *;
+                           try rewrite length_seq in *;
                            try rewrite cfun_length in *;
-                           try rewrite map_length in *; simpl in *); lia.
+                           try rewrite length_map in *; simpl in *); lia.
 
 
 
@@ -59,10 +59,10 @@ Ltac decomp_transpo m n :=
 Lemma transpo_length : forall m n, length (transpo m n) = (S m).
 Proof.
 intros m n; decomp_transpo m n.
-- apply seq_length.
-- rewrite app_length; simpl.
+- apply length_seq.
+- rewrite length_app; simpl.
   rewrite 2 shift_length.
-  rewrite 2 seq_length ; lia.
+  rewrite 2 length_seq ; lia.
 Qed.
 
 Lemma all_lt_transpo : forall m n, all_lt (transpo m n) (S m) = true.
@@ -96,7 +96,7 @@ Definition compo_transpo m := fold_right (fun i => app_nat_fun (transpo m i)) (I
 Lemma compo_transpo_length : forall m l, length (compo_transpo m l) = S m.
 Proof.
   intros m; induction l.
-  - apply seq_length.
+  - apply length_seq.
   - simpl; rewrite app_nat_fun_length; rewrite transpo_length; now try rewrite IHl.
 Qed.
 
@@ -174,7 +174,7 @@ replace (j :: seq (S i) (j - S i) ++ i :: seq (S j) (m - j))
 rewrite app_nat_fun_right; try lia.
 - replace (S (length l2) :: seq 1 (length l2) ++ 0 :: seq (S (S (length l2))) (length l3))
      with ((S (length l2) :: seq 1 (length l2) ++ 0 :: nil) ++ seq (0 + length (a :: l2 ++ b :: nil)) (length l3))
-    by (list_simpl; rewrite app_length; simpl; do 4 f_equal; lia).
+    by (list_simpl; rewrite length_app; simpl; do 4 f_equal; lia).
   replace (a :: l2 ++ b :: l3) with ((a :: l2 ++ b :: nil) ++ l3) by (list_simpl; reflexivity).
   rewrite app_nat_fun_app.
   rewrite app_nat_fun_left.
@@ -189,16 +189,16 @@ rewrite app_nat_fun_right; try lia.
       replace 1 with (0 + length (a :: nil)) by (simpl; lia).
       rewrite <- incr_all_seq.
       rewrite app_nat_fun_right; [ | |
-        rewrite app_length; simpl; apply all_lt_leq with (length l2); [ apply all_lt_seq | ] ]; try lia.
+        rewrite length_app; simpl; apply all_lt_leq with (length l2); [ apply all_lt_seq | ] ]; try lia.
       rewrite app_nat_fun_left, app_Id; [ | apply all_lt_seq; lia ].
       list_simpl; reflexivity.
   + simpl length.
-    rewrite app_length; simpl.
+    rewrite length_app; simpl.
     apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | rewrite all_lt_app ].
     apply andb_true_iff; split; [ | reflexivity ].
     apply all_lt_leq with (1 + length l2); [ apply all_lt_seq| ]; lia.
 - simpl length.
-  rewrite app_length; simpl.
+  rewrite length_app; simpl.
   apply andb_true_iff; split; [ apply Nat.ltb_lt; lia | rewrite all_lt_app ].
   apply andb_true_iff; split; [ | simpl ].
   + apply all_lt_leq with (1 + length l2); [ apply all_lt_seq | ]; lia.
@@ -347,6 +347,6 @@ Lemma compo_nc_transpo_length : forall m l,
   length (compo_nc_transpo m l) = S m.
 Proof.
   intros m; induction l.
-  - apply seq_length.
+  - apply length_seq.
   - simpl; rewrite app_nat_fun_length; rewrite nc_transpo_length; now try rewrite IHl.
 Qed.

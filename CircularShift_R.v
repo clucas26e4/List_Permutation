@@ -11,7 +11,7 @@ Require Import List_nat Fun_nat Perm Perm_R_more length_lia.
 Definition cond_circularShift l := {' (n, m) & l = cfun (S n) (S m) } + { l = Id (length l) }.
 
 Lemma Id_cond_circular : forall n, cond_circularShift (Id n).
-Proof. intros; right; now rewrite seq_length. Qed.
+Proof. intros; right; now rewrite length_seq. Qed.
 
 Lemma cfun_S_cond_circular : forall n m, cond_circularShift (cfun (S n) (S m)).
 Proof. intros; left; now split with (n, m). Qed.
@@ -362,7 +362,7 @@ Proof.
   rewrite<- (firstn_length_le l) at 2 by assumption.
   replace (length l - i) with (length (skipn i l)); [ symmetry; apply app_cfun_eq | ].
   rewrite<- (firstn_skipn i l) at 2.
-  rewrite app_length, firstn_length_le by assumption; lia.
+  rewrite length_app, firstn_length_le by assumption; lia.
 Qed.
 
 Lemma app_cshift_iter {A} : forall i (l : list A), i <= length l ->
@@ -399,10 +399,10 @@ Proof.
   intros n len.
   destruct n; [ | case_eq ((S n) <? len); intros H ; [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H] ].
   - split with (Id len); [ | split].
-    + right; now rewrite seq_length.
-    + apply seq_length.
+    + right; now rewrite length_seq.
+    + apply length_seq.
     + intros A l Hlen.
-      rewrite seq_length in Hlen.
+      rewrite length_seq in Hlen.
       rewrite Hlen.
       rewrite app_Id.
       unfold app_cshift_nat; simpl.
@@ -417,12 +417,12 @@ Proof.
       rewrite <- (firstn_skipn (S n) l) at 1.
       rewrite<- (firstn_length_le l) at 1 by lia.
       replace (len - S n) with (length (skipn (S n) l)); [apply app_cfun_eq | ].
-      rewrite skipn_length; lia.
+      rewrite length_skipn; lia.
   - split with (Id len);  [ | split].
-    + right; now rewrite seq_length.
-    + apply seq_length.
+    + right; now rewrite length_seq.
+    + apply length_seq.
     + intros A l Hlen.
-      rewrite seq_length in Hlen; rewrite Hlen.
+      rewrite length_seq in Hlen; rewrite Hlen.
       rewrite app_Id.
       unfold app_cshift_nat.
       rewrite skipn_all2 by lia.

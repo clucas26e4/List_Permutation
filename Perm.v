@@ -94,7 +94,7 @@ Lemma downshift_perm_length : forall l k, k < length l -> is_perm l = true ->
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
   destruct (decomp_perm l k Hlen Hperm) as [(la & lb) Heq (nHinla & nHinlb)].
-  rewrite Heq, downshift_app, 2 app_length, downshift_eq.
+  rewrite Heq, downshift_app, 2 length_app, downshift_eq.
   simpl; rewrite Nat.add_succ_r, 2 downshift_length...
 Qed.
 
@@ -138,21 +138,21 @@ Proof with try reflexivity; try assumption.
     clear Hal.
     assert (H0 := cond_all_distinct_inv p).
     specialize (H0 H2).
-    unfold app_nat_fun_dflt in Hlt1, Hlt2; rewrite map_length in Hlt1 , Hlt2.
+    unfold app_nat_fun_dflt in Hlt1, Hlt2; rewrite length_map in Hlt1 , Hlt2.
     apply H0 with n...
     apply H with n; try (simpl; rewrite<- Hlen)...
     + apply cond_all_lt_inv...
     + apply cond_all_lt_inv...
     + rewrite 2 nth_nth_nth_map; [ | left | left]...
-      rewrite 2 nth_indep with _ _ _ n k by (rewrite map_length; assumption)...
+      rewrite 2 nth_indep with _ _ _ n k by (rewrite length_map; assumption)...
   - apply cond_all_distinct_false_inv with _ n in Hal as ((k1 & k2) & (Hlt1 & (Hlt2 & (nHeq & Heq)))).
     simpl in Hlt1 , Hlt2.
     rewrite<- Hlen in Hlt1, Hlt2.
     destruct (perm_surj _ n k1 Hperm Hlt1) as [i1 Hlti1 Heqk1].
     destruct (perm_surj _ n k2 Hperm Hlt2) as [i2 Hlti2 Heqk2].
     symmetry; apply cond_all_distinct_false with n i1 i2.
-    + unfold app_nat_fun_dflt; rewrite map_length...
-    + unfold app_nat_fun_dflt; rewrite map_length...
+    + unfold app_nat_fun_dflt; rewrite length_map...
+    + unfold app_nat_fun_dflt; rewrite length_map...
     + intro H.
       apply nHeq.
       apply cond_all_distinct_inv with p n...
@@ -170,8 +170,8 @@ Proof with try reflexivity; try assumption.
     symmetry; apply cond_all_lt.
     intros k0 k Hlt.
     unfold app_nat_fun, app_nat_fun_dflt  in *.
-    rewrite map_length in Hlt.
-    rewrite (nth_indep _ k0 n0) by (rewrite map_length; assumption).
+    rewrite length_map in Hlt.
+    rewrite (nth_indep _ k0 n0) by (rewrite length_map; assumption).
     rewrite<- nth_nth_nth_map with (dn := n0); [ | left ]...
     apply cond_all_lt_inv...
     apply cond_all_lt_inv...
@@ -183,7 +183,7 @@ Proof with try reflexivity; try assumption.
     rewrite<- Hlen in Hlen'.
     destruct (perm_surj _ n0 k Hperm Hlen') as [i Hlen'' Heqi].
     symmetry; apply cond_all_lt_false with i n0.
-    + rewrite map_length...
+    + rewrite length_map...
     + rewrite <- nth_nth_nth_map with (dn := n0); [ | left ]...
       rewrite Heqi...
 Qed.
@@ -196,7 +196,7 @@ Proof.
     apply andb_prop in Hp2 as (Hp2 & _).
     destruct l2; [ reflexivity | ].
     unfold app_nat_fun.
-    unfold app_nat_fun_dflt; rewrite map_length.
+    unfold app_nat_fun_dflt; rewrite length_map.
     now rewrite Hlen.
   - apply andb_prop in Hp2 as (Halt2 & Had2).
     now rewrite all_distinct_app_perm.
@@ -209,15 +209,15 @@ now exists (p1 ∘ p2); [ apply compo_perm_is_perm | rewrite app_nat_fun_length;
 Defined.
 
 Lemma Id_is_perm : forall n, is_perm (Id n) = true.
-Proof. intros n; splitb; [ rewrite seq_length; apply all_lt_seq; lia | apply all_distinct_seq ]. Qed.
+Proof. intros n; splitb; [ rewrite length_seq; apply all_lt_seq; lia | apply all_distinct_seq ]. Qed.
 
 Lemma p_Id n : perm_of n.
-Proof. exists (Id n); [ apply Id_is_perm | apply seq_length ]. Defined.
+Proof. exists (Id n); [ apply Id_is_perm | apply length_seq ]. Defined.
 
 Lemma cfun_is_perm : forall n m, is_perm (cfun n m) = true.
 Proof.
   intros n m; unfold cfun; splitb.
-  - rewrite app_length, 2 seq_length.
+  - rewrite length_app, 2 length_seq.
     replace (m + n) with (n + m) by lia.
     apply all_lt_cfun.
   - apply all_distinct_cfun.
@@ -233,7 +233,7 @@ Proof with try reflexivity; try assumption.
   apply andb_prop in Hp1 as (Hal1 & Had1).
   apply andb_prop in Hp2 as (Hal2 & Had2).
   splitb.
-  - rewrite app_length, shift_length.
+  - rewrite length_app, shift_length.
     apply append_fun_all_lt...
   - apply all_distinct_app...
 Qed.
@@ -241,7 +241,7 @@ Qed.
 Lemma p_append n m (p1 : perm_of n) (p2 : perm_of m) : perm_of (n + m).
 Proof.
 destruct p1 as [p1 Hp1 Hlen1]; destruct p2 as [p2 Hp2 Hlen2].
-exists (p1 +++ p2); [ now apply append_perm_is_perm | rewrite app_length, shift_length; lia ].
+exists (p1 +++ p2); [ now apply append_perm_is_perm | rewrite length_app, shift_length; lia ].
 Defined.
 
 Lemma transpo_is_perm : forall n i, is_perm (transpo n i) = true.
@@ -401,7 +401,7 @@ Proof with try reflexivity; try assumption; try length_lia.
            rewrite shift_length, Nat.add_comm, all_lt_shift_true...
            destruct (H 0) as ((Hpermi & _) & _)...
            apply andb_prop in Hpermi as (Hali & _)...
-        -- rewrite app_length, shift_length, shift_length.
+        -- rewrite length_app, shift_length, shift_length.
            apply andb_prop in Hperm'; destruct Hperm' as (Hal' & _).
            rewrite all_lt_shift_true...
       * destruct (H 0) as ((Hpermi & _) & _); [length_lia | ].
@@ -430,10 +430,10 @@ Proof with try reflexivity; try assumption; try length_lia.
         rewrite Hleni.
         rewrite concat_app.
         apply andb_prop in Hperm' as (Hal' & _).
-        rewrite Hlen', concat_app, app_length in Hal'.
+        rewrite Hlen', concat_app, length_app in Hal'.
         destruct p.
         -- simpl; rewrite 2 app_nat_fun_nil...
-        -- rewrite<- app_length in Hal'.
+        -- rewrite<- length_app in Hal'.
            apply app_nat_fun_shift...
 Qed.
 
@@ -446,7 +446,7 @@ Proof with try reflexivity; try assumption; try length_lia.
   apply concat_perm with p1 (map (fun x => Id (length x)) L1)...
   - rewrite <- Heq.
     destruct p1; destruct L1; try now inversion Hlen.
-    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite map_length; symmetry...
+    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite length_map; symmetry...
   - rewrite<- Heq.
     apply andb_prop in Hperm as (Hal & _); rewrite Hlen in Hal; clear - Hal.
     induction p1; intros i Hleni; try (now inversion Hleni); destruct i; simpl.
@@ -560,7 +560,7 @@ Proof with try reflexivity; try assumption.
     + apply Nat.succ_inj.
       rewrite downshift_length.
       * rewrite Heqn, Heqp.
-        simpl; rewrite 2 app_length...
+        simpl; rewrite 2 length_app...
       * rewrite Heqp, Heqi in Hperm.
         apply andb_prop in Hperm as [_ Had].
         change (S n0 :: la ++ 0 :: lb) with ((S n0 :: la) ++ 0 :: lb) in Had.
@@ -670,13 +670,13 @@ clear Heqq; revert q Hlen Hdec Hperm; induction l; intros q Hlen Hdec Hperm.
 - exists (Id (length q)); split.
   + rewrite app_Id.
     rewrite Hdec; simpl.
-    now rewrite seq_length.
+    now rewrite length_seq.
   + rewrite app_nat_fun_Id_r; rewrite Hdec; simpl.
-    * now rewrite seq_length.
+    * now rewrite length_seq.
     * apply all_lt_seq.
-      now rewrite seq_length.
+      now rewrite length_seq.
   + apply Id_is_perm.
-  + now rewrite seq_length.
+  + now rewrite length_seq.
 - specialize IHl with (compo_transpo (length q - 1) l).
   rewrite compo_transpo_length in IHl.
   replace (S (length q - 1)) with (length q) in IHl by lia.
