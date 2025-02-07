@@ -1,6 +1,6 @@
 (* Booleans and operators used to represent functions as lists of natural numbers. *)
 
-From Coq Require Import Bool PeanoNat Lia.
+From Stdlib Require Import Bool PeanoNat Lia.
 From OLlibs Require Import List_more funtheory.
 
 Notation beq_nat := Nat.eqb.

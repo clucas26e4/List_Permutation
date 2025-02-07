@@ -1,7 +1,7 @@
 (* Consecutive and non-consecutive transpositions.
    Decomposition of a non-consecutive transpositions into a composition of consecutive ones. *)
 
-From Coq Require Import Bool PeanoNat Lia.
+From Stdlib Require Import Bool PeanoNat Lia.
 From OLlibs Require Import List_more.
 Require Import List_nat Fun_nat.
 

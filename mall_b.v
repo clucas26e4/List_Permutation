@@ -1,6 +1,6 @@
 (* Factorization of MALL and cyMALL, using PCperm_R for the exchange rule. Cut-elimination theorem. *)
 
-From Coq Require Import CMorphisms PeanoNat Wf_nat Lia.
+From Stdlib Require Import CMorphisms PeanoNat Wf_nat Lia.
 From OLlibs Require Import List_more.
 Require Import genperm_R.
 

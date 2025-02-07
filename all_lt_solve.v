@@ -1,6 +1,6 @@
 (* Automatic tactic to solve all_lt goals *)
 
-From Coq Require Import PeanoNat Lia.
+From Stdlib Require Import PeanoNat Lia.
 From OLlibs Require Import List_more.
 Require Import List_nat Fun_nat Perm length_lia.
 

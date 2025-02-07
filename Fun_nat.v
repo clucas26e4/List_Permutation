@@ -1,7 +1,7 @@
 (* Action of List nat over a list of arbitary elements. 
    Identity function and cfun functions (circular shifts). *)
 
-From Coq Require Import Bool PeanoNat Lia.
+From Stdlib Require Import Bool PeanoNat Lia.
 From OLlibs Require Import List_more funtheory.
 Require Import List_nat.
 

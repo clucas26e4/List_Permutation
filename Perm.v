@@ -1,6 +1,6 @@
 (* Properties of lists of natural numbers that represent permutations. *)
 
-From Coq Require Import Bool PeanoNat CMorphisms Lia.
+From Stdlib Require Import Bool PeanoNat CMorphisms Lia.
 From OLlibs Require Import funtheory List_more.
 Require Import List_nat Fun_nat Transposition length_lia.
 

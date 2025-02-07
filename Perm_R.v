@@ -1,6 +1,6 @@
 (* Definition of the relation of Perm_R and basic properties. *)
 
-From Coq Require Import CMorphisms Bool PeanoNat Lia.
+From Stdlib Require Import CMorphisms Bool PeanoNat Lia.
 From OLlibs Require Import List_more Permutation_Type.
 Require Import List_nat Fun_nat Transposition length_lia Perm.
 
@@ -474,7 +474,7 @@ Ltac rect_transpo_bis P Hperm :=
 Lemma Permutation_Type_to_Perm_R {A} : forall (l1 l2 : list A),
   Permutation_Type l1 l2 -> l1 ~~ l2.
 Proof.
-intros l1 l2 Hp; induction Hp.
+intros l1 l2 Hp; induction Hp as [ | | | ? l'].
 - now split with (Id 0); repeat split.
 - now apply Perm_R_skip.
 - now apply Perm_R_swap.

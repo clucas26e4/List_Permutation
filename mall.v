@@ -1,6 +1,6 @@
 (* Multiplicative-additive fragment of Linear Logic, using Perm_R for the exchange rule. Cut-elimination theorem. *)
 
-From Coq Require Import CMorphisms PeanoNat Wf_nat Lia.
+From Stdlib Require Import CMorphisms PeanoNat Wf_nat Lia.
 From OLlibs Require Import List_more.
 Require Import Perm_R_more.
 

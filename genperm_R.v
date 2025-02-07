@@ -1,13 +1,13 @@
 (** * Factorized statements for different notions of permutation *)
 
-From Coq Require Import List CMorphisms.
+From Stdlib Require Import List CMorphisms.
 From OLlibs Require Import funtheory List_more.
 Require Import Fun_nat Perm Perm_R_more Perm_R_solve CircularShift_R CircularShift_R_solve length_lia.
 
 
 (** ** Definitions
  parametrized by a boolean. *)
-Definition cond_PCperm (b : bool) l : Type :=
+Definition cond_PCperm (b : bool) l : Set :=
   if b then is_perm l = true else cond_circularShift l.
 
 Lemma PCperm_Perm : forall b l, cond_PCperm b l -> is_perm l = true.
@@ -27,12 +27,12 @@ Proof. now intros b l Hperm; destruct b; [ | rewrite Hperm; apply Id_is_perm ]. 
 
 (** Permutation or cyclic permutation *)
 
-Definition PCperm_R {A} (b : bool) (l1 l2 : list A) : Type :=
-  { p : _ & cond_PCperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
+Definition PCperm_R {A} (b : bool) (l1 l2 : list A) :=
+  { p & cond_PCperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
 
 (** Permutation or equality *)
-Definition PEperm_R {A} (b : bool) (l1 l2 : list A) : Type :=
-  { p : _ & cond_PEperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
+Definition PEperm_R {A} (b : bool) (l1 l2 : list A) :=
+  { p & cond_PEperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
 
 (** ** Permutation or cyclic permutation *)
 

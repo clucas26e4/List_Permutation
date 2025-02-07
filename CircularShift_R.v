@@ -1,14 +1,14 @@
 (* Definition and properties of circular shift.
    Definition of a relation CiculiarShift_R, similar to Perm_R.v but using circular shifts instead of permutation. *)
 
-From Coq Require Import CMorphisms Bool PeanoNat Lia.
+From Stdlib Require Import CMorphisms Bool PeanoNat Lia.
 From OLlibs Require Import List_more.
 Require Import List_nat Fun_nat Perm Perm_R_more length_lia.
 
 
 (** Definition *)
 
-Definition cond_circularShift l := {' (n, m) & l = cfun (S n) (S m) } + { l = Id (length l) }.
+Definition cond_circularShift l := {'(n, m) & l = cfun (S n) (S m) } + { l = Id (length l) }.
 
 Lemma Id_cond_circular : forall n, cond_circularShift (Id n).
 Proof. intros; right; now rewrite length_seq. Qed.
@@ -26,7 +26,7 @@ intros n m; destruct n ; [ | destruct m ].
 - apply cfun_S_cond_circular.
 Qed.
 
-Lemma cond_circular_cfun_lt {l} : cond_circularShift l -> {' (n, m) & l = cfun n m & m = 0 -> n = 0}.
+Lemma cond_circular_cfun_lt {l} : cond_circularShift l -> {'(n, m) & l = cfun n m & m = 0 -> n = 0}.
 Proof.
 intros [[[n m] Heqcp] | Heqcp]; subst.
 - now exists (S n, S m).
@@ -40,7 +40,7 @@ Lemma cond_circular_is_perm {l} : cond_circularShift l -> is_perm l = true.
 Proof. intros Hc; destruct (cond_circular_cfun Hc) as [(n, m) Heq]; subst; apply cfun_is_perm. Qed.
 
 Definition CircularShift_R {A} (l1 l2 : list A) :=
-  { f : _ & cond_circularShift f & prod (length f = length l1) (l2 = f ∘ l1) }.
+  { f & cond_circularShift f & prod (length f = length l1) (l2 = f ∘ l1) }.
 
 Infix "~°~" := CircularShift_R (at level 70).
 
@@ -100,7 +100,7 @@ Instance CircularShift_R_equiv : Equivalence (@CircularShift_R A).
 Proof. split; [ apply CircularShift_R_refl | apply CircularShift_R_sym | apply CircularShift_R_trans ]. Qed.
 
 Lemma decomp_CircularShift_R : forall la lb,
-  la ~°~ lb -> {' (la', lb') : _ & la' ++ lb' = la & lb' ++ la' = lb }.
+  la ~°~ lb -> {' (la', lb') & la' ++ lb' = la & lb' ++ la' = lb }.
 Proof.
 intros l1 l2 [f Hc [Hlen Heq]]; subst.
 destruct (cond_circular_cfun Hc) as [(n,m) Heq]; subst.
@@ -194,16 +194,16 @@ Qed.
 
 Lemma CircularShift_R_app_app_inv : forall la lb lc ld,
   la ++ lb ~°~ lc ++ ld ->
-     {'(l1',l2',l3',l4') : _ & prod (la ~°~ l1' ++ l3') (lb ~°~ l2' ++ l4')
-                             & prod (lc ~°~ l1' ++ l2') (ld ~°~ l3' ++ l4') }
-   + {'(l1',l2') : _ & prod (la ~°~ ld ++ l1') (lc ~°~ lb ++ l2')
-                     & l1' ~°~ l2' }
-   + {'(l1',l2') : _ & prod (lb ~°~ ld ++ l1') (lc ~°~ la ++ l2')
-                     & l1' ~°~ l2' }
-   + {'(l1',l2') : _ & prod (la ~°~ lc ++ l1') (ld ~°~ lb ++ l2')
-                     & l1' ~°~ l2' }
-   + {'(l1',l2') : _ & prod (lb ~°~ lc ++ l1') (ld ~°~ la ++ l2')
-                     & l1' ~°~ l2' }.
+     {'(l1',l2',l3',l4') & prod (la ~°~ l1' ++ l3') (lb ~°~ l2' ++ l4')
+                         & prod (lc ~°~ l1' ++ l2') (ld ~°~ l3' ++ l4') }
+   + {'(l1',l2') & prod (la ~°~ ld ++ l1') (lc ~°~ lb ++ l2')
+                 & l1' ~°~ l2' }
+   + {'(l1',l2') & prod (lb ~°~ ld ++ l1') (lc ~°~ la ++ l2')
+                 & l1' ~°~ l2' }
+   + {'(l1',l2') & prod (la ~°~ lc ++ l1') (ld ~°~ lb ++ l2')
+                 & l1' ~°~ l2' }
+   + {'(l1',l2') & prod (lb ~°~ lc ++ l1') (ld ~°~ la ++ l2')
+                 & l1' ~°~ l2' }.
 Proof.
 intros l1 l2 l3 l4 HC.
 apply decomp_CircularShift_R in HC as [[lx ly] Hx Hy].
@@ -262,7 +262,7 @@ apply CircularShift_R_commu.
 Defined.
 
 Lemma CircularShift_R_map_inv {A B} : forall(f : A -> B) l1 l2,
-  l1 ~°~ map f l2 -> { l : _ & l1 = map f l & l2 ~°~ l }.
+  l1 ~°~ map f l2 -> { l & l1 = map f l & l2 ~°~ l }.
 Proof with try assumption.
 induction l1 ; intros l2 HP.
 - exists nil ; try reflexivity.
@@ -306,7 +306,7 @@ Instance CircularShift_R_Exists_Type {A} (P : A -> Type) :
 Proof. intros l1 l2 HC HF; now apply Perm_R_Exists_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Lemma CircularShift_R_Forall2 {A B} (P : A -> B -> Type) : forall l1 l1' l2,
-  l1 ~°~ l1' -> Forall2_inf P l1 l2 -> { l2' : _ & l2 ~°~ l2' & Forall2_inf P l1' l2' }.
+  l1 ~°~ l1' -> Forall2_inf P l1 l2 -> { l2' & l2 ~°~ l2' & Forall2_inf P l1' l2' }.
 Proof.
 intros l1 l1' l2 HP; revert l2.
 apply decomp_CircularShift_R in HP as [[lx ly] Hx Hy]; subst.
@@ -430,7 +430,7 @@ Proof.
 Qed.
 
 Definition CircularShift_nat_R {A} (l1 l2 : list A) :=
-  { n : _ & n <? max 1 (length l1) = true & l2 = app_cshift_nat n l1 }.
+  { n & n <? max 1 (length l1) = true & l2 = app_cshift_nat n l1 }.
 
 (* Canonicity *)
 Lemma CircularShift_nat_R_eq_as_nat {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :

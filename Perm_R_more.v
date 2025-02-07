@@ -1,6 +1,6 @@
 (* Less classical properties of Perm_R, necessary for the cut-elimination theorem of Linear Logic.*)
 
-From Coq Require Import Bool PeanoNat CMorphisms Lia.
+From Stdlib Require Import Bool PeanoNat CMorphisms Lia.
 From OLlibs Require Import funtheory List_more Permutation_Type_more.
 Require Import List_nat Fun_nat Perm.
 Require Export Perm_R.

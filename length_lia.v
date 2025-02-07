@@ -1,6 +1,6 @@
 (* Tactic for automatic length computation *)
 
-From Coq Require Import PeanoNat Lia.
+From Stdlib Require Import PeanoNat Lia.
 From OLlibs Require Import List_more.
 Require Import List_nat Fun_nat Transposition.
 
