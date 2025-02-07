@@ -90,7 +90,7 @@ apply Perm_R_sym in HP.
 apply Perm_R_vs_cons_inv in HP.
 destruct HP as [(pl1',pl2') HP].
 symmetry in HP.
-dichot_elt_app_inf_exec HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_comm_cons.
+decomp_elt_eq_app HP; subst; rewrite <- ? app_assoc; rewrite <- ? app_comm_cons.
 - now exists (pl1', l, pl2); right.
 - now exists (pl1, l, pl2'); left.
 Qed.
@@ -121,7 +121,7 @@ induction l1 ; intros l2 l3 l4 HP.
   apply Perm_R_sym in Heq.
   apply Perm_R_vs_cons_inv in Heq.
   destruct Heq as [(pl1,pl2) Heq].
-  dichot_elt_app_inf_exec Heq ; subst.
+  decomp_elt_eq_app Heq ; subst.
   + rewrite <- ?app_comm_cons in HP.
     rewrite <- app_assoc in HP.
     rewrite <- app_comm_cons in HP.
@@ -254,9 +254,8 @@ Lemma Perm_R_elt_map_inv {A B} : forall (f : A -> B) a l1 l2 l3 l4,
 Proof.
 intros a l1 l2 l3 l4 f HP Hf.
 apply Perm_R_sym in HP.
-apply Perm_R_vs_elt_inv in HP.
-destruct HP as ((l' & l'') & Heq).
-dichot_elt_app_inf_exec Heq.
+apply Perm_R_vs_elt_inv in HP as [(l', l'') Heq].
+decomp_elt_eq_app Heq.
 - subst.
   exists (l', l) ; reflexivity.
 - exfalso.

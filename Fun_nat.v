@@ -757,7 +757,7 @@ Proof.
 intros f g a l1 l2 l3 l4 HP Hf.
 apply app_nat_fun_vs_elt_inv in HP.
 destruct HP as [(l',l'') Heq].
-dichot_elt_app_inf_exec Heq.
+decomp_elt_eq_app Heq.
 - subst; exists (l', l) ; reflexivity.
 - exfalso.
   decomp_map Heq1.

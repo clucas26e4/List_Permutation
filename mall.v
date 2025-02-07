@@ -85,7 +85,7 @@ Proof with try assumption; try reflexivity; try fsize_lia.
     destruct l1 ; inversion Heql ; subst.
     + simpl; clear - pi1; revert pi1; refine (Perm_R_mall _ _ (Perm_R_cons_append _ _)).
         (* could be a rewrite Perm_R_cons_append, but Coq bug *)
-    + unit_vs_elt_inv H1; list_simpl...
+    + decomp_unit_eq_elt H1. list_simpl...
   - (* ex_r *)
     simpl in IHsize; rewrite Heql in p.
     destruct (Perm_R_vs_elt_inv _ _ _ _ p) as [[p1 p2] Heq]; simpl in Heq; subst.
@@ -114,7 +114,7 @@ Proof with try assumption; try reflexivity; try fsize_lia.
           (* could be done with rewrite, but Coq bug *)
         rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _)...
     + (* commutative case *)
-      dichot_elt_app_inf_exec H1 ; subst.
+      decomp_elt_eq_app H1; subst.
       * rewrite 2 app_assoc; apply tens_r...
         revert pi2_2 IHsize ; simpl ; rewrite (app_comm_cons _ _ B); intros pi2_2 IHsize; list_simpl.
         refine (IHsize _ _ _ _ pi1 pi2_2 _ _)...

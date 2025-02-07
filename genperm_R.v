@@ -12,8 +12,8 @@ Definition cond_PCperm (b : bool) l : Set :=
 
 Lemma PCperm_Perm : forall b l, cond_PCperm b l -> is_perm l = true.
 Proof.
-intros b; case b; simpl; intros l Hperm; [ assumption | ].
-destruct Hperm as [((n , m) & Heq) | Heq]; rewrite Heq.
+intros [] l Hperm; cbn; [ assumption | ].
+destruct Hperm as [[(n , m) ->] | ->].
 - apply cfun_is_perm.
 - apply Id_is_perm.
 Qed.
@@ -22,7 +22,7 @@ Definition cond_PEperm (b : bool) l : Type :=
   if b then is_perm l = true else (l = Id (length l)).
 
 Lemma PEperm_Perm : forall b l, cond_PEperm b l -> is_perm l = true.
-Proof. now intros b l Hperm; destruct b; [ | rewrite Hperm; apply Id_is_perm ]. Qed.
+Proof. now intros [] l Hperm; [ | rewrite Hperm; apply Id_is_perm ]. Qed.
 
 
 (** Permutation or cyclic permutation *)
@@ -57,11 +57,11 @@ Ltac PCperm_R_solve :=
 
 #[global]
 Instance PCperm_Perm_R {A} b : Proper (PCperm_R b ==> (@Perm_R A)) (fun a => a).
-Proof. now destruct b; intros; [ | apply CircularShift_Perm_R ]. Defined.
+Proof. now destruct b; [ | apply CircularShift_Perm_R ]. Defined.
 
 #[global]
-Instance CylicPerm_PCperm_R {A} b : Proper (CircularShift_R ==> PCperm_R b) (fun a : (list A) => a).
-Proof. now destruct b; intros; [ apply CircularShift_Perm_R | ]. Defined.
+Instance CyclicPerm_PCperm_R {A} b : Proper (CircularShift_R ==> @PCperm_R A b) (fun a => a).
+Proof. now destruct b; [ apply CircularShift_Perm_R | ]. Defined.
 
 #[global]
 Instance PCperm_R_refl {A} b : Reflexive (@PCperm_R A b).

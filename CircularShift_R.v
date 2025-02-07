@@ -51,7 +51,7 @@ Context {A : Type}.
 Implicit Types la lb lc : list A.
 
 #[local]
-Instance CircularShift_Perm_R : Proper (CircularShift_R ==> (@Perm_R A)) (fun a => a).
+Instance CircularShift_Perm_R : Proper (CircularShift_R ==> @Perm_R A) (fun a => a).
 Proof. intros l1 l2 [f Hc [Hlen Heq]]; subst; now exists f; [ apply cond_circular_is_perm | ]. Defined.
 
 #[local]
@@ -177,7 +177,7 @@ Proof.
   intros a l l1 l2 HC.
   apply decomp_CircularShift_R in HC as [[l0 l3] H1 H2]; subst.
   symmetry in H2.
-  dichot_elt_app_inf_exec H2 ; subst.
+  decomp_elt_eq_app H2; subst.
   - exists (l0 ++ l1, l) ; simpl ; now rewrite <- app_assoc.
   - exists (l, l2 ++ l3) ; simpl ; now rewrite <- app_assoc.
 Qed.
@@ -207,19 +207,19 @@ Lemma CircularShift_R_app_app_inv : forall la lb lc ld,
 Proof.
 intros l1 l2 l3 l4 HC.
 apply decomp_CircularShift_R in HC as [[lx ly] Hx Hy].
-dichot_app_inf_exec Hx ; dichot_app_inf_exec Hy ; subst.
+decomp_app_eq_app Hx; decomp_app_eq_app Hy; subst.
 - left ; left ; left ; right.
   exists (l ++ l0 , l0 ++ l).
   + split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
   + apply CircularShift_R_commu.
-- dichot_app_inf_exec Hy0 ; subst.
+- decomp_app_eq_app Hy0; subst.
   + left ; left ; left ; left.
     exists (l, l1, lx, l0); split; try apply CircularShift_R_commu; reflexivity.
   + left ; right.
     exists (l1 ++ lx , lx ++ l1).
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
     * apply CircularShift_R_commu.
-- dichot_app_inf_exec Hy1 ; subst.
+- decomp_app_eq_app Hy1; subst.
   + left ; left ; right.
     exists (ly ++ l2, l2 ++ ly).
     * split; rewrite <- ? app_assoc; apply CircularShift_R_app_rot.
