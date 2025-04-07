@@ -1,6 +1,6 @@
 # Canonical Representation of Permutations Acting on Lists
 
-(working with `Coq 8.13.0` and [`OLlibs 2.0.1`](https://github.com/olaure01/ollibs))
+(working with `Rocq 9.0.0` and [`OLlibs 2.0.8`](https://github.com/olaure01/ollibs))
 
 ### Installation
 
