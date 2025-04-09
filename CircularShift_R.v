@@ -296,17 +296,17 @@ Instance CircularShift_R_Exists {A} (P : A -> Prop) :
 Proof. intros l1 l2 HC HE; now apply Perm_R_Exists with l1; [ apply CircularShift_Perm_R | ]. Qed.
 
 #[global]
-Instance CircularShift_R_Forall_Type {A} (P : A -> Type) :
-  Proper (CircularShift_R ==> Basics.arrow) (Forall_inf P).
-Proof. intros l1 l2 HC HF; now apply Perm_R_Forall_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
+Instance CircularShift_R_ForallT {A} (P : A -> Type) :
+  Proper (CircularShift_R ==> Basics.arrow) (ForallT P).
+Proof. intros l1 l2 HC HF; now apply Perm_R_ForallT with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 #[global]
-Instance CircularShift_R_Exists_Type {A} (P : A -> Type) :
-  Proper (CircularShift_R ==> Basics.arrow) (Exists_inf P).
-Proof. intros l1 l2 HC HF; now apply Perm_R_Exists_Type with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
+Instance CircularShift_R_ExistsT {A} (P : A -> Type) :
+  Proper (CircularShift_R ==> Basics.arrow) (ExistsT P).
+Proof. intros l1 l2 HC HF; now apply Perm_R_ExistsT with l1 ; [ apply CircularShift_Perm_R | ]. Qed.
 
 Lemma CircularShift_R_Forall2 {A B} (P : A -> B -> Type) : forall l1 l1' l2,
-  l1 ~°~ l1' -> Forall2_inf P l1 l2 -> { l2' & l2 ~°~ l2' & Forall2_inf P l1' l2' }.
+  l1 ~°~ l1' -> Forall2T P l1 l2 -> { l2' & l2 ~°~ l2' & Forall2T P l1' l2' }.
 Proof.
 intros l1 l1' l2 HP; revert l2.
 apply decomp_CircularShift_R in HP as [[lx ly] Hx Hy]; subst.
@@ -320,11 +320,11 @@ intros l2' HF ; inversion HF ; subst.
     exists (y :: l').
     * reflexivity.
     * rewrite app_nil_l in HF ; simpl ; rewrite app_nil_r ; assumption.
-  + apply Forall2_inf_app_inv_l in X0 as [(la, lb) [H1 H2] Heq].
+  + apply Forall2T_app_inv_l in X0 as [(la, lb) [H1 H2] Heq].
     simpl in Heq ; rewrite Heq.
     exists (lb ++ y :: la).
     * rewrite app_comm_cons ; apply CircularShift_R_commu.
-    * apply Forall2_inf_app ; auto.
+    * apply Forall2T_app ; auto.
 Defined.
 
 (* Canonicity *)

@@ -169,22 +169,22 @@ Instance PCperm_R_Exists {A} b (P : A -> Prop) : Proper (PCperm_R b ==> Basics.i
 Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists with l | apply CircularShift_R_Exists with l ]. Qed.
 
 Lemma PCperm_R_Forall2 {A B} b (P : A -> B -> Type) : forall l1 l1' l2,
-  PCperm_R b l1 l1' -> Forall2_inf P l1 l2 -> 
-    { l2' & PCperm_R b l2 l2' & Forall2_inf P l1' l2' }.
+  PCperm_R b l1 l1' -> Forall2T P l1 l2 ->
+    { l2' & PCperm_R b l2 l2' & Forall2T P l1' l2' }.
 Proof. destruct b; [ apply Perm_R_Forall2 | apply CircularShift_R_Forall2 ]. Qed.
 
 Lemma PCperm_R_image {A B} b : forall (f : A -> B) a l l', PCperm_R b (a :: l) (map f l') -> { a' | a = f a' }.
 Proof. destruct b; [ apply Perm_R_image | apply CircularShift_R_image ]. Qed.
 
 #[global]
-Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Forall_inf P).
-Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Forall_Type with l
-                                        | apply CircularShift_R_Forall_Type with l ]. Qed.
+Instance PCperm_R_Forall_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (ForallT P).
+Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_ForallT with l
+                                        | apply CircularShift_R_ForallT with l ]. Qed.
 
 #[global]
-Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (Exists_inf P).
-Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_Exists_Type with l
-                                        | apply CircularShift_R_Exists_Type with l ]. Qed.
+Instance PCperm_R_Exists_R {A} b (P : A -> Type) : Proper (PCperm_R b ==> Basics.arrow) (ExistsT P).
+Proof. now destruct b ; intros l ? ? ?; [ apply Perm_R_ExistsT with l
+                                        | apply CircularShift_R_ExistsT with l ]. Qed.
 
 
 (** ** Permutation or equality *)
@@ -325,8 +325,8 @@ Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists with l
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
 Lemma PEperm_R_Forall2 {A B} b (P : A -> B -> Prop) : forall l1 l1' l2,
-  PEperm_R b l1 l1' -> Forall2_inf P l1 l2 -> 
-    { l2' & PEperm_R b l2 l2' & Forall2_inf P l1' l2' }.
+  PEperm_R b l1 l1' -> Forall2T P l1 l2 ->
+    { l2' & PEperm_R b l2 l2' & Forall2T P l1' l2' }.
 Proof.
 destruct b ; [ apply Perm_R_Forall2 | ].
 intros l1 l1' l2 HE HF ; simpl in HE ; subst.
@@ -338,13 +338,13 @@ Instance PEperm_R_map {A B} (f : A -> B) b : Proper (PEperm_R b ==> PEperm_R b) 
 Proof. now destruct b ; intros l l' HP; [ apply Perm_R_map | rewrite (PEperm_R_false _ _ HP) ]. Defined.
 
 #[global]
-Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Forall_inf P).
-Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Forall_Type with l1
+Instance PEperm_R_Forall_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (ForallT P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_ForallT with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
 #[global]
-Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (Exists_inf P).
-Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_Exists_Type with l1
+Instance PEperm_R_Exists_R {A} b (P : A -> Type) : Proper (PEperm_R b ==> Basics.arrow) (ExistsT P).
+Proof. now destruct b ; simpl ; intros l1 l2 HP HF; [ apply Perm_R_ExistsT with l1
                                                     | rewrite<- (PEperm_R_false _ _ HP) ]. Qed.
 
 Lemma PEperm_R_map_inv {A B} b : forall (f : A -> B) l1 l2,

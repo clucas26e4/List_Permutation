@@ -78,7 +78,7 @@ Lemma decomp_perm : forall l k, k < length l -> is_perm l = true ->
 Proof with try reflexivity; try assumption.
   intros l k Hlen Hperm.
   destruct (perm_surj l 0 k Hperm Hlen) as [i Hleni Heq].
-  destruct (nth_split_inf l 0 Hleni) as [(la,lb) Heql Heq_len].
+  destruct (nth_splitT l 0 Hleni) as [(la,lb) Heql Heq_len].
   split with (la, lb); [ | split].
   - rewrite<- Heq...
   - apply andb_prop in Hperm as (_ & Had).
@@ -320,7 +320,7 @@ Proof.
   rewrite map_cons in Heq.
   remember (a0 :: l2) as l3.
   inversion Heq; subst.
-  apply nth_split_inf.
+  apply nth_splitT.
   apply andb_prop in Hperm as (Halt & _).
   apply andb_prop in Halt as (Hlt & _).
   apply Nat.ltb_lt in Hlt; lia.
@@ -346,8 +346,8 @@ Proof with try reflexivity; try assumption; try length_lia.
     destruct (andb_prop _ _ Hperm) as (Hal & Had); simpl in Hal, Had.
     apply andb_prop in Hal as (Hlt & Hal); apply Nat.ltb_lt in Hlt.
     apply andb_prop in Had as (nHin & Had); apply negb_true_iff in nHin.
-    destruct (@nth_split_inf _ i lp nil) as [(lpa,lpb) Heqlp Hlenlpa]...
-    destruct (@nth_split_inf _ i L1 nil) as [(L1a,L1b) HeqL1 HlenL1a]...
+    destruct (@nth_splitT _ i lp nil) as [(lpa,lpb) Heqlp Hlenlpa]...
+    destruct (@nth_splitT _ i L1 nil) as [(L1a,L1b) HeqL1 HlenL1a]...
     specialize (IHL2 (downshift p1 i) (L1a ++ L1b) (lpa ++ lpb)) as [p Hperm' [Hlen' Heq']].
     + rewrite HeqL1 in Hlen1; rewrite downshift_length...
     + rewrite Heqlp in Hlenp; rewrite downshift_length...
@@ -516,7 +516,7 @@ Proof with try reflexivity; try assumption.
     apply andb_prop in Hperm as [Hal _].
     inversion Hal.
   - destruct (perm_surj p 0 0 Hperm) as [i Hlt Heqi]; [lia | ].
-    destruct (@nth_split_inf _ i p 0) as [(la,lb) Heqp Hlenp]...
+    destruct (@nth_splitT _ i p 0) as [(la,lb) Heqp Hlenp]...
     destruct la.
     { simpl in Heqp.
       destruct (IHn (downshift lb 0)) as [l Heql].

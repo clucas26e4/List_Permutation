@@ -1,7 +1,7 @@
 (* Less classical properties of Perm_R, necessary for the cut-elimination theorem of Linear Logic.*)
 
 From Stdlib Require Import Bool PeanoNat CMorphisms Lia.
-From OLlibs Require Import funtheory List_more Permutation_Type_more.
+From OLlibs Require Import funtheory List_more PermutationT_more.
 Require Import List_nat Fun_nat Perm.
 Require Export Perm_R.
 
@@ -146,32 +146,32 @@ Defined.
 #[global]
 Instance Perm_R_Forall {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Forall P).
-Proof. intros ? ? ?; now apply Permutation_Type_Forall, Perm_R_to_Permutation_Type. Defined.
+Proof. intros ? ? ?; now apply PermutationT_Forall, Perm_R_to_PermutationT. Defined.
 
 #[global]
 Instance Perm_R_Exists {A} (P : A -> Prop) :
   Proper ((@Perm_R A) ==> Basics.impl) (Exists P).
-Proof. intros ? ? ?; now apply Permutation_Type_Exists, Perm_R_to_Permutation_Type. Defined.
+Proof. intros ? ? ?; now apply PermutationT_Exists, Perm_R_to_PermutationT. Defined.
 
 #[global]
-Instance Perm_R_Forall_Type {A} (P : A -> Type) :
-  Proper ((@Perm_R A) ==> Basics.arrow) (Forall_inf P).
-Proof. intros ? ? ?; now apply Permutation_Type_Forall_inf, Perm_R_to_Permutation_Type. Defined.
+Instance Perm_R_ForallT {A} (P : A -> Type) :
+  Proper ((@Perm_R A) ==> Basics.arrow) (ForallT P).
+Proof. intros ? ? ?; now apply PermutationT_ForallT, Perm_R_to_PermutationT. Defined.
 
 #[global]
-Instance Perm_R_Exists_Type {A} (P : A -> Type) :
-  Proper ((@Perm_R A) ==> Basics.arrow) (Exists_inf P).
-Proof. intros ? ? ?; now apply Permutation_Type_Exists_inf, Perm_R_to_Permutation_Type. Defined.
+Instance Perm_R_ExistsT {A} (P : A -> Type) :
+  Proper ((@Perm_R A) ==> Basics.arrow) (ExistsT P).
+Proof. intros ? ? ?; now apply PermutationT_ExistsT, Perm_R_to_PermutationT. Defined.
 
 Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
-  forall l1 l1' l2, l1 ~~ l1' -> Forall2_inf P l1 l2 ->
-    { l2' & l2 ~~ l2' & Forall2_inf P l1' l2' }.
+  forall l1 l1' l2, l1 ~~ l1' -> Forall2T P l1 l2 ->
+    { l2' & l2 ~~ l2' & Forall2T P l1' l2' }.
 Proof with try reflexivity; try assumption.
   intros l1 l1' l2 [p Hperm [Hlen Heq]] H.
   assert (length l1 = length l2) as Hlen'.
   { clear - H.
     induction H...
-    simpl; rewrite IHForall2_inf... }
+    simpl; rewrite IHForall2T... }
   split with (app_nat_fun p l2).
   - split with p; repeat split...
     now transitivity (length l1).
@@ -191,7 +191,7 @@ Proof with try reflexivity; try assumption.
       destruct l1; destruct l2; try now inversion IHp.
       app_nat_fun_unfold p l1 a a0.
       app_nat_fun_unfold p l2 a b.
-      apply Forall2_inf_cons...
+      apply Forall2T_cons...
       remember (a0 :: l1) as l.
       remember (b :: l2) as l'.
       clear - H Hlt1 Hlt2.
@@ -294,7 +294,7 @@ induction l1 ; intros l2 HP.
 Defined.
 
 #[global]
-Instance list_sum_perm_Type : Proper (@Perm_R nat ==> eq) list_sum.
+Instance list_sum_permT : Proper (@Perm_R nat ==> eq) list_sum.
 Proof with try reflexivity.
 intros l1 ; induction l1 ; intros l2 HP.
 - apply Perm_R_nil in HP ; subst...

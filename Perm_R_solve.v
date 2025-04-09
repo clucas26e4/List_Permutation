@@ -26,7 +26,7 @@ Ltac simpl_hyp_Perm_R H :=
   try (apply Perm_R_sym in H ;
        pre_simpl_hyp_Perm_R H ;
        apply Perm_R_sym in H).
-Ltac simpl_hyp_perm_all_Type :=
+Ltac simpl_hyp_perm_allT :=
   repeat (
     match goal with
     | H:Perm_R _ _ |- _ => simpl_hyp_Perm_R H
@@ -44,9 +44,9 @@ Ltac Perm_R_solve :=
   match goal with
   | |- Perm_R _ _ =>
     list_simpl ;
-    try simpl_hyp_perm_all_Type ;
+    try simpl_hyp_perm_allT ;
     cons2app in * ;
-    try simpl_hyp_perm_all_Type ;
+    try simpl_hyp_perm_allT ;
     first [
       try apply Perm_R_app_tail ;
       try apply Perm_R_app_middle ;

@@ -714,7 +714,7 @@ Proof with try reflexivity; try assumption.
   intros a f l l1 l2 Heq.
   case_eq (nth (length l1) f 0 <? length l); intro H ;
     [apply Nat.ltb_lt in H | apply Nat.ltb_nlt in H].
-  - destruct (nth_split_inf l (hd a l) H) as [[la lb] Heql Hlen].
+  - destruct (nth_splitT l (hd a l) H) as [[la lb] Heql Hlen].
     split with (la, lb).
     rewrite app_antecedent with _ _ _ _ l2 in Heql...
   - destruct l; [destruct l1; inversion Heq | ].

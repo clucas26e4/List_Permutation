@@ -1,7 +1,7 @@
 (* Definition of the relation of Perm_R and basic properties. *)
 
 From Stdlib Require Import CMorphisms Bool PeanoNat Lia.
-From OLlibs Require Import List_more Permutation_Type.
+From OLlibs Require Import List_more PermutationT.
 Require Import List_nat Fun_nat Transposition length_lia Perm.
 
 Set Implicit Arguments.
@@ -148,7 +148,7 @@ Proof. intros; now rewrite Perm_R_app_comm, app_comm_cons, Perm_R_app_comm. Defi
 Theorem Perm_R_cons_app : forall l l1 l2 a, l ~~ l1 ++ l2 -> a :: l ~~ l1 ++ a :: l2.
 Proof. intros l l1 l2 a Hperm; rewrite Hperm; apply Perm_R_middle. Defined.
 
-Lemma Perm_R_Add_Type a l l' : Add_inf a l l' -> a :: l ~~ l'.
+Lemma Perm_R_AddT a l l' : AddT a l l' -> a :: l ~~ l'.
 Proof. intros Hadd; induction Hadd; [ reflexivity | rewrite <- IHHadd; apply Perm_R_swap ]. Defined.
 
 Theorem Perm_R_rev : forall l, l ~~ rev l.
@@ -181,13 +181,13 @@ rewrite Heql, app_nat_fun_downshift.
 - now rewrite <- Hlenp.
 Defined.
 
-Theorem Perm_R_Add_Type_inv a l1 l2 : Perm_R l1 l2 ->
-  forall l1' l2', Add_inf a l1' l1 -> Add_inf a l2' l2 -> l1' ~~ l2'.
+Theorem Perm_R_AddT_inv a l1 l2 : Perm_R l1 l2 ->
+  forall l1' l2', AddT a l1' l1 -> AddT a l2' l2 -> l1' ~~ l2'.
 Proof.
 intros Hperm l1' l2' Hadd1 Hadd2.
 apply Perm_R_cons_inv with a.
-transitivity l1; [ now apply Perm_R_Add_Type | ].
-transitivity l2; [ apply Hperm | now symmetry; apply Perm_R_Add_Type ].
+transitivity l1; [ now apply Perm_R_AddT | ].
+transitivity l2; [ apply Hperm | now symmetry; apply Perm_R_AddT ].
 Defined.
 
 Theorem Perm_R_app_inv l1 l2 l3 l4 a : l1 ++ a :: l2 ~~ l3 ++ a :: l4 -> l1 ++ l2 ~~l3 ++ l4.
@@ -246,22 +246,22 @@ Qed.
 Instance Perm_R_in' : Proper (Logic.eq ==> @Perm_R A ==> iff) (@In A) | 10.
 Proof. repeat intro; subst; split; now apply Perm_R_in. Qed.
 
-Theorem Perm_R_in_Type : forall l m a, l ~~ m -> In_inf a l -> In_inf a m.
+Theorem Perm_R_inT : forall l m a, l ~~ m -> InT a l -> InT a m.
 Proof.
 intros l m a [p Hperm [Hlen Heq]] Hin.
-apply In_inf_nth with (d := a) in Hin as [n Hlen' Heq'].
+apply InT_nth with (d := a) in Hin as [n Hlen' Heq'].
 rewrite <- Heq', Heq; clear Heq'.
 destruct l; try now simpl in Hlen'; exfalso; lia.
 replace (nth n (a0 :: l) a) with (nth n (a0 :: l) a0) by (apply nth_indep; assumption).
 destruct (perm_surj _ 0 n Hperm) as [i Hlen'' Heq'']; [ lia | ]; subst.
 rewrite nth_nth_nth_map; [ | left; assumption ].
-apply nth_In_inf.
+apply nth_InT.
 now  rewrite app_nat_fun_length_cons.
 Qed.
 
 #[global]
-Instance Perm_R_in_Type' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@In_inf A) | 10.
-Proof. repeat intro; subst; eapply Perm_R_in_Type; eassumption. Qed.
+Instance Perm_R_inT' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@InT A) | 10.
+Proof. repeat intro; subst; eapply Perm_R_inT; eassumption. Qed.
 
 Lemma Perm_R_concat : forall p (L : list (list A)), length p = length L -> is_perm p = true ->
   Perm_R (concat L) (concat (p ∘ L)).
@@ -469,10 +469,10 @@ Ltac rect_transpo_bis P Hperm :=
     | intros la lb lc Hperm1 IHHperm1 Hperm2 IHHperm2].
 
 
-(* Permutation_Type = Perm_R *)
+(* PermutationT = Perm_R *)
 
-Lemma Permutation_Type_to_Perm_R {A} : forall (l1 l2 : list A),
-  Permutation_Type l1 l2 -> l1 ~~ l2.
+Lemma PermutationT_to_Perm_R {A} : forall (l1 l2 : list A),
+  PermutationT l1 l2 -> l1 ~~ l2.
 Proof.
 intros l1 l2 Hp; induction Hp as [ | | | ? l'].
 - now split with (Id 0); repeat split.
@@ -481,8 +481,8 @@ intros l1 l2 Hp; induction Hp as [ | | | ? l'].
 - now apply Perm_R_trans with l'.
 Defined.
 
-Lemma Perm_R_to_Permutation_Type {A} : forall (l1 l2 : list A),
-  l1 ~~ l2 -> Permutation_Type l1 l2.
+Lemma Perm_R_to_PermutationT {A} : forall (l1 l2 : list A),
+  l1 ~~ l2 -> PermutationT l1 l2.
 Proof.
 intros l1 l2 Hperm.
 apply Perm_R_rect_transpo; (try now (intros; constructor)); [ | assumption ].
