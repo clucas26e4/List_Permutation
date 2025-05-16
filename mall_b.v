@@ -85,7 +85,7 @@ Proof with try assumption; try reflexivity; try fsize_lia.
     destruct l1 ; inversion Heql ; subst.
     + simpl; clear - pi1; revert pi1; refine (PCperm_R_mall b _ _ (PCperm_R_last _ _ _)).
         (* could be a rewrite Perm_R_cons_append, but Coq bug *)
-    + decomp_unit_eq_elt H1. list_simpl...
+    + decomp_unit_eq H1. list_simpl...
   - (* ex_r *)
     simpl in IHsize; rewrite Heql in p.
     destruct (PCperm_R_vs_elt_inv _ _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.

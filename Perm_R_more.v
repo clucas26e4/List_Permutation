@@ -259,7 +259,7 @@ decomp_elt_eq_app Heq.
 - subst.
   exists (l', l) ; reflexivity.
 - exfalso.
-  decomp_map Heq1.
+  decomp_map_eq Heq.
   exact (Hf l1 eq_refl).
 Qed.
 

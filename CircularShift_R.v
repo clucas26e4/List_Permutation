@@ -275,7 +275,7 @@ induction l1 ; intros l2 HP.
   apply CircularShift_R_vs_cons_inv in Heq.
   destruct Heq as [(l3 & l4) Heq1 Heq2].
   simpl in Heq1 ; simpl in Heq2.
-  decomp_map Heq2 ; subst ; simpl.
+  decomp_map_eq Heq2 ; subst ; simpl.
   exists (a :: l4 ++ l3).
   + simpl ; rewrite ? map_app ; reflexivity.
   + apply (CircularShift_R_commu l3).
