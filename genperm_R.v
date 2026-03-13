@@ -28,11 +28,11 @@ Proof. now intros [] l Hperm; [ | rewrite Hperm; apply Id_is_perm ]. Qed.
 (** Permutation or cyclic permutation *)
 
 Definition PCperm_R {A} (b : bool) (l1 l2 : list A) :=
-  { p & cond_PCperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
+  { p & cond_PCperm b p & prod (length p = length l1) (l2 = p ∘∘ l1)}.
 
 (** Permutation or equality *)
 Definition PEperm_R {A} (b : bool) (l1 l2 : list A) :=
-  { p & cond_PEperm b p & prod (length p = length l1) (l2 = p ∘ l1)}.
+  { p & cond_PEperm b p & prod (length p = length l1) (l2 = p ∘∘ l1)}.
 
 (** ** Permutation or cyclic permutation *)
 
@@ -116,10 +116,10 @@ Proof. destruct b; [ apply Perm_R_length_2_inv | apply CircularShift_R_two_inv ]
 Lemma PCperm_R_vs_elt_inv {A} b : forall (a : A) l l1 l2,
   PCperm_R b l (l1 ++ a :: l2) ->
   {'(l1', l2') : _ & l = l1' ++ a :: l2' & PEperm_R b (l2 ++ l1) (l2' ++ l1') }.
-Proof with try reflexivity.
+Proof.
 destruct b ; intros a l l1 l2 HC.
 - destruct (Perm_R_vs_elt_inv _ _ _ _ HC) as ((l' & l'') & Heq) ; subst.
-  exists (l',l'')...
+  exists (l',l''); [ reflexivity | ].
   simpl in HC ; simpl.
   apply Perm_R_app_inv, Perm_R_sym in HC.
   eapply Perm_R_trans ; [ apply Perm_R_app_comm | ].
@@ -127,22 +127,22 @@ destruct b ; intros a l l1 l2 HC.
   apply Perm_R_app_comm.
 - apply CircularShift_R_vs_elt_inv in HC.
   destruct HC as [(l' & l'') Heq1 Heq2] ; subst.
-  exists (l',l'')...
+  exists (l',l''); [ reflexivity | ].
   split with (Id (length (l'' ++ l'))); repeat split.
-  + simpl; rewrite length_seq...
-  + rewrite Heq1; length_lia.
-  + rewrite Heq1, app_Id...
+  + simpl; rewrite length_seq. reflexivity.
+  + rewrite Heq1. length_lia.
+  + rewrite Heq1, app_Id. reflexivity.
 Qed.
 
 Lemma PCperm_R_vs_cons_inv {A} b : forall (a : A) l l1,
   PCperm_R b l (a :: l1) ->
   {'(l1', l2') : _ & l = l1' ++ a :: l2' & PEperm_R b l1 (l2' ++ l1') }.
-Proof with try reflexivity.
+Proof.
 intros a l l1 HP.
 rewrite <- app_nil_l in HP.
 apply PCperm_R_vs_elt_inv in HP.
 destruct HP as [(l' & l'') HP Heq] ; subst.
-exists (l',l'')...
+exists (l',l''); [ reflexivity | ].
 now rewrite app_nil_r in Heq.
 Defined.
 

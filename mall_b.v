@@ -66,7 +66,7 @@ Fixpoint psize {b} {l} (pi : mall b l) :=
 
 Lemma cut_admissible b : forall A l1 l2,
   mall b (dual A :: l1) -> mall b (A :: l2) -> mall b (l1 ++ l2).
-Proof with try assumption; try reflexivity; try fsize_lia.
+Proof.
   enough (forall c s A l0 l1 l2 (pi1 : mall b (dual A :: l0)) (pi2 : mall b (l1 ++ A :: l2)),
           s = psize pi1 + psize pi2 -> fsize A <= c -> mall b (l1 ++ l0 ++ l2)) as IH
     by (now intros A l1 l2 pi1 pi2; rewrite <- (app_nil_l _) in pi2; refine (IH _ _ A _ _ _ pi1 pi2 _ _)).
@@ -85,14 +85,14 @@ Proof with try assumption; try reflexivity; try fsize_lia.
     destruct l1 ; inversion Heql ; subst.
     + simpl; clear - pi1; revert pi1; refine (PCperm_R_mall b _ _ (PCperm_R_last _ _ _)).
         (* could be a rewrite Perm_R_cons_append, but Coq bug *)
-    + decomp_unit_eq H1. list_simpl...
+    + decomp_unit_eq H1. list_simpl. assumption.
   - (* ex_r *)
     simpl in IHsize; rewrite Heql in p.
     destruct (PCperm_R_vs_elt_inv _ _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.
     apply (PEperm_R_app_head _ l0) in HP'; apply PEperm_PCperm_R in HP'.
     rewrite<- PCperm_R_app_rot in HP'; rewrite<- (PCperm_R_app_rot _ _ _ p2) in HP'.
-    apply ex_r with (p1 ++ l0 ++ p2); [ | symmetry ]...
-    refine (IHsize _ _ _ _ pi1 pi2 _ _)...
+    apply ex_r with (p1 ++ l0 ++ p2); [ | symmetry; assumption ].
+    refine (IHsize _ _ _ _ pi1 pi2 _ _); lia.
   - (* tens_r *)
     destruct l1 ; inversion Heql ; subst ; simpl in Hc; list_simpl.
     + (* main case *)
@@ -103,25 +103,25 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         destruct (PCperm_R_vs_cons_inv _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.
         apply (PEperm_R_app_head _ (l4 ++ l3)) in HP'; apply PEperm_PCperm_R in HP'.
         rewrite PCperm_R_app_comm in HP'; rewrite<- (PCperm_R_app_rot _ _ _ p2) in HP'.
-        apply ex_r with (p1 ++ (l4 ++ l3) ++ p2);[ | symmetry ]...
+        apply ex_r with (p1 ++ (l4 ++ l3) ++ p2);[ | symmetry; assumption ].
         revert Htens IHsize ; simpl;
           replace (tens A0 B) with (dual (parr (dual B) (dual A0))) by (now simpl; rewrite 2 bidual);
           intros Htens IHsize.
-        refine (IHsize _ _ _ _ Htens pi1 _ _)...
+        refine (IHsize _ _ _ _ Htens pi1 _ _); fsize_lia.
       * (* parr_r *)
         clear IHsize; subst.
-        rewrite <- (bidual B) in pi2_2; refine (IHcut _ _ _ _ _ pi2_2 _)...
+        rewrite <- (bidual B) in pi2_2; refine (IHcut _ _ _ _ _ pi2_2 _); [ fsize_lia | ].
         apply ex_r with ((dual B :: nil) ++ l3 ++ l0); [ | now rewrite <- PCperm_R_app_rot ].
           (* could be done with rewrite, but Coq bug *)
-        rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _)...
+        rewrite <- (bidual A0) in pi2_1; refine (IHcut _ _ _ _ _ pi2_1 _); [ fsize_lia | assumption ].
     + (* commutative case *)
       decomp_elt_eq_app H1; subst.
-      * rewrite 2 app_assoc; apply tens_r...
+      * rewrite 2 app_assoc; apply tens_r; [ assumption | ].
         revert pi2_2 IHsize ; simpl ; rewrite (app_comm_cons _ _ B); intros pi2_2 IHsize; list_simpl.
-        refine (IHsize _ _ _ _ pi1 pi2_2 _ _)...
-      * list_simpl ; apply tens_r...
+        refine (IHsize _ _ _ _ pi1 pi2_2 _ _); lia.
+      * list_simpl ; apply tens_r; [ | assumption ].
         revert pi2_1 IHsize; simpl; rewrite (app_comm_cons _ _ A0); intros pi2_1 IHsize.
-        refine (IHsize _ _ _ _ pi1 pi2_1 _ _)...
+        refine (IHsize _ _ _ _ pi1 pi2_1 _ _); lia.
   - (* parr_r *)
     destruct l1; inversion Heql; subst; simpl in Hc; list_simpl.
     + (* main case *)
@@ -132,19 +132,19 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         destruct (PCperm_R_vs_cons_inv _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.
         apply (PEperm_R_app_head _ l2) in HP'; apply PEperm_PCperm_R in HP'.
         rewrite PCperm_R_app_comm in HP'; rewrite<- (PCperm_R_app_rot _ _ _ p2) in HP'.
-        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry ]...
+        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry; assumption ].
         revert Hparr IHsize; simpl;
           replace (parr A0 B) with (dual (tens (dual B) (dual A0))) by (now simpl; rewrite 2 bidual);
           intros Hparr IHsize.
-        refine (IHsize _ _ _ _ Hparr pi1 _ _)...
+        refine (IHsize _ _ _ _ Hparr pi1 _ _); fsize_lia.
       * (* tens_r *)
         clear IHsize; subst; list_simpl.
-        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_1 _)...
-        rewrite <- (app_nil_l _); refine (IHcut _ _ _ _ _ pi1_2 _)...
+        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_1 _); [ lia | ].
+        rewrite <- (app_nil_l _); refine (IHcut _ _ _ _ _ pi1_2 _); [ lia | assumption ].
     + (* commutative case *)
       apply parr_r.
       revert pi2 IHsize; simpl; rewrite (app_comm_cons l1 _ B), (app_comm_cons _ _ A0); intros pi2 IHsize.
-      refine (IHsize _ _ _ _ pi1 pi2 _ _)...
+      refine (IHsize _ _ _ _ pi1 pi2 _ _); lia.
   - (* plus_r1 *)
     destruct l1; inversion Heql; subst; simpl in Hc; list_simpl.
     + (* main case *)
@@ -155,18 +155,18 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         destruct (PCperm_R_vs_cons_inv _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.
         apply (PEperm_R_app_head _ l2) in HP'; apply PEperm_PCperm_R in HP'.
         rewrite PCperm_R_app_comm in HP'; rewrite<- (PCperm_R_app_rot _ _ _ p2) in HP'.
-        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry ]...
+        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry; assumption ].
         revert Hplus IHsize; simpl;
           replace (aplus A0 B) with (dual (awith (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
           intros Hplus IHsize.
-        refine (IHsize _ _ _ _ Hplus pi1 _ _)...
+        refine (IHsize _ _ _ _ Hplus pi1 _ _); fsize_lia.
       * (* with_r *)
         clear IHsize; subst.
-        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_1 pi2)...
+        rewrite <- (app_nil_l (A0 :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_1 pi2); fsize_lia.
     + (* commutative case *)
       apply plus_r1.
       revert pi2 IHsize; simpl; rewrite (app_comm_cons l1 _ A0); intros pi2 IHsize.
-      refine (IHsize _ _ _ _ pi1 pi2 _ _)...
+      refine (IHsize _ _ _ _ pi1 pi2 _ _); lia.
   - (* plus_r2 *)
     destruct l1; inversion Heql; subst; simpl in Hc; list_simpl.
     + (* main case *)
@@ -177,18 +177,18 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         destruct (PCperm_R_vs_cons_inv _ _ _ _ p) as [[p1 p2] Heq HP']; simpl in Heq, HP'; subst.
         apply (PEperm_R_app_head _ l2) in HP'; apply PEperm_PCperm_R in HP'.
         rewrite PCperm_R_app_comm in HP'; rewrite<- (PCperm_R_app_rot _ _ _ p2) in HP'.
-        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry ]...
+        apply ex_r with (p1 ++ l2 ++ p2);[ | symmetry; assumption ].
         revert Hplus IHsize; simpl;
           replace (aplus A0 B) with (dual (awith (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
           intros Hplus IHsize.
-        refine (IHsize _ _ _ _ Hplus pi1 _ _)...
+        refine (IHsize _ _ _ _ Hplus pi1 _ _); fsize_lia.
       * (* with_r *)
         clear IHsize; subst.
-        rewrite <- (app_nil_l (B :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_2 pi2)...
+        rewrite <- (app_nil_l (B :: _)) in pi2; refine (IHcut _ _ _ _ _ pi1_2 pi2); lia.
     + (* commutative case *)
       apply plus_r2.
       revert pi2 IHsize; simpl; rewrite (app_comm_cons l1 _ B); intros pi2 IHsize.
-      refine (IHsize _ _ _ _ pi1 pi2 _ _)...
+      refine (IHsize _ _ _ _ pi1 pi2 _ _); lia.
   - (* with_r *)
     destruct l1; inversion Heql; subst; simpl in Hc; list_simpl.
     + (* main case *)
@@ -199,23 +199,23 @@ Proof with try assumption; try reflexivity; try fsize_lia.
         destruct (PCperm_R_vs_cons_inv _ _ _ _ p) as [[p1 p2] Heq HP'] ; simpl in Heq ; simpl in HP' ; subst.
         apply (PEperm_R_app_tail _ _ _ l2) in HP'; apply PEperm_PCperm_R in HP'; list_simpl in HP'.
         rewrite PCperm_R_app_rot in HP'.
-        apply ex_r with (p1 ++ l2 ++ p2); [ | symmetry]...
+        apply ex_r with (p1 ++ l2 ++ p2); [ | symmetry; assumption ].
         revert Hwith IHsize ; simpl ;
           replace (awith A0 B) with (dual (aplus (dual A0) (dual B))) by (now simpl; rewrite 2 bidual);
           intros Hwith IHsize.
-        refine (IHsize _ _ _ _ Hwith pi1 _ _)...
+        refine (IHsize _ _ _ _ Hwith pi1 _ _); fsize_lia.
       * (* plus_r1 *)
         clear IHsize; subst.
-        rewrite <- (app_nil_l (A0 :: _)) in pi2_1; refine (IHcut _ _ _ _ _ pi1 pi2_1)...
+        rewrite <- (app_nil_l (A0 :: _)) in pi2_1; refine (IHcut _ _ _ _ _ pi1 pi2_1); lia.
       * (* plus_r2 *)
         clear IHsize; subst.
-        rewrite <- (app_nil_l (B :: _)) in pi2_2 ; refine (IHcut _ _ _ _ _ pi1 pi2_2)...
+        rewrite <- (app_nil_l (B :: _)) in pi2_2 ; refine (IHcut _ _ _ _ _ pi1 pi2_2); lia.
     + (* commutative case *)
       apply with_r.
       * revert pi2_1 IHsize; simpl; rewrite (app_comm_cons l1 _ A0); intros pi2_1 IHsize.
-        refine (IHsize _ _ _ _ pi1 pi2_1 _ _)...
+        refine (IHsize _ _ _ _ pi1 pi2_1 _ _); lia.
       * revert pi2_2 IHsize; simpl; rewrite (app_comm_cons l1 _ B); intros pi2_2 IHsize.
-        refine (IHsize _ _ _ _ pi1 pi2_2 _ _)...
+        refine (IHsize _ _ _ _ pi1 pi2_2 _ _); lia.
 Qed.
 
 

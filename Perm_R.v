@@ -16,8 +16,8 @@ Infix "~~" := Perm_R (at level 70).
 Definition Perm_R_to_perm {A} {l1 l2 : list A} : Perm_R l1 l2 -> perm := @sigT_of_sigT2 _ _ _.
 Definition Perm_R_to_perm_of {A} {l1 l2 : list A} : Perm_R l1 l2 -> perm_of (length l1) := fun P =>
   existT2 _ _ (projT1 (sigT_of_sigT2 P)) (projT2 (sigT_of_sigT2 P)) (fst (projT3 P)).
-Definition Perm_R_of_perm_of {A} {l : list A} (p : perm_of (length l)) : l ~~ projT1 (sigT_of_sigT2 p) ∘ l :=
-  let (p0,Hp,Hl) as s return (l ~~ projT1 (sigT_of_sigT2 s) ∘ l) := p in existT2 _ _ p0 Hp (Hl, eq_refl).
+Definition Perm_R_of_perm_of {A} {l : list A} (p : perm_of (length l)) : l ~~ projT1 (sigT_of_sigT2 p) ∘∘ l :=
+  let (p0,Hp,Hl) as s return (l ~~ projT1 (sigT_of_sigT2 s) ∘∘ l) := p in existT2 _ _ p0 Hp (Hl, eq_refl).
 
 (* Permutation over lists is an equivalence relation *)
 
@@ -264,10 +264,10 @@ Instance Perm_R_inT' : Proper (Logic.eq ==> @Perm_R A ==> Basics.arrow) (@InT A)
 Proof. repeat intro; subst; eapply Perm_R_inT; eassumption. Qed.
 
 Lemma Perm_R_concat : forall p (L : list (list A)), length p = length L -> is_perm p = true ->
-  Perm_R (concat L) (concat (p ∘ L)).
+  Perm_R (concat L) (concat (p ∘∘ L)).
 Proof.
 intros p L Hlen Hperm.
-destruct (perm_block p L (p ∘ L) Hlen Hperm eq_refl) as [q Hpermq [Hlenq Hcomp]].
+destruct (perm_block p L (p ∘∘ L) Hlen Hperm eq_refl) as [q Hpermq [Hlenq Hcomp]].
 rewrite <- Hcomp.
 now exists q.
 Defined.

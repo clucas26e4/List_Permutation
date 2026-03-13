@@ -40,7 +40,7 @@ Lemma cond_circular_is_perm {l} : cond_circularShift l -> is_perm l = true.
 Proof. intros Hc; destruct (cond_circular_cfun Hc) as [(n, m) Heq]; subst; apply cfun_is_perm. Qed.
 
 Definition CircularShift_R {A} (l1 l2 : list A) :=
-  { f & cond_circularShift f & prod (length f = length l1) (l2 = f ∘ l1) }.
+  { f & cond_circularShift f & prod (length f = length l1) (l2 = f ∘∘ l1) }.
 
 Infix "~°~" := CircularShift_R (at level 70).
 
@@ -104,7 +104,7 @@ Lemma decomp_CircularShift_R : forall la lb,
 Proof.
 intros l1 l2 [f Hc [Hlen Heq]]; subst.
 destruct (cond_circular_cfun Hc) as [(n,m) Heq]; subst.
-exists (Id n ∘ l1, seq n m ∘ l1).
+exists (Id n ∘∘ l1, seq n m ∘∘ l1).
 - rewrite <- app_nat_fun_app, <- seq_app.
   rewrite cfun_length in Hlen; rewrite Hlen.
   apply app_Id.
@@ -263,10 +263,10 @@ Defined.
 
 Lemma CircularShift_R_map_inv {A B} : forall(f : A -> B) l1 l2,
   l1 ~°~ map f l2 -> { l & l1 = map f l & l2 ~°~ l }.
-Proof with try assumption.
+Proof.
 induction l1 ; intros l2 HP.
 - exists nil ; try reflexivity.
-  simpl ; destruct l2...
+  simpl ; destruct l2.
   + apply CircularShift_R_refl.
   + apply CircularShift_R_nil in HP.
     inversion HP.
@@ -380,7 +380,7 @@ induction i; intros l Hlen; simpl.
 Qed.
 
 Lemma cond_circularShift_to_app_cshift : forall p, cond_circularShift p ->
-  { n & n <? max 1 (length p) = true
+  { n & (n <? max 1 (length p)) = true
           & forall A (l : list A), length p = length l -> app_nat_fun p l = app_cshift_nat n l}.
 Proof.
 intros p Hperm.
@@ -430,7 +430,7 @@ Proof.
 Qed.
 
 Definition CircularShift_nat_R {A} (l1 l2 : list A) :=
-  { n & n <? max 1 (length l1) = true & l2 = app_cshift_nat n l1 }.
+  { n & (n <? max 1 (length l1)) = true & l2 = app_cshift_nat n l1 }.
 
 (* Canonicity *)
 Lemma CircularShift_nat_R_eq_as_nat {A} (HdecA : forall x y : A, {x = y} + {x <> y}) :

@@ -13,30 +13,31 @@ Proof. intros x y Heq; now rewrite Heq. Defined.
 Lemma Perm_R_morph_transp {A} : forall P : list A -> Prop,
   (forall a b l1 l2, P (l1 ++ a :: b :: l2) -> P (l1 ++ b :: a :: l2)) ->
     Proper ((@Perm_R A) ==> iff) P.
-Proof with try eassumption.
+Proof.
   assert (forall P : list A -> Prop,
              (forall a b l1 l2, P (l1 ++ a :: b :: l2) -> P (l1 ++ b :: a :: l2)) ->
              forall l1 l2, Perm_R l1 l2 -> forall l0, P (l0 ++ l1) -> P (l0 ++ l2))
     as Himp.
   { intros P HP l1 l2 H.
-    refine (Perm_R_rect_transpo (fun l1' l2' => forall l0, P (l0 ++ l1') -> P (l0 ++ l2')) _ _ _ _ H); intros...
+    refine (Perm_R_rect_transpo (fun l1' l2' => forall l0, P (l0 ++ l1') -> P (l0 ++ l2')) _ _ _ _ H); intros.
+    - assumption.
     - rewrite <- (app_nil_l l').
       rewrite app_comm_cons.
       rewrite app_assoc.
       apply H0.
-      list_simpl...
-    - apply HP...
+      list_simpl. assumption.
+    - apply HP. assumption.
     - apply H1.
-      apply H0... }
+      apply H0. assumption. }
   intros P HP l1 l2 H.
   split ; intro H'.
   - rewrite <- (app_nil_l l2).
     rewrite <- (app_nil_l l1) in H'.
-    eapply Himp...
+    eapply Himp; eassumption.
   - symmetry in H.
     rewrite <- (app_nil_l l1).
     rewrite <- (app_nil_l l2) in H'.
-    eapply Himp...
+    eapply Himp; eassumption.
 Qed.
 
 Lemma Perm_R_elt {A} : forall (a : A) l1 l2 l1' l2',
@@ -45,7 +46,7 @@ Proof. now intros; rewrite <- 2 Perm_R_middle; apply Perm_R_cons. Defined.
 
 Lemma Perm_R_vs_elt_inv {A} : forall (a : A) l l1 l2,
   l ~~ l1 ++ a :: l2 -> {'(l3,l4) | l = l3 ++ a :: l4 }.
-Proof with try assumption ; try reflexivity.
+Proof.
   intros a l l1 l2 HP.
   remember (l1 ++ a :: l2) as l0.
   revert l1 l2 Heql0.
@@ -53,18 +54,18 @@ Proof with try assumption ; try reflexivity.
                     {'(l3,l4) | la = l3 ++ a :: l4 }) HP; intros l1 l2 Heql.
   - destruct l1 ; inversion Heql.
   - destruct l1 ; inversion Heql.
-    + exists (@nil A, la)...
+    + exists (@nil A, la). reflexivity.
     + apply IHHperm1 in H1.
       destruct H1 as [(l3,l4) Heq]; subst.
-      exists (a0 :: l3, l4)...
+      exists (a0 :: l3, l4). reflexivity.
   - destruct l1 ; inversion Heql ; subst.
-    + exists (y :: nil, la)...
+    + exists (y :: nil, la). reflexivity.
     + destruct l1 ; inversion H1 ; subst.
-      * exists (@nil A, a0 :: l2)...
-      * exists (a1 :: a0 :: l1, l2)...
+      * exists (@nil A, a0 :: l2). reflexivity.
+      * exists (a1 :: a0 :: l1, l2). reflexivity.
   - destruct (IHHperm2 _ _ Heql) as [(l3,l4) Heq]; subst.
     destruct (IHHperm1 l3 l4 eq_refl) as [pl' Heq]; subst.
-    exists pl'...
+    exists pl'. assumption.
 Qed.
 
 Lemma Perm_R_vs_cons_inv {A} : forall (a : A) l l1,
@@ -114,7 +115,7 @@ Defined.
 Lemma Perm_R_app_app_inv {A} : forall (l1 l2 l3 l4 : list A), l1 ++ l2 ~~ l3 ++ l4 ->
   {'(l1',l2',l3',l4') : _ & prod (prod (l1 ~~ l1' ++ l3') (l2 ~~ l2' ++ l4'))
                                  (prod (l3 ~~ l1' ++ l2') (l4 ~~ l3' ++ l4')) }.
-Proof with try assumption.
+Proof.
 induction l1 ; intros l2 l3 l4 HP.
 - now exists (@nil A, l3, @nil A, l4); repeat split.
 - assert (Heq := HP).
@@ -129,18 +130,18 @@ induction l1 ; intros l2 l3 l4 HP.
     rewrite app_assoc in HP.
     apply IHl1 in HP.
     destruct HP as [(((l1', l2'), l3'), l4') [[H1 H2] [H3 H4]]].
-    exists (a :: l1', l2', l3', l4'); simpl; repeat split...
-    * apply Perm_R_skip...
-    * apply Perm_R_sym, Perm_R_cons_app, Perm_R_sym...
+    exists (a :: l1', l2', l3', l4'); simpl; repeat split; try assumption.
+    * apply Perm_R_skip. assumption.
+    * apply Perm_R_sym, Perm_R_cons_app, Perm_R_sym. assumption.
   + rewrite <- ?app_comm_cons in HP.
     rewrite app_assoc in HP.
     apply Perm_R_cons_app_inv in HP.
     rewrite <- app_assoc in HP.
     apply IHl1 in HP.
     destruct HP as [(((l1', l2'), l3'), l4') [[H1 H2] [H3 H4]]].
-    exists (l1', l2', a :: l3', l4'); simpl; repeat split...
-    * apply Perm_R_cons_app...
-    * apply Perm_R_sym, Perm_R_cons_app, Perm_R_sym...
+    exists (l1', l2', a :: l3', l4'); simpl; repeat split; try assumption.
+    * apply Perm_R_cons_app. assumption.
+    * apply Perm_R_sym, Perm_R_cons_app, Perm_R_sym. assumption.
 Defined.
 
 #[global]
@@ -166,14 +167,14 @@ Proof. intros ? ? ?; now apply PermutationT_ExistsT, Perm_R_to_PermutationT. Def
 Lemma Perm_R_Forall2 {A B} (P : A -> B -> Type) :
   forall l1 l1' l2, l1 ~~ l1' -> Forall2T P l1 l2 ->
     { l2' & l2 ~~ l2' & Forall2T P l1' l2' }.
-Proof with try reflexivity; try assumption.
+Proof.
   intros l1 l1' l2 [p Hperm [Hlen Heq]] H.
   assert (length l1 = length l2) as Hlen'.
   { clear - H.
-    induction H...
-    simpl; rewrite IHForall2T... }
+    induction H; [ reflexivity | ].
+    simpl; rewrite IHForall2T. reflexivity. }
   split with (app_nat_fun p l2).
-  - split with p; repeat split...
+  - split with p; repeat split; [ assumption | ].
     now transitivity (length l1).
   - rewrite Heq.
     apply andb_prop in Hperm as (Hal & _).
@@ -191,22 +192,22 @@ Proof with try reflexivity; try assumption.
       destruct l1; destruct l2; try now inversion IHp.
       app_nat_fun_unfold p l1 a a0.
       app_nat_fun_unfold p l2 a b.
-      apply Forall2T_cons...
+      apply Forall2T_cons; [ | assumption ].
       remember (a0 :: l1) as l.
       remember (b :: l2) as l'.
       clear - H Hlt1 Hlt2.
       revert l l' Hlt1 Hlt2 H.
       induction a; intros l l' Hlt1 Hlt2 H;
         (destruct l; [ inversion Hlt1 | destruct l' ; [inversion Hlt2 | ]]).
-      * inversion H...
+      * inversion H. assumption.
       * simpl in Hlt1, Hlt2.
-        apply IHa...
-        inversion H...
+        apply IHa; [ assumption .. | ].
+        inversion H. assumption.
 Defined.
 
 Lemma Perm_R_map_inv {A B} : forall(f : A -> B) l1 l2,
   l1 ~~ map f l2 -> { l : _ & l1 = map f l & l2 ~~ l }.
-Proof with try reflexivity; try assumption.
+Proof.
   intros f l1 l2 [p Hperm [Hlen Heq]].
   simpl in Hlen.
   destruct (perm_inv _ Hperm) as [p_inv [Heq' _] [Hperm_inv Heq_len]].
@@ -216,26 +217,27 @@ Proof with try reflexivity; try assumption.
     rewrite<- asso_app_nat_fun.
     rewrite Heq'.
     rewrite Hlen.
-    rewrite app_Id...
-  - split with p_inv; repeat split...
+    rewrite app_Id. reflexivity.
+  - split with p_inv; repeat split; [ assumption | ].
     rewrite<- Heq_len.
     rewrite<- length_map with _ _ f _.
     rewrite Heq.
     rewrite Hlen.
-    destruct l1...
-    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite length_map; rewrite Hlen...
+    destruct l1; [ reflexivity | ].
+    unfold app_nat_fun; unfold app_nat_fun_dflt; rewrite length_map; rewrite Hlen. reflexivity.
 Defined.
 
 Lemma Perm_R_map_inv_inj {A B} : forall f : A -> B, injective f ->
   forall l1 l2, map f l1 ~~ map f l2 -> l1 ~~ l2.
-Proof with try reflexivity; try assumption.
+Proof.
   intros f Hi l1 l2 [p Hperm [Hlen Heq]].
-  split with p; repeat split...
-  - rewrite length_map in Hlen...
+  split with p; repeat split.
+  - assumption.
+  - rewrite length_map in Hlen. assumption.
   - rewrite app_nat_fun_map in Heq.
-    apply map_injective_in with (f := f)...
+    apply map_injective_in with (f := f); [ | assumption ].
     intros x y _ _ Heq'.
-    apply Hi...
+    apply Hi. assumption.
 Defined.
 
 Lemma Perm_R_image {A B} : forall (f : A -> B) a l l',
@@ -266,10 +268,10 @@ Qed.
 #[global]
 Instance Perm_R_flat_map {A B} f :
   Proper ((@Perm_R A) ==> (@Perm_R B)) (flat_map f).
-Proof with try eassumption.
+Proof.
 intros l1.
 induction l1 ; intros l2 HP.
-- destruct l2...
+- destruct l2.
   + apply Perm_R_refl.
   + apply Perm_R_nil in HP.
     inversion HP.
@@ -280,7 +282,7 @@ induction l1 ; intros l2 HP.
   destruct l' ; apply Perm_R_sym in HP.
   + simpl in HP ; simpl ; apply Perm_R_app_head.
     apply IHl1.
-    eapply Perm_R_cons_inv...
+    eapply Perm_R_cons_inv. eassumption.
   + apply Perm_R_cons_app_inv in HP.
     apply IHl1 in HP.
     rewrite flat_map_app in HP ; simpl in HP.
@@ -295,9 +297,9 @@ Defined.
 
 #[global]
 Instance list_sum_permT : Proper (@Perm_R nat ==> eq) list_sum.
-Proof with try reflexivity.
+Proof.
 intros l1 ; induction l1 ; intros l2 HP.
-- apply Perm_R_nil in HP ; subst...
+- apply Perm_R_nil in HP ; subst. reflexivity.
 - assert (HP' := HP).
   apply Perm_R_sym in HP'.
   apply Perm_R_vs_cons_inv in HP'.
@@ -307,7 +309,7 @@ intros l1 ; induction l1 ; intros l2 HP.
   rewrite 2 list_sum_app.
   simpl.
   rewrite 2 (Nat.add_comm a).
-  rewrite Nat.add_assoc...
+  rewrite Nat.add_assoc. reflexivity.
 Qed.
 
 Lemma Perm_R_id {A} : forall (l : list A) p, is_perm p = true -> length p = length l ->
