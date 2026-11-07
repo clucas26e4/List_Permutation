@@ -1,3 +1,6 @@
+--rocq-package rocq-list-permutation
+-package rocq-stdlib
+-package rocq-ollibs
 -R . ""
 
 List_nat.v
